@@ -16,31 +16,31 @@ from __future__ import print_function ## Force python3-like printing
 ##  TEST CODE                         ##
 ##------------------------------------##
 
-class test_class():
+class TestClass():
     '''
     Quick test class.
-    
-    Contains a test class variable and test class method that prints the 
+
+    Contains a test class variable and test class method that prints the
     variable.
-    
+
     RF
     '''
-    
+
     def __init__(self):
         self.test_string = 'Hello, World!'
-    
-    def print_test_string():
+
+    def print_test_string(self):
         print(self.test_string)
 
 def test_function(*args, **kwargs):
     '''
     Quick test function.
-    
+
     Prints supplied **args and **kwargs
-    
+
     RF
     '''
-    
+
     if args is not None:
         for i, arg in enumerate(args):
             print('an arg passed via *args: ', repr(arg))
@@ -53,4 +53,8 @@ def test_function(*args, **kwargs):
 ##  CODE                              ##
 ##------------------------------------##
 
-
+class SNClass(object):
+    """docstring for sn_obj."""
+    def __init__(self, arg):
+        super(sn_obj, self).__init__()
+        self.arg = arg
