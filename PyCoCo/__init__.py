@@ -8,9 +8,19 @@ date: 06-12-2016
 
 from __future__ import print_function ## Force python3-like printing
 
-##---------------------------------------------------------------------------##
-##                                   TOOLS                                   ##
-##---------------------------------------------------------------------------##
+__name__ = 'PyCoCo'
+__version__ = 0.1
+
+try:
+    __file__
+except NameError:
+    __file__ = sys.argv[0]
+
+import os
+
+##----------------------------------------------------------------------------##
+##                                   TOOLS                                    ##
+##----------------------------------------------------------------------------##
 
 ##------------------------------------##
 ##  TEST CODE                         ##
@@ -49,12 +59,41 @@ def test_function(*args, **kwargs):
             print('a **kwarg: ', repr(key), ' == ' , repr(value))
     pass
 
+##----------------------------------------------------------------------------##
+##  CODE                                                                      ##
+##----------------------------------------------------------------------------##
+
 ##------------------------------------##
-##  CODE                              ##
+##  ERROR DEFS                        ##
 ##------------------------------------##
 
-class SNClass(object):
-    """docstring for sn_obj."""
-    def __init__(self, arg):
-        super(sn_obj, self).__init__()
-        self.arg = arg
+class CustomValueError(ValueError):
+	"""
+	Raise when....
+	"""
+	def __init__(self, *args, **kwargs):
+		ValueError.__init__(self, *args, **kwargs)
+
+##------------------------------------##
+##                                    ##
+##------------------------------------##
+
+class SNClass():
+    """docstring for SNClass."""
+
+    def __init__(self):
+        self.data_directory = self.get_data_directory()
+
+    def get_data_directory(self):
+        """
+
+        """
+
+        return os.environ.get('PYCOCO_DATA_DIR', os.path.abspath(os.path.join(__file__, os.pardir)) + '/testdata/')
+
+
+
+
+##----------------------------------------------------------------------------##
+##  /CODE                                                                     ##
+##----------------------------------------------------------------------------##
