@@ -15,6 +15,11 @@ except NameError:
 
 import os
 import warnings
+import unittest
+import httplib
+from urlparse import urlparse
+
+import astropy as ap
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -23,6 +28,16 @@ import warnings
 ##------------------------------------##
 ##  TESTING                           ##
 ##------------------------------------##
+
+class TestClass(unittest.TestCase):
+
+    def test_dir(self):
+        x = SNClass()
+        self.assertEqual(x._get_data_directory(), _default_data_dir_path)
+
+    def test_load_phot_returns_PathError_for_invalid_path(self):
+        self.assertRaises(PathError, load_phot, 'Zoidberg!')
+
 
 
 
@@ -87,9 +102,14 @@ def dummy_function(*args, **kwargs):
             warnings.warn( "You didn't pass any **kwargs", RuntimeWarning)
     pass
 
+_somevar = 'Foo'
+
 ##----------------------------------------------------------------------------##
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
+
+## Important variables
+_default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
@@ -122,7 +142,7 @@ class SNClass():
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
+        self._default_data_dir_path = _default_data_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -130,7 +150,7 @@ class SNClass():
     def _get_data_directory(self):
         """
         Looks for the data data directory set as environment variable
-        $PYCOCO_DATA_DIR. if not found, returns
+        $PYCOCO_DATA_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
                  default datalocation: '../testdata/'.
@@ -168,9 +188,61 @@ class SNClass():
 
 
 
+def load_phot(path = _default_data_dir_path, verbose = True):
+    """
+    loads photometry into AstroPy Table.
 
+    returns: AstroPy table
+    """
 
+    try:
+        if os.path.isdir(os.path.abspath(path)):
+            pass
+        else:
+            warnings.warn(os.path.abspath(data_dir_path) +
+            " is not a valid directory. Returning 'False'.")
+    except:
+        raise PathError("The data directory '" + path + "' doesn't exist.")
+
+    phot_table = ap.table.Table()
+
+    
+
+    return phot_table
+
+def find_phot():
+    """
+    Looks in a directory, for things that match SNNAME_
+    """
+
+def check_url_status(url):
+    """
+    Snippet from http://stackoverflow.com/questions/6471275 .
+
+    Checks the status of a website - a status flag of < 400 means the site
+    is up.
+
+    """
+    p = urlparse(url)
+    conn = httplib.HTTPConnection(p.netloc)
+    conn.request('HEAD', p.path)
+    resp = conn.getresponse()
+
+    return resp.status
+
+def check_url(url):
+    """
+    Wrapper for check_url_status - considers the status, True if < 400.
+    """
+    return check_url_status(url) < 400
 
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
+
+test = False
+test = True
+
+if test:
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
+    unittest.TextTestRunner(verbosity=2).run(suite)
