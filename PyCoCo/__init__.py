@@ -17,18 +17,26 @@ except NameError:
     __file__ = sys.argv[0]
 
 import os
+import warnings
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
 ##----------------------------------------------------------------------------##
 
 ##------------------------------------##
-##  TEST CODE                         ##
+##  DUMMY CODE                        ##
 ##------------------------------------##
 
-class TestClass():
+class CustomValueError(ValueError):
+	"""
+	Raise when....
+	"""
+	def __init__(self, *args, **kwargs):
+		ValueError.__init__(self, *args, **kwargs)
+
+class DummyClass():
     '''
-    Quick test class.
+    Quick dummy class.
 
     Contains a test class variable and test class method that prints the
     variable.
@@ -37,26 +45,43 @@ class TestClass():
     '''
 
     def __init__(self):
-        self.test_string = 'Hello, World!'
+        self.dummy_string = 'Hello, World!'
 
-    def print_test_string(self):
+    def print_dummy_string(self):
         print(self.test_string)
 
-def test_function(*args, **kwargs):
+def dummy_function(*args, **kwargs):
     '''
-    Quick test function.
+    Quick dummy function.
 
     Prints supplied **args and **kwargs
-
+    Issues warnings if nothing passed
+    
     RF
     '''
 
-    if args is not None:
-        for i, arg in enumerate(args):
-            print('an arg passed via *args: ', repr(arg))
-    if kwargs is not None:
-        for key, value in kwargs.iteritems():
-            print('a **kwarg: ', repr(key), ' == ' , repr(value))
+    warnings.simplefilter('always')
+    print(args)
+    print(kwargs)
+
+
+    # warnings.warn("WARNING")
+
+    if not args and not kwargs:
+        warnings.warn( "You didn't pass any *args or **kwargs", RuntimeWarning)
+
+    else:
+        if args:
+            for i, arg in enumerate(args):
+                print('an arg passed via *args: ', repr(arg))
+        else:
+            warnings.warn( "You didn't pass any *args", RuntimeWarning)
+
+        if kwargs:
+            for key, value in kwargs.iteritems():
+                print('a **kwarg: ', repr(key), ' == ' , repr(value))
+        else:
+            warnings.warn( "You didn't pass any **kwargs", RuntimeWarning)
     pass
 
 ##----------------------------------------------------------------------------##
