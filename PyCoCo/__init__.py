@@ -34,7 +34,7 @@ class TestClass(unittest.TestCase):
     """
     Class for testing PyCoCo
     """
-    
+
     def test_SNClass_get_data_dir_returns_default(self):
         """
 
@@ -243,7 +243,26 @@ def find_phot(path = _default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
-    Looks in a directory, for things that match SN*.dat
+    Looks in a directory, for things that match SN*.dat. Uses regex via `re` -
+    probably overkill.
+
+    Parameters
+    __________
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    _______
+
+    phot_list :
+
     """
     # regex = re.compile("^SN.*.dat")
     if type(path) is not str and type(path) is not unicode:
@@ -271,6 +290,9 @@ def find_phot(path = _default_data_dir_path, snname = False,
         print(ls)
         print("Matched:")
         print(phot_list)
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+
     return phot_list
 
 
@@ -300,7 +322,7 @@ def check_url(url):
 ##----------------------------------------------------------------------------##
 
 test = False
-test = True
+# test = True
 
 if test:
     suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
