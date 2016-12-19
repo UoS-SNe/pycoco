@@ -17,6 +17,7 @@ import os
 import warnings
 import unittest
 import httplib
+import re
 from urlparse import urlparse
 
 import astropy as ap
@@ -30,15 +31,40 @@ import astropy as ap
 ##------------------------------------##
 
 class TestClass(unittest.TestCase):
+    """
+    Class for testing PyCoCo
+    """
+    
+    def test_SNClass_get_data_dir_returns_default(self):
+        """
 
-    def test_dir(self):
+        """
+
         x = SNClass()
         self.assertEqual(x._get_data_directory(), _default_data_dir_path)
 
     def test_load_phot_returns_PathError_for_invalid_path(self):
+        """
+
+        """
+
         self.assertRaises(PathError, load_phot, 'Zoidberg!')
 
+    def test_find_phot_finds_SN2005bf_B(self):
+        """
 
+        """
+
+        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
+        self.assertEqual(find_phot(directory_path_to_search, verbose = False)[0],
+                         u'SN2005bf_B.dat')
+
+    def test_find_phot_throws_path_error(self):
+        """
+
+        """
+
+        self.assertRaises(PathError, load_phot, 'Zoidberg!')
 
 
 ##------------------------------------##
@@ -186,7 +212,11 @@ class SNClass():
              + " you messed with _default_data_dir_path?")
             pass
 
+def check_path(path, verbose = True):
+    """
 
+    """
+    return
 
 def load_phot(path = _default_data_dir_path, verbose = True):
     """
@@ -194,7 +224,6 @@ def load_phot(path = _default_data_dir_path, verbose = True):
 
     returns: AstroPy table
     """
-
     try:
         if os.path.isdir(os.path.abspath(path)):
             pass
@@ -206,14 +235,44 @@ def load_phot(path = _default_data_dir_path, verbose = True):
 
     phot_table = ap.table.Table()
 
-    
+
 
     return phot_table
 
-def find_phot():
+def find_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
     """
-    Looks in a directory, for things that match SNNAME_
+    Looks in a directory, for things that match SN*.dat
     """
+    # regex = re.compile("^SN.*.dat")
+    if type(path) is not str and type(path) is not unicode:
+        warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
+                      stacklevel = 2)
+    try:
+        if os.path.isdir(os.path.abspath(path)):
+            pass
+        else:
+            warnings.warn(os.path.abspath(data_dir_path) +
+            " is not a valid directory. Returning 'False'.")
+    except:
+        raise PathError("The data directory '" + str(path) + "' doesn't exist.")
+
+
+    match_string = "^" + prefix + ".*" + '.dat'
+    regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+
+    phot_list = [match.group(0) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if verbose:
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+    return phot_list
+
 
 def check_url_status(url):
     """
