@@ -1,11 +1,13 @@
-'''This is the module for the PyCoCo python tools.
+'''
+This is the module for the PyCoCo python tools.
 
 author: Rob Firth, Southampton
-date: 06-12-2016'''
+date: 06-12-2016
+'''
 
 from __future__ import print_function ## Force python3-like printing
 
-__name__ = 'PyCoCo'
+__name__ = 'pycoco'
 __version__ = 0.1
 
 try:
@@ -32,7 +34,7 @@ import astropy as ap
 
 class TestClass(unittest.TestCase):
     """
-    Class for testing PyCoCo
+    Class for testing pycoco
     """
 
     def test_SNClass_get_data_dir_returns_default(self):
@@ -56,8 +58,18 @@ class TestClass(unittest.TestCase):
         """
 
         directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
-        self.assertEqual(find_phot(directory_path_to_search, verbose = False)[0],
-                         u'SN2005bf_B.dat')
+        phot_path = find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
+        phot_filename = phot_path.split('/')[-1]
+        self.assertEqual(phot_filename, u'SN2005bf_B.dat')
+
+    def test_find_phot_finds_no_SN2011fe_data(self):
+        """
+
+        """
+
+        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
+        self.assertEqual(len(find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)),
+                         0)
 
     def test_find_phot_throws_path_error(self):
         """
@@ -75,8 +87,11 @@ class CustomValueError(ValueError):
 	"""
 	Raise when....
 	"""
+
+
 	def __init__(self, *args, **kwargs):
 		ValueError.__init__(self, *args, **kwargs)
+
 
 class DummyClass():
     '''
@@ -88,11 +103,14 @@ class DummyClass():
     RF
     '''
 
+
     def __init__(self):
         self.dummy_string = 'Hello, World!'
 
+
     def print_dummy_string(self):
         print(self.test_string)
+
 
 def dummy_function(*args, **kwargs):
     '''
@@ -128,18 +146,23 @@ def dummy_function(*args, **kwargs):
             warnings.warn( "You didn't pass any **kwargs", RuntimeWarning)
     pass
 
+
 _somevar = 'Foo'
+
 
 ##----------------------------------------------------------------------------##
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
 
 ## Important variables
+
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
+
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
 ##------------------------------------##
+
 
 class CustomValueError(ValueError):
 	"""
@@ -148,6 +171,7 @@ class CustomValueError(ValueError):
 	def __init__(self, *args, **kwargs):
 		ValueError.__init__(self, *args, **kwargs)
 
+
 class PathError(StandardError):
 	"""
 	Raise when a path is found to be invalid
@@ -155,9 +179,11 @@ class PathError(StandardError):
 	def __init__(self, *args, **kwargs):
 		StandardError.__init__(self, *args, **kwargs)
 
+
 ##------------------------------------##
 ##                                    ##
 ##------------------------------------##
+
 
 class SNClass():
     """docstring for SNClass."""
@@ -173,8 +199,11 @@ class SNClass():
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
 
+
     def _get_data_directory(self):
         """
+        Get the defaul path to the data directory.
+
         Looks for the data data directory set as environment variable
         $PYCOCO_DATA_DIR. if not found, returns default.
 
@@ -184,8 +213,11 @@ class SNClass():
 
         return os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path)
 
+
     def set_data_directory(self, data_dir_path = '', verbose = False):
         """
+        Set a new data directory path.
+
         Enables the data directory to be changed by the user.
 
         """
@@ -212,42 +244,61 @@ class SNClass():
              + " you messed with _default_data_dir_path?")
             pass
 
+
+    def load_phot_from_file():
+        pass
+
+    def load_phot_ap_tables():
+        pass
+
+
 def check_path(path, verbose = True):
     """
 
     """
     return
 
-def load_phot(path = _default_data_dir_path, verbose = True):
+
+def load_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
     """
     loads photometry into AstroPy Table.
 
     returns: AstroPy table
     """
-    try:
-        if os.path.isdir(os.path.abspath(path)):
-            pass
-        else:
-            warnings.warn(os.path.abspath(data_dir_path) +
-            " is not a valid directory. Returning 'False'.")
-    except:
-        raise PathError("The data directory '" + path + "' doesn't exist.")
+    ## Do i need the following? Errors should be handled in find_phot?
+    # try:
+    #     if os.path.isdir(os.path.abspath(path)):
+    #         pass
+    #     else:
+    #         warnings.warn(os.path.abspath(data_dir_path) +
+    #         " is not a valid directory. Returning 'False'.")
+    # except:
+    #     raise PathError("The data directory '" + path + "' doesn't exist.")
+
+    phot_list = find_phot(path = path)
 
     phot_table = ap.table.Table()
+
+    for phot_file in phot_list:
+        print(phot_file)
+        print(phot_table.read(phot_file, format = format))
 
 
 
     return phot_table
 
+
 def find_phot(path = _default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
-    Looks in a directory, for things that match SN*.dat. Uses regex via `re` -
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SN*.dat. Uses regex via `re` -
     probably overkill.
 
     Parameters
-    __________
+    ----------
 
     path :
 
@@ -259,7 +310,7 @@ def find_phot(path = _default_data_dir_path, snname = False,
 
 
     Returns
-    _______
+    -------
 
     phot_list :
 
@@ -277,13 +328,19 @@ def find_phot(path = _default_data_dir_path, snname = False,
     except:
         raise PathError("The data directory '" + str(path) + "' doesn't exist.")
 
+    try:
+        if snname:
+            match_string = "^" + str(snname) + ".*" + '.dat'
+        else:
+            match_string = "^" + str(prefix) + ".*" + '.dat'
+    except:
+        raise TypeError
 
-    match_string = "^" + prefix + ".*" + '.dat'
     regex = re.compile(match_string)
 
     ls = os.listdir(path)
 
-    phot_list = [match.group(0) for file_name in ls for match in [regex.search(file_name)] if match]
+    phot_list = [os.path.abspath(os.path.join(path, match.group(0))) for file_name in ls for match in [regex.search(file_name)] if match]
 
     if verbose:
         print("Found: ")
@@ -311,11 +368,13 @@ def check_url_status(url):
 
     return resp.status
 
+
 def check_url(url):
     """
     Wrapper for check_url_status - considers the status, True if < 400.
     """
     return check_url_status(url) < 400
+
 
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
