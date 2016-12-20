@@ -7,12 +7,16 @@ date: 06-12-2016
 
 from __future__ import print_function ## Force python3-like printing
 
-__name__ = 'pycoco'
-__version__ = 0.1
+if __name__ is not '__main__':
+
+    __name__ = 'pycoco'
+    __version__ = 0.1
 
 try:
     __file__
+
 except NameError:
+
     __file__ = sys.argv[0]
 
 import os
@@ -23,6 +27,8 @@ import re
 from urlparse import urlparse
 
 import astropy as ap
+import astropy.units as u
+from astropy.time import Time
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -38,46 +44,46 @@ class TestClass(unittest.TestCase):
     """
 
     def test_SNClass_get_data_dir_returns_default(self):
-        """
-
-        """
-
         x = SNClass()
         self.assertEqual(x._get_data_directory(), _default_data_dir_path)
 
-    def test_load_phot_returns_PathError_for_invalid_path(self):
-        """
-
-        """
-
-        self.assertRaises(PathError, load_phot, 'Zoidberg!')
+    def test_load_all_phot_returns_PathError_for_None(self):
+        self.assertRaises(PathError, load_all_phot, None)
 
     def test_find_phot_finds_SN2005bf_B(self):
-        """
-
-        """
-
         directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
         phot_path = find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, u'SN2005bf_B.dat')
 
     def test_find_phot_finds_no_SN2011fe_data(self):
-        """
-
-        """
-
         directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
         self.assertEqual(len(find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)),
                          0)
 
-    def test_find_phot_throws_path_error(self):
-        """
+    def test_find_phot_throws_path_error_for_None(self):
+        self.assertRaises(PathError, find_phot, None)
 
-        """
+    def test_find_phot_returns_False_for_zoidberg(self):
+        self.assertEqual(find_phot('Zoidberg!'), False)
 
-        self.assertRaises(PathError, load_phot, 'Zoidberg!')
+    def test_check_dir_path_finds_pycoco_dir(self):
+        self.assertEqual(check_dir_path(_default_data_dir_path), True)
 
+    def test_check_dir_path_raises_PathError_for_None(self):
+        self.assertRaises(PathError, check_dir_path, None)
+
+    def test_check_dir_path_returns_False_for_file(self):
+        self.assertEqual(check_dir_path(__file__), False)
+
+    def test_check_file_path_finds_SN2005bf_B(self):
+        self.assertEqual(check_file_path(os.path.join(_default_data_dir_path, 'SN2005bf_B.dat')), True)
+
+    def test_check_file_path_raises_PathError_for_None(self):
+        self.assertRaises(PathError, check_file_path, None)
+
+    def test_check_file_path_returns_False_for_dir(self):
+        self.assertEqual(check_file_path(_default_data_dir_path), False)
 
 ##------------------------------------##
 ##  DUMMY CODE                        ##
@@ -180,6 +186,17 @@ class PathError(StandardError):
 		StandardError.__init__(self, *args, **kwargs)
 
 
+def StringWarning(path):
+    """
+
+    """
+    if type(path) is not str and type(path) is not unicode:
+        warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
+                      stacklevel = 2)
+
+    else:
+        pass
+
 
 ##------------------------------------##
 ##                                    ##
@@ -247,20 +264,84 @@ class SNClass():
 
 
     def load_phot_from_file():
+        """
+
+        """
+
+
+
+
         pass
 
     def load_phot_ap_tables():
+        """
+
+        """
+
         pass
 
+    def plot():
 
-def check_path(path, verbose = True):
+        pass
+
+def check_dir_path(path, verbose = False):
     """
 
     """
-    return
+    try:
+        if os.path.isdir(os.path.abspath(path)):
+            if verbose: print("foo")
+            return True
+        else:
+        #     if verbose: print("bar")
+            warnings.warn(os.path.abspath(path) +
+            " is not a valid directory. Returning 'False'.")
+            return False
+    except:
+        raise PathError("The path '" + str(path) + "'is not a directory or doesn't exist.")
+        return False
 
 
-def load_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
+
+def check_file_path(path, verbose = True):
+    """
+
+    """
+    try:
+        if os.path.isfile(os.path.abspath(str(path))):
+            if verbose: print("foo")
+            return True
+        else:
+            warnings.warn(os.path.abspath(path) +
+            " is not a valid file. Returning 'False'.")
+            return False
+    except:
+        raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+        return False
+
+
+
+def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+              format = 'ascii', verbose = True):
+    """
+    Loads a single photometry file.
+
+
+    """
+
+    StringWarning(path)
+
+    phot_table = ap.table.Table.read(path, format = format, names = names)
+
+    phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+
+    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+    phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+
+    return phot_table
+
+def load_all_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
     """
     loads photometry into AstroPy Table.
 
@@ -275,18 +356,18 @@ def load_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
     #         " is not a valid directory. Returning 'False'.")
     # except:
     #     raise PathError("The data directory '" + path + "' doesn't exist.")
-
     phot_list = find_phot(path = path)
 
-    phot_table = ap.table.Table()
+    if len(phot_list) > 0:
+        phot_table = ap.table.Table()
 
-    for phot_file in phot_list:
-        print(phot_file)
-        print(phot_table.read(phot_file, format = format))
+        for phot_file in phot_list:
+            print(phot_file)
+            print(phot_table.read(phot_file, format = format))
 
-
-
-    return phot_table
+        return phot_table
+    else:
+        warning.warn("Couldn't find any photometry")
 
 
 def find_phot(path = _default_data_dir_path, snname = False,
@@ -317,17 +398,10 @@ def find_phot(path = _default_data_dir_path, snname = False,
 
     """
     # regex = re.compile("^SN.*.dat")
-    if type(path) is not str and type(path) is not unicode:
-        warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
-                      stacklevel = 2)
-    try:
-        if os.path.isdir(os.path.abspath(path)):
-            pass
-        else:
-            warnings.warn(os.path.abspath(data_dir_path) +
-            " is not a valid directory. Returning 'False'.")
-    except:
-        raise PathError("The data directory '" + str(path) + "' doesn't exist.")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        return False
 
     try:
         if snname:
@@ -350,7 +424,6 @@ def find_phot(path = _default_data_dir_path, snname = False,
         print(phot_list)
     if len(phot_list) is 0:
         warnings.warn("No matches found.")
-
     return phot_list
 
 
@@ -381,9 +454,18 @@ def check_url(url):
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
 
-test = False
-# test = True
+if __name__ is '__main__':
 
-if test:
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    test = False
+    test = True
+
+    if test:
+
+        print("Running test suite:\n")
+
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+
+else:
+
+    pass
