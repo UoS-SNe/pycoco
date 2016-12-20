@@ -29,6 +29,8 @@ from urlparse import urlparse
 import astropy as ap
 import astropy.units as u
 from astropy.time import Time
+from collections import OrderedDict
+import numpy as np
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -213,10 +215,10 @@ class SNClass():
 
         ## Initialise the class variables
         self._default_data_dir_path = _default_data_dir_path
+        self.photometry = OrderedDict()
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
-
 
     def _get_data_directory(self):
         """
@@ -263,26 +265,30 @@ class SNClass():
             pass
 
 
-    def load_phot_from_file():
+    def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii', verbose = True):
         """
 
         """
-
-
-
+        phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+        self.photometry[np.unique(phot_table["filter"])[0]] = phot_table
+        # self.photometry
+        # phot_list = find_phot(self.data_directory)
+        # print(phot_list)
 
         pass
 
-    def load_phot_ap_tables():
+    def load_phot_ap_tables(self):
         """
 
         """
 
         pass
 
-    def plot():
+    def plot(self):
 
         pass
+
 
 def check_dir_path(path, verbose = False):
     """
@@ -340,6 +346,7 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
 
     return phot_table
+
 
 def load_all_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
     """
