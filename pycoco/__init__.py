@@ -25,13 +25,15 @@ import unittest
 import httplib
 import re
 from urlparse import urlparse
+from collections import OrderedDict
 
 import astropy as ap
 import astropy.units as u
 from astropy.time import Time
-from collections import OrderedDict
 import numpy as np
-
+from matplotlib import pyplot as plt
+from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.interpolate import interp1d as interp1d
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
 ##----------------------------------------------------------------------------##
@@ -166,7 +168,9 @@ _somevar = 'Foo'
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 
-
+# _colormap_name = 'jet'
+_colormap_name = 'rainbow'
+colormap = plt.get_cmap(_colormap_name)
 ##------------------------------------##
 ##  ERROR DEFS                        ##
 ##------------------------------------##
@@ -290,6 +294,82 @@ class SNClass():
         pass
 
 
+class FilterClass():
+    """Docstring for FilterClass"""
+
+    def __init__(self, verbose = True):
+        self._wavelength_units = u.Angstrom
+        pass
+
+
+    def read_filter_file(self, path):
+        """
+        Assumes Response function is fractional rather than %.
+        """
+        if check_file_path(os.path.abspath(path)):
+            self.wavelength, self.throughput = np.loadtxt(path).T
+
+            self._filter_file_path = path
+        else:
+            warnings.warn("Foo")
+
+
+    def calculate_effective_wavelength(self):
+
+        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
+        lambda_eff = spline_rev(0.5)
+
+        self.lambda_effective = lambda_eff * self._wavelength_units
+
+
+    def plot(self, *args, **kwargs):
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
+
+            plt.plot(self.wavelength, self.throughput)
+
+            plt.show()
+            pass
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def resample_response(self, new_wavelength):
+        """
+        Bit dodgy.
+        """
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+            self._wavelength_orig = self.wavelength
+            self._throughput_orig = self.throughput
+
+            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
+            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
+
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
+            self.throughput = interp_func(new_wavelength)
+            self.wavelength = new_wavelength
+
+            self.throughput[np.where(self.throughput < 0.0)] = 0.0
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+
+def load_filter(path, verbose = True):
+    """
+
+    """
+    if check_file_path(os.path.abspath(path)):
+        filter_object = FilterClass()
+        filter_object.read_filter_file(os.path.abspath(path))
+
+        return filter_object
+    else:
+        warnings.warn("Couldn't load the filter")
+        return None
+
+
 def check_dir_path(path, verbose = False):
     """
 
@@ -308,7 +388,6 @@ def check_dir_path(path, verbose = False):
         return False
 
 
-
 def check_file_path(path, verbose = True):
     """
 
@@ -324,7 +403,6 @@ def check_file_path(path, verbose = True):
     except:
         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
         return False
-
 
 
 def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
@@ -455,6 +533,9 @@ def check_url(url):
     Wrapper for check_url_status - considers the status, True if < 400.
     """
     return check_url_status(url) < 400
+
+
+
 
 
 ##----------------------------------------------------------------------------##
