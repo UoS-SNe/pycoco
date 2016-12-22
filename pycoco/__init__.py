@@ -529,19 +529,3 @@ def check_url(url):
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
-
-if __name__ is '__main__':
-
-    test = False
-    test = True
-
-    if test:
-
-        print("Running test suite:\n")
-
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
-        unittest.TextTestRunner(verbosity=2).run(suite)
-
-else:
-
-    pass

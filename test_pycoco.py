@@ -1,4 +1,10 @@
-import pycoco
+"""
+Test suite for pycoco
+"""
+
+import unittest
+
+from pycoco import *
 
 ##------------------------------------##
 ##  TESTING                           ##
@@ -50,3 +56,20 @@ class TestClass(unittest.TestCase):
 
     def test_check_file_path_returns_False_for_dir(self):
         self.assertEqual(check_file_path(_default_data_dir_path), False)
+
+
+if __name__ is '__main__':
+
+    test = False
+    test = True
+
+    if test:
+
+        print("Running test suite:\n")
+
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+
+else:
+
+    pass
