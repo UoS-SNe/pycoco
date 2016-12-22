@@ -34,6 +34,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
+
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
 ##----------------------------------------------------------------------------##
@@ -171,6 +172,7 @@ _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pa
 # _colormap_name = 'jet'
 _colormap_name = 'rainbow'
 colormap = plt.get_cmap(_colormap_name)
+
 ##------------------------------------##
 ##  ERROR DEFS                        ##
 ##------------------------------------##
@@ -353,7 +355,6 @@ class FilterClass():
             self.throughput[np.where(self.throughput < 0.0)] = 0.0
         else:
             warning.warn("Doesn't look like you have loaded a filter into the object")
-
 
 
 def load_filter(path, verbose = True):
