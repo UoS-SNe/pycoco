@@ -237,6 +237,7 @@ class SNClass():
 
         pass
 
+
     def load_phot_ap_tables(self):
         """
 
@@ -244,10 +245,30 @@ class SNClass():
 
         pass
 
+
     def plot(self):
+        """
+
+        """
+
 
         pass
 
+
+    def save_phot(self, path):
+        """
+        Output the photometry loaded into the SNClass via self.load_phot* into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
+        pass
 
 class FilterClass():
     """Docstring for FilterClass"""
@@ -342,6 +363,30 @@ class FilterClass():
         else:
             warnings.warn("No self.lambda_effective set.")
 
+
+class SpectrumClass():
+    """
+
+    """
+
+    def __init__(self):
+        pass
+
+
+class PhotometryClass():
+    """
+    Probably also overkill - but should be easier to store metadata etc. Hopefully
+    flexible enough to just be a wrapper for AP tables of phot.
+
+    PhotometryClass should have a FilterClass method describing the observations. 
+    """
+
+    def __init__(self):
+        pass
+
+##------------------------------------##
+##                                    ##
+##------------------------------------##
 
 def load_filter(path, verbose = True):
     """
