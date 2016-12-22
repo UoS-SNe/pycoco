@@ -114,6 +114,7 @@ _somevar = 'Foo'
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
 
+__all__ = ["_default_data_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
 ## Important variables
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
