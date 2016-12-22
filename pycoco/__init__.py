@@ -40,57 +40,6 @@ from scipy.interpolate import interp1d as interp1d
 ##----------------------------------------------------------------------------##
 
 ##------------------------------------##
-##  TESTING                           ##
-##------------------------------------##
-
-class TestClass(unittest.TestCase):
-    """
-    Class for testing pycoco
-    """
-
-    def test_SNClass_get_data_dir_returns_default(self):
-        x = SNClass()
-        self.assertEqual(x._get_data_directory(), _default_data_dir_path)
-
-    def test_load_all_phot_returns_PathError_for_None(self):
-        self.assertRaises(PathError, load_all_phot, None)
-
-    def test_find_phot_finds_SN2005bf_B(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
-        phot_path = find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
-        phot_filename = phot_path.split('/')[-1]
-        self.assertEqual(phot_filename, u'SN2005bf_B.dat')
-
-    def test_find_phot_finds_no_SN2011fe_data(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
-        self.assertEqual(len(find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)),
-                         0)
-
-    def test_find_phot_throws_path_error_for_None(self):
-        self.assertRaises(PathError, find_phot, None)
-
-    def test_find_phot_returns_False_for_zoidberg(self):
-        self.assertEqual(find_phot('Zoidberg!'), False)
-
-    def test_check_dir_path_finds_pycoco_dir(self):
-        self.assertEqual(check_dir_path(_default_data_dir_path), True)
-
-    def test_check_dir_path_raises_PathError_for_None(self):
-        self.assertRaises(PathError, check_dir_path, None)
-
-    def test_check_dir_path_returns_False_for_file(self):
-        self.assertEqual(check_dir_path(__file__), False)
-
-    def test_check_file_path_finds_SN2005bf_B(self):
-        self.assertEqual(check_file_path(os.path.join(_default_data_dir_path, 'SN2005bf_B.dat')), True)
-
-    def test_check_file_path_raises_PathError_for_None(self):
-        self.assertRaises(PathError, check_file_path, None)
-
-    def test_check_file_path_returns_False_for_dir(self):
-        self.assertEqual(check_file_path(_default_data_dir_path), False)
-
-##------------------------------------##
 ##  DUMMY CODE                        ##
 ##------------------------------------##
 
@@ -165,13 +114,17 @@ _somevar = 'Foo'
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
 
+__all__ = ["_default_data_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
 ## Important variables
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 
 # _colormap_name = 'jet'
-_colormap_name = 'rainbow'
-colormap = plt.get_cmap(_colormap_name)
+_colourmap_name = 'rainbow'
+colourmap = plt.get_cmap(_colourmap_name)
+
+_colour_upper_lambda_limit = 10000 * u.angstrom
+_colour_lower_lambda_limit = 3000 * u.angstrom
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
@@ -312,11 +265,17 @@ class FilterClass():
             self.wavelength, self.throughput = np.loadtxt(path).T
 
             self._filter_file_path = path
+            self.calculate_effective_wavelength()
+
         else:
             warnings.warn("Foo")
 
 
     def calculate_effective_wavelength(self):
+        """
+        Well, what are you expecting something called `calculate_effective_wavelength`
+         to do?
+        """
 
         spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
         lambda_eff = spline_rev(0.5)
@@ -325,11 +284,19 @@ class FilterClass():
 
 
     def plot(self, *args, **kwargs):
+        """
+
+        """
+
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
 
-            plt.plot(self.wavelength, self.throughput)
+            if hasattr(self, "_plot_colour"):
+                plt.plot(self.wavelength, self.throughput, color = self._plot_colour)
+            else:
+                plt.plot(self.wavelength, self.throughput)
+
 
             plt.show()
             pass
@@ -339,8 +306,9 @@ class FilterClass():
 
     def resample_response(self, new_wavelength):
         """
-        Bit dodgy.
+        Bit dodgy - spline has weird results for poorly sampled filters
         """
+
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
             self._wavelength_orig = self.wavelength
             self._throughput_orig = self.throughput
@@ -357,8 +325,28 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
+        """
+
+        """
+
+        if hasattr(self, 'lambda_effective'):
+
+            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
+            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+
+            if verbose: print("relative_lambda = ", relative_lambda)
+
+            self._plot_colour = colourmap(relative_lambda)
+
+        else:
+            warnings.warn("No self.lambda_effective set.")
+
+
 def load_filter(path, verbose = True):
     """
+    Loads a filter response into FilterClass and returns it.
+
 
     """
     if check_file_path(os.path.abspath(path)):
@@ -542,19 +530,3 @@ def check_url(url):
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
-
-if __name__ is '__main__':
-
-    test = False
-    test = True
-
-    if test:
-
-        print("Running test suite:\n")
-
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestClass)
-        unittest.TextTestRunner(verbosity=2).run(suite)
-
-else:
-
-    pass
