@@ -170,8 +170,11 @@ _somevar = 'Foo'
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 
 # _colormap_name = 'jet'
-_colormap_name = 'rainbow'
-colormap = plt.get_cmap(_colormap_name)
+_colourmap_name = 'rainbow'
+colourmap = plt.get_cmap(_colormap_name)
+
+_colour_upper_lambda_limit = 10000 * u.angstrom
+_colour_lower_lambda_limit = 3000 * u.angstrom
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
@@ -312,11 +315,17 @@ class FilterClass():
             self.wavelength, self.throughput = np.loadtxt(path).T
 
             self._filter_file_path = path
+            self.calculate_effective_wavelength()
+
         else:
             warnings.warn("Foo")
 
 
     def calculate_effective_wavelength(self):
+        """
+        Well, what are you expecting something called `calculate_effective_wavelength`
+         to do?
+        """
 
         spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
         lambda_eff = spline_rev(0.5)
@@ -325,11 +334,19 @@ class FilterClass():
 
 
     def plot(self, *args, **kwargs):
+        """
+
+        """
+
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
 
-            plt.plot(self.wavelength, self.throughput)
+            if hasattr(self, "_plot_colour"):
+                plt.plot(self.wavelength, self.throughput, color = self._plot_colour)
+            else:
+                plt.plot(self.wavelength, self.throughput)
+
 
             plt.show()
             pass
@@ -339,8 +356,9 @@ class FilterClass():
 
     def resample_response(self, new_wavelength):
         """
-        Bit dodgy.
+        Bit dodgy - spline has weird results for poorly sampled filters
         """
+
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
             self._wavelength_orig = self.wavelength
             self._throughput_orig = self.throughput
@@ -357,8 +375,28 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
+        """
+
+        """
+
+        if hasattr(self, 'lambda_effective'):
+
+            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
+            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+
+            if verbose: print("relative_lambda = ", relative_lambda)
+
+            self._plot_colour = colourmap(relative_lambda)
+
+        else:
+            warnings.warn("No self.lambda_effective set.")
+
+
 def load_filter(path, verbose = True):
     """
+    Loads a filter response into FilterClass and returns it.
+
 
     """
     if check_file_path(os.path.abspath(path)):
