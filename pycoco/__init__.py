@@ -30,10 +30,12 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.time import Time
+from astropy.table import Table
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
+
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -115,6 +117,7 @@ _somevar = 'Foo'
 ##----------------------------------------------------------------------------##
 
 __all__ = ["_default_data_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
+
 ## Important variables
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
@@ -147,6 +150,14 @@ class PathError(StandardError):
 		StandardError.__init__(self, *args, **kwargs)
 
 
+class FilterMismatchError(ValueError):
+	"""
+	Raise when a Filter from filename doesn't match the one in the photfile
+	"""
+	def __init__(self, *args, **kwargs):
+		ValueError.__init__(self, *args, **kwargs)
+
+
 def StringWarning(path):
     """
 
@@ -159,13 +170,18 @@ def StringWarning(path):
         pass
 
 
+
 ##------------------------------------##
 ##                                    ##
 ##------------------------------------##
 
+class PhotometryClass():
+    """
+    Probably also overkill - but should be easier to store metadata etc. Hopefully
+    flexible enough to just be a wrapper for AP tables of phot.
 
-class SNClass():
-    """docstring for SNClass."""
+    PhotometryClass should have a FilterClass method describing the observations.
+    """
 
     def __init__(self, verbose = False):
         """
@@ -174,7 +190,7 @@ class SNClass():
 
         ## Initialise the class variables
         self._default_data_dir_path = _default_data_dir_path
-        self.photometry = OrderedDict()
+        self.data = OrderedDict()
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -230,7 +246,7 @@ class SNClass():
 
         """
         phot_table = load_phot(path, names = names, format = format, verbose = verbose)
-        self.photometry[np.unique(phot_table["filter"])[0]] = phot_table
+        self.data[np.unique(phot_table["filter"])[0]] = phot_table
         # self.photometry
         # phot_list = find_phot(self.data_directory)
         # print(phot_list)
@@ -242,6 +258,77 @@ class SNClass():
         """
 
         """
+
+        pass
+
+
+    def load(self, path = _default_data_dir_path, snname = False, prefix = 'SN',
+             file_type = '.dat', names = ('MJD', 'flux', 'flux_err', 'filter'),
+             format = 'ascii', verbose = True):
+        """
+        Finds and loads in data (from file) into phot objects.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
+        ## Find matching photometry
+        phot_list = find_phot(path = path, snname = snname, prefix = prefix,
+                              file_type = file_type, verbose = verbose)
+
+        ## Loop over files (shouldn't be that many really)
+        if len(phot_list) > 0:
+
+            for phot_file in phot_list:
+
+                if verbose: print(phot_file)
+                phot_table = Table.read(phot_file, names = names, format = format)
+
+                filter_string = get_filter_from_filename(phot_file, snname, file_type)
+                phot_table.meta = {"filename" : phot_file,
+                                   "filter" : filter_string}
+
+                ## Sort out units
+                phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+
+                phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+                phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+                ## Put in dictionary - use filter from the
+                filter_key = np.unique(phot_table["filter"])[0]
+                if verbose: print(len(np.unique(phot_table["filter"])) , phot_table.meta["filter"], filter_key)
+
+                if len(np.unique(phot_table["filter"])) > 1 or filter_key != phot_table.meta["filter"]:
+                    raise FilterMismatchError("There is a mismatch between the filter filename and that in the "
+                                               + "photometry file")
+
+                self.data[filter_key] = phot_table
+
+
+            # return phot_table
+        else:
+            warning.warn("Couldn't find any photometry")
+
+        pass
+
+
+    def save(self, verbose = True):
+        """
+        Outputs
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("data")
+
 
         pass
 
@@ -268,7 +355,9 @@ class SNClass():
 
         """
 
+
         pass
+
 
 class FilterClass():
     """Docstring for FilterClass"""
@@ -373,13 +462,8 @@ class SpectrumClass():
         pass
 
 
-class PhotometryClass():
-    """
-    Probably also overkill - but should be easier to store metadata etc. Hopefully
-    flexible enough to just be a wrapper for AP tables of phot.
-
-    PhotometryClass should have a FilterClass method describing the observations. 
-    """
+class SNClass():
+    """docstring for SNClass."""
 
     def __init__(self):
         pass
@@ -392,7 +476,10 @@ def load_filter(path, verbose = True):
     """
     Loads a filter response into FilterClass and returns it.
 
-
+    Parameters
+    ----------
+    Returns
+    -------
     """
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
@@ -404,9 +491,27 @@ def load_filter(path, verbose = True):
         return None
 
 
+def get_filter_from_filename(path, snname, file_type):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    filename_from_path = path.split("/")[-1]
+    filename_no_extension = filename_from_path.replace(file_type, "")
+    filter_string = filename_no_extension.replace(snname+"_", "")
+
+    # phot_file.replace(file_type, '').split('_')[-1]
+
+    return filter_string
+
 def check_dir_path(path, verbose = False):
     """
-
+    Parameters
+    ----------
+    Returns
+    -------
     """
     try:
         if os.path.isdir(os.path.abspath(path)):
@@ -444,12 +549,16 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
     """
     Loads a single photometry file.
 
-
+    Parameters
+    ----------
+    Returns
+    -------
     """
 
     StringWarning(path)
 
-    phot_table = ap.table.Table.read(path, format = format, names = names)
+    # phot_table = ap.table.Table.read(path, format = format, names = names)
+    phot_table = Table.read(path, format = format, names = names)
 
     phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
 
@@ -478,6 +587,7 @@ def load_all_phot(path = _default_data_dir_path, format = 'ascii', verbose = Tru
     phot_list = find_phot(path = path)
 
     if len(phot_list) > 0:
+        # phot_table = Table()
         phot_table = ap.table.Table()
 
         for phot_file in phot_list:
