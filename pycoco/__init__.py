@@ -121,7 +121,7 @@ __all__ = ["_default_data_dir_path", "_colourmap_name", "_colour_upper_lambda_li
 ## Important variables
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
-
+_default_filter_dir_path = "/Users/berto/Code/CoCo/data/filters/"
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 colourmap = plt.get_cmap(_colourmap_name)
@@ -194,6 +194,7 @@ class PhotometryClass():
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
+
 
     def _get_data_directory(self):
         """
@@ -316,6 +317,16 @@ class PhotometryClass():
         pass
 
 
+    def _combine_phot():
+        """
+
+        """
+
+
+
+        pass
+
+
     def save(self, verbose = True):
         """
         Outputs
@@ -327,7 +338,7 @@ class PhotometryClass():
         """
 
         if hasattr(self, "data"):
-            if verbose: print("data")
+            if verbose: print("has data")
 
 
         pass
@@ -505,6 +516,21 @@ def get_filter_from_filename(path, snname, file_type):
     # phot_file.replace(file_type, '').split('_')[-1]
 
     return filter_string
+
+
+def _get_filter_directory(self):
+    """
+    Get the defaul path to the filter directory.
+
+    Looks for the filter directory set as environment variable
+    $PYCOCO_FILTER_DIR. if not found, returns default.
+
+    returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+             default datalocation: '../testdata/'.
+    """
+
+    return os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path)
+
 
 def check_dir_path(path, verbose = False):
     """
