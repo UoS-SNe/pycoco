@@ -386,6 +386,11 @@ class FilterClass():
             self.wavelength, self.throughput = np.loadtxt(path).T
 
             self._filter_file_path = path
+
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+            self.filter_name = filename_no_extension
+
             self.calculate_effective_wavelength()
 
         else:
