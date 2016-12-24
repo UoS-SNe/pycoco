@@ -317,10 +317,17 @@ class PhotometryClass():
         pass
 
 
-    def _combine_phot():
+    def _combine_phot(self):
         """
 
         """
+
+        if hasattr(self, "data"):
+            print(self.data.keys())
+
+            
+        else:
+            warnings.warn("Cant find self.data")
 
 
 
