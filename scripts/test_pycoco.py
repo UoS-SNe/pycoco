@@ -17,8 +17,11 @@ class TestClass(unittest.TestCase):
     Class for testing pycoco
     """
 
-    def test_SNClass_get_data_dir_returns_default(self):
-        x = pcc.SNClass()
+    # def test_SNClass_get_data_dir_returns_default(self):
+    #     x = pcc.SNClass()
+    #     self.assertEqual(x._get_data_directory(), pcc._default_data_dir_path)
+    def test_PhotometryClass_get_data_dir_returns_default(self):
+        x = pcc.PhotometryClass()
         self.assertEqual(x._get_data_directory(), pcc._default_data_dir_path)
 
     def test_load_all_phot_returns_PathError_for_None(self):

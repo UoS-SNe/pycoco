@@ -207,7 +207,7 @@ class PhotometryClass():
                  default datalocation: '../testdata/'.
         """
 
-        return os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path)
+        return os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path))
 
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
