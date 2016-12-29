@@ -325,7 +325,7 @@ class PhotometryClass():
         if hasattr(self, "data"):
             print(self.data.keys())
 
-            
+
         else:
             warnings.warn("Cant find self.data")
 
@@ -422,13 +422,17 @@ class FilterClass():
         """
 
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+
+            xaxis_label_string = r'$\textnormal{' + self._wavelength_units.name + ', }' + self._wavelength_units._format['latex']
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
 
+            ax1 = fig.add_subplot(111)
+
             if hasattr(self, "_plot_colour"):
-                plt.plot(self.wavelength, self.throughput, color = self._plot_colour)
+                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour)
             else:
-                plt.plot(self.wavelength, self.throughput)
+                ax1.plot(self.wavelength, self.throughput)
 
 
             plt.show()
