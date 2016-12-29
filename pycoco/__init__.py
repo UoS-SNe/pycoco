@@ -382,6 +382,7 @@ class FilterClass():
 
     def __init__(self, verbose = True):
         self._wavelength_units = u.Angstrom
+        self._wavelength_units._format['latex'] = r'\rm{\AA}'
         pass
 
 
@@ -423,7 +424,10 @@ class FilterClass():
 
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
-            xaxis_label_string = r'$\textnormal{' + self._wavelength_units.name + ', }' + self._wavelength_units._format['latex']
+            setup_plot_defaults()
+            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+
+
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
 
@@ -434,6 +438,7 @@ class FilterClass():
             else:
                 ax1.plot(self.wavelength, self.throughput)
 
+            ax1.set_xlabel(xaxis_label_string)
 
             plt.show()
             pass
@@ -720,7 +725,19 @@ def check_url(url):
     """
     return check_url_status(url) < 400
 
+def setup_plot_defaults():
+    """
 
+    """
+
+    plt.rcParams['ps.useafm'] = True
+    plt.rcParams['pdf.use14corefonts'] = True
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['figure.subplot.hspace'] = 0.1
+    plt.rc('font', family='sans-serif')
+    plt.rc('font', serif='Helvetica')
+    pass
 
 
 
