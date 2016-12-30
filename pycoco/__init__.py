@@ -117,7 +117,7 @@ _somevar = 'Foo'
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
 
-__all__ = ["_default_data_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
+__all__ = ["_default_data_dir_path", "_default_filter_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
 
 ## Important variables
 
@@ -192,9 +192,24 @@ class PhotometryClass():
         ## Initialise the class variables
         self._default_data_dir_path = _default_data_dir_path
         self.data = OrderedDict()
+        self.data_filters = OrderedDict()
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+
+    def _get_filter_directory(self):
+        """
+        Get the defaul path to the filter directory.
+
+        Looks for the filter data directory set as environment variable
+        $PYCOCO_FILTER_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
+                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+        """
+        return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
 
     def _get_data_directory(self):
@@ -210,6 +225,35 @@ class PhotometryClass():
 
         return os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path))
 
+    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+        """
+        Set a new filter directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if os.path.isdir(os.path.abspath(data_dir_path)):
+                self.data_directory = os.path.abspath(data_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(data_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_filter_dir_path, UserWarning)
+                self.data_directory = self._default_data_dir_path
+
+                if not os.path.isdir(self.data_directory):
+                    if verbose: print(os.path.isdir(self.data_directory))
+                    raise PathError("The default data directory '" + self.data_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_data_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_data_dir_path?")
+            pass
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
         """
@@ -278,42 +322,46 @@ class PhotometryClass():
 
         """
 
-        ## Find matching photometry
-        phot_list = find_phot(path = path, snname = snname, prefix = prefix,
-                              file_type = file_type, verbose = verbose)
+        if snname:
+            ## Find matching photometry
+            phot_list = find_phot(path = path, snname = snname, prefix = prefix,
+                                  file_type = file_type, verbose = verbose)
 
-        ## Loop over files (shouldn't be that many really)
-        if len(phot_list) > 0:
+            ## Loop over files (shouldn't be that many really)
+            if len(phot_list) > 0:
 
-            for phot_file in phot_list:
+                for phot_file in phot_list:
 
-                if verbose: print(phot_file)
-                phot_table = Table.read(phot_file, names = names, format = format)
+                    if verbose: print(phot_file)
+                    phot_table = Table.read(phot_file, names = names, format = format)
 
-                filter_string = get_filter_from_filename(phot_file, snname, file_type)
-                phot_table.meta = {"filename" : phot_file,
-                                   "filter" : filter_string}
+                    filter_string = get_filter_from_filename(phot_file, snname, file_type)
+                    phot_table.meta = {"filename" : phot_file,
+                                       "filter" : filter_string}
 
-                ## Sort out units
-                phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+                    ## Sort out units
+                    phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
 
-                phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
-                phot_table["flux_err"].unit =  phot_table["flux"].unit
+                    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+                    phot_table["flux_err"].unit =  phot_table["flux"].unit
 
-                ## Put in dictionary - use filter from the
-                filter_key = np.unique(phot_table["filter"])[0]
-                if verbose: print(len(np.unique(phot_table["filter"])) , phot_table.meta["filter"], filter_key)
+                    ## Put in dictionary - use filter from the file
+                    filter_key = np.unique(phot_table["filter"])[0]
+                    if verbose: print(len(np.unique(phot_table["filter"])) , phot_table.meta["filter"], filter_key)
 
-                if len(np.unique(phot_table["filter"])) > 1 or filter_key != phot_table.meta["filter"]:
-                    raise FilterMismatchError("There is a mismatch between the filter filename and that in the "
-                                               + "photometry file")
+                    if len(np.unique(phot_table["filter"])) > 1 or filter_key != phot_table.meta["filter"]:
+                        raise FilterMismatchError("There is a mismatch between the filter filename and that in the "
+                                                   + "photometry file")
 
-                self.data[filter_key] = phot_table
+                    self.data[filter_key] = phot_table
 
+                    self.data[filter_key] = phot_table
 
-            # return phot_table
+                # return phot_table
+            else:
+                warning.warn("Couldn't find any photometry")
         else:
-            warning.warn("Couldn't find any photometry")
+            warnings.warn("Provide a SN name")
 
         pass
 
@@ -325,6 +373,9 @@ class PhotometryClass():
 
         if hasattr(self, "data"):
             print(self.data.keys())
+
+            for i, filter in enumerate(self.data.keys()):
+
 
 
         else:
@@ -470,6 +521,12 @@ class FilterClass():
     def resample_response(self, new_wavelength):
         """
         Bit dodgy - spline has weird results for poorly sampled filters
+
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
@@ -490,7 +547,7 @@ class FilterClass():
 
     def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
         """
-        
+
 
         Parameters
         ----------
