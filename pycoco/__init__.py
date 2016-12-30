@@ -33,6 +33,7 @@ from astropy.time import Time
 from astropy.table import Table
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
@@ -417,28 +418,48 @@ class FilterClass():
         self.lambda_effective = lambda_eff * self._wavelength_units
 
 
-    def plot(self, *args, **kwargs):
+    def plot(self, xminorticks = 250, yminorticks = 0.1, *args, **kwargs):
+        """
+        Plots filter throughput, so you can double check it.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
-        """
-
+        ## Check if there is something in the class to plot
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
             setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
+            plot_label_string = r'$' + self.filter_name + '$'
+
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
 
             fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99, right = 0.99, hspace=0, wspace = 0)
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
 
             if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour)
+                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                         lw = 2, label = plot_label_string)
             else:
-                ax1.plot(self.wavelength, self.throughput)
+                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
 
             ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.yaxis.set_minor_locator(yminorLocator)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            ax1.legend(loc = 0)
 
             plt.show()
             pass
@@ -469,7 +490,13 @@ class FilterClass():
 
     def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
         """
+        
 
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if hasattr(self, 'lambda_effective'):
@@ -724,6 +751,7 @@ def check_url(url):
     Wrapper for check_url_status - considers the status, True if < 400.
     """
     return check_url_status(url) < 400
+
 
 def setup_plot_defaults():
     """
