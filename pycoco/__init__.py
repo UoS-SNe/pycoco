@@ -191,6 +191,7 @@ class PhotometryClass():
 
         ## Initialise the class variables
         self._default_data_dir_path = _default_data_dir_path
+        self._default_filter_dir_path = _default_filter_dir_path
         self.data = OrderedDict()
         self.data_filters = OrderedDict()
 
@@ -201,7 +202,7 @@ class PhotometryClass():
 
     def _get_filter_directory(self):
         """
-        Get the defaul path to the filter directory.
+        Get the default path to the filter directory.
 
         Looks for the filter data directory set as environment variable
         $PYCOCO_FILTER_DIR. if not found, returns default.
@@ -214,7 +215,7 @@ class PhotometryClass():
 
     def _get_data_directory(self):
         """
-        Get the defaul path to the data directory.
+        Get the default path to the data directory.
 
         Looks for the data data directory set as environment variable
         $PYCOCO_DATA_DIR. if not found, returns default.
@@ -225,6 +226,7 @@ class PhotometryClass():
 
         return os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path))
 
+
     def set_filter_directory(self, filter_dir_path = '', verbose = False):
         """
         Set a new filter directory path.
@@ -233,27 +235,28 @@ class PhotometryClass():
 
         """
         try:
-            if os.path.isdir(os.path.abspath(data_dir_path)):
-                self.data_directory = os.path.abspath(data_dir_path)
+            if os.path.isdir(os.path.abspath(filter_dir_path)):
+                self.filter_directory = os.path.abspath(filter_dir_path)
                 pass
             else:
-                warnings.warn(os.path.abspath(data_dir_path) +
+                warnings.warn(os.path.abspath(filter_dir_path) +
                 " is not a valid directory. Restoring default path: " +
                 self._default_filter_dir_path, UserWarning)
                 self.data_directory = self._default_data_dir_path
 
-                if not os.path.isdir(self.data_directory):
-                    if verbose: print(os.path.isdir(self.data_directory))
-                    raise PathError("The default data directory '" + self.data_directory
+                if not os.path.isdir(self.filter_directory):
+                    if verbose: print(os.path.isdir(self.filter_directory))
+                    raise PathError("The default data directory '" + self.filter_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_data_dir_path
+            raise PathError("The default filter directory '" + self._default_filter_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_data_dir_path?")
+             + " you messed with _default_filter_dir_path?")
             pass
+
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
         """
@@ -310,7 +313,7 @@ class PhotometryClass():
 
     def load(self, path = _default_data_dir_path, snname = False, prefix = 'SN',
              file_type = '.dat', names = ('MJD', 'flux', 'flux_err', 'filter'),
-             format = 'ascii', verbose = True):
+             format = 'ascii', filter_file_type = '.dat', verbose = True):
         """
         Finds and loads in data (from file) into phot objects.
 
@@ -337,7 +340,8 @@ class PhotometryClass():
 
                     filter_string = get_filter_from_filename(phot_file, snname, file_type)
                     phot_table.meta = {"filename" : phot_file,
-                                       "filter" : filter_string}
+                                       "filter" : filter_string,
+                                       "filter_filename": filter_string + filter_file_type}
 
                     ## Sort out units
                     phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
@@ -355,7 +359,8 @@ class PhotometryClass():
 
                     self.data[filter_key] = phot_table
 
-                    self.data[filter_key] = phot_table
+                    path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
+                    self.data_filters[filter_key] = load_filter(path_to_filter)
 
                 # return phot_table
             else:
@@ -366,15 +371,16 @@ class PhotometryClass():
         pass
 
 
-    def _combine_phot(self):
+    def _combine_phot(self, verbose = True):
         """
 
         """
 
         if hasattr(self, "data"):
-            print(self.data.keys())
+            if verbose: print(self.data.keys())
 
-            for i, filter in enumerate(self.data.keys()):
+            for i, phot_filter in enumerate(self.data.keys()):
+                print(i, phot_filter)
 
 
 
