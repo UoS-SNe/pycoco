@@ -450,7 +450,7 @@ class PhotometryClass():
         pass
 
 
-    def plot_filters(self, xminorticks = 250, yminorticks = 0.1, verbose = False):
+    def plot_filters(self, xminorticks = 250, yminorticks = 0.1, legend = True, verbose = False):
         """
         Plots filters.
 
@@ -473,12 +473,10 @@ class PhotometryClass():
                                 right = 0.99, hspace=0, wspace = 0)
             ax1 = fig.add_subplot(111)
 
-
-
-
+            ## Plot the throughput for each filter
             for i, filter_key in enumerate(self.data_filters):
                 if verbose: print(i, self.data_filters[filter_key].__dict__)
-                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name + '}$'
+                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
                 ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom), self.data_filters[filter_key].throughput, lw = 2, label = plot_label_string)
             # if hasattr(self, "_plot_colour"):
@@ -493,7 +491,7 @@ class PhotometryClass():
             ax1.yaxis.set_minor_locator(yminorLocator)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
-            ax1.legend(loc = 0)
+            if legend: ax1.legend(loc = 0)
 
             plt.show()
         else:
