@@ -30,7 +30,7 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.time import Time
-from astropy.table import Table
+from astropy.table import Table, vstack
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -182,6 +182,9 @@ class PhotometryClass():
     flexible enough to just be a wrapper for AP tables of phot.
 
     PhotometryClass should have a FilterClass method describing the observations.
+
+    ## NOTE should I use properties instead of get/set? http://www.python-course.eu/python3_properties.php
+    looks like only python3?
     """
 
     def __init__(self, verbose = False):
@@ -330,6 +333,8 @@ class PhotometryClass():
             phot_list = find_phot(path = path, snname = snname, prefix = prefix,
                                   file_type = file_type, verbose = verbose)
 
+            full_phot_table = Table()
+
             ## Loop over files (shouldn't be that many really)
             if len(phot_list) > 0:
 
@@ -337,6 +342,11 @@ class PhotometryClass():
 
                     if verbose: print(phot_file)
                     phot_table = Table.read(phot_file, names = names, format = format)
+
+                    ## NOTE astropy vstack does not support mixin columns http://docs.astropy.org/en/stable/table/mixin_columns.html
+                    # This means I might have problems joining the tables together if I don't add together as I go along.
+
+                    full_phot_table = vstack([full_phot_table, phot_table])
 
                     filter_string = get_filter_from_filename(phot_file, snname, file_type)
                     phot_table.meta = {"filename" : phot_file,
@@ -362,7 +372,14 @@ class PhotometryClass():
                     path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
                     self.data_filters[filter_key] = load_filter(path_to_filter)
 
-                # return phot_table
+
+                ## NOTE doing it this way because vstack doesn't like mixin columns (see above comment)
+                full_phot_table.replace_column("MJD", Time(full_phot_table["MJD"], format = 'mjd'))
+
+                full_phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+                full_phot_table["flux_err"].unit =  full_phot_table["flux"].unit
+
+                self.phot = full_phot_table
             else:
                 warning.warn("Couldn't find any photometry")
         else:
@@ -380,7 +397,15 @@ class PhotometryClass():
             if verbose: print(self.data.keys())
 
             for i, phot_filter in enumerate(self.data.keys()):
-                print(i, phot_filter)
+                if verbose: print(i, phot_filter)
+                if i == 0:
+                    full_phot = self.data[phot_filter]
+                else:
+                    full_phot = vstack([full_phot, self.data[phot_filter]])
+                    pass
+
+            self.data['full'] = full_phot
+
 
 
 
