@@ -417,7 +417,7 @@ class PhotometryClass():
         pass
 
 
-    def save(self, verbose = True):
+    def save(self, verbose = True, *args, **kwargs):
         """
         Outputs
 
@@ -436,12 +436,69 @@ class PhotometryClass():
 
     def plot(self):
         """
+        Plots phot.
 
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
+
 
 
         pass
 
+
+    def plot_filters(self, xminorticks = 250, yminorticks = 0.1, verbose = False):
+        """
+        Plots filters.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self, "data_filters"):
+
+            setup_plot_defaults()
+            xaxis_label_string = r'$\textnormal{Wavelength, (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+            ax1 = fig.add_subplot(111)
+
+
+
+
+            for i, filter_key in enumerate(self.data_filters):
+                if verbose: print(i, self.data_filters[filter_key].__dict__)
+                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name + '}$'
+
+                ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom), self.data_filters[filter_key].throughput, lw = 2, label = plot_label_string)
+            # if hasattr(self, "_plot_colour"):
+            #     ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+            #              lw = 2, label = plot_label_string)
+            # else:
+            #     ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.yaxis.set_minor_locator(yminorLocator)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            ax1.legend(loc = 0)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any filters here (empty self.filter_data)")
+        pass
 
     def save_phot(self, path):
         """
@@ -469,13 +526,13 @@ class FilterClass():
         pass
 
 
-    def read_filter_file(self, path):
+    def read_filter_file(self, path, wavelength_units = u.angstrom):
         """
         Assumes Response function is fractional rather than %.
         """
         if check_file_path(os.path.abspath(path)):
             self.wavelength, self.throughput = np.loadtxt(path).T
-
+            self.wavelength_u = self.wavelength * wavelength_units
             self._filter_file_path = path
 
             filename = path.split('/')[-1]
