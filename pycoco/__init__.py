@@ -329,14 +329,17 @@ class PhotometryClass():
                 phot_table = self.phot.loc["filter", filter_name]
                 if verbose: print(phot_table)
                 indices = phot_table.argsort("MJD")
-                for column_name in phot_table.colnames:
-                    phot_table[column_name] = phot_table[column_name][indices]
+                # for column_name in phot_table.colnames:
+                #     phot_table[column_name] = phot_table[column_name][indices]
+                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
                 # phot_table.meta = {"filename}
                 filter_key = np.unique(phot_table["filter"])[0]
                 if len(np.unique(phot_table["filter"])) > 1:
                     raise FilterMismatchError("There is a more than one filterdata in here!")
-
-                self.data[filter_name] = phot_table
+                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
+                
+                self.data_filters[filter_key] = load_filter(path_to_filter)
+                self.data[filter_name] = sorted_phot_table
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
 
