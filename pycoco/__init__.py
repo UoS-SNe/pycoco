@@ -471,7 +471,8 @@ class PhotometryClass():
         pass
 
 
-    def plot(self, legend = True, verbose = False):
+    def plot(self, legend = True, xminorticks = 5,
+             verbose = False, *args, **kwargs):
         """
         Plots phot.
 
@@ -500,7 +501,6 @@ class PhotometryClass():
                              capsize = 0, fmt = 'o',
                              label = plot_label_string)
 
-
                 if legend:
 
                     plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
@@ -508,6 +508,16 @@ class PhotometryClass():
 
             ## Use ap table groups instead? - can't; no support for mixin columns.
             ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
 
             plt.show()
         else:
