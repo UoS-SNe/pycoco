@@ -293,6 +293,37 @@ class PhotometryClass():
             pass
 
 
+    # def load(self, path, verbose = True):
+    #     """
+    #     Finds and loads pycoco formatted data (from file) into phot objects.
+    #
+    #     Parameters
+    #     ----------
+    #
+    #     Returns
+    #     -------
+    #
+    #     """
+    #
+    #     self.phot = load_formatted_phot(path)
+    #     pass
+
+    def unpack():
+        """
+        If loading from preformatted file, then unpack the table into self.data
+        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        
+        pass
+
+
     def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
                   format = 'ascii', verbose = True):
         """
@@ -315,7 +346,7 @@ class PhotometryClass():
         pass
 
 
-    def load(self, path = _default_data_dir_path, snname = False, prefix = 'SN',
+    def load_phot_from_files(self, path = False, snname = False, prefix = 'SN',
              file_type = '.dat', names = ('MJD', 'flux', 'flux_err', 'filter'),
              format = 'ascii', filter_file_type = '.dat', verbose = True):
         """
@@ -330,9 +361,11 @@ class PhotometryClass():
         """
 
         if snname:
+            if not path:
+                path = self._default_data_dir_path
             ## Find matching photometry
             phot_list = find_phot(path = path, snname = snname, prefix = prefix,
-                                  file_type = file_type, verbose = verbose)
+                              file_type = file_type, verbose = verbose)
 
             full_phot_table = Table()
 
@@ -378,7 +411,7 @@ class PhotometryClass():
 
                 ## NOTE doing it this way because vstack doesn't like mixin columns (see above comment)
                 full_phot_table.sort("MJD")
-                full_phot_table["t"] = Time(full_phot_table["MJD"], format = 'mjd')
+                # full_phot_table["t"] = Time(full_phot_table["MJD"], format = 'mjd')
                 full_phot_table["MJD"].unit = u.day
 
                 full_phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
@@ -425,6 +458,7 @@ class PhotometryClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
     def _combine_phot(self, verbose = True):
         """
 
@@ -454,9 +488,11 @@ class PhotometryClass():
         pass
 
 
-    def save(self, verbose = True, *args, **kwargs):
+    def save(self, filename, path = False,
+             squash = False, verbose = True, *args, **kwargs):
         """
-        Outputs
+        Output the photometry loaded into the SNClass via self.load_phot* into a format
+        and location recognised by CoCo.
 
         Parameters
         ----------
@@ -466,8 +502,29 @@ class PhotometryClass():
 
         if hasattr(self, "data"):
             if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self.phot.write(outpath, format = "ascii.fast_commented_header")
 
 
+            else:
+                    print("Writing " + outpath)
+                    self.phot.write(outpath, format = "ascii")
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
@@ -573,21 +630,6 @@ class PhotometryClass():
             warnings.warn("Doesn't seem to be any filters here (empty self.filter_data)")
         pass
 
-    def save_phot(self, path):
-        """
-        Output the photometry loaded into the SNClass via self.load_phot* into a format
-        and location recognised by CoCo.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-
-
-        pass
 
 
 class FilterClass():
@@ -861,7 +903,33 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
     return phot_table
 
 
-def load_all_phot(path = _default_data_dir_path, format = 'ascii', verbose = True):
+def load_formatted_phot(path, format = "ascii", verbose = True):
+    """
+    Loads a single photometry file.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    StringWarning(path)
+
+    # phot_table = ap.table.Table.read(path, format = format, names = names)
+    phot_table = Table.read(path, format = format)
+
+    phot_table["MJD"].unit = u.day
+    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+    phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+    return phot_table
+
+def load(path, format = "ascii", verbose = True):
+    pc = PhotometryClass()
+    pc.phot = load_formatted_phot(path, format = "ascii", verbose = True)
+    return pc
+
+def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = True):
     """
     loads photometry into AstroPy Table.
 
