@@ -355,8 +355,10 @@ class PhotometryClass():
                                        "filter_filename": filter_string + filter_file_type}
 
                     ## Sort out units
-                    phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+                    phot_table.sort("MJD")
+                    phot_table["t"] = Time(phot_table["MJD"], format = 'mjd')
 
+                    phot_table["MJD"].unit = u.day
                     phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
                     phot_table["flux_err"].unit =  phot_table["flux"].unit
 
@@ -375,7 +377,9 @@ class PhotometryClass():
 
 
                 ## NOTE doing it this way because vstack doesn't like mixin columns (see above comment)
-                full_phot_table.replace_column("MJD", Time(full_phot_table["MJD"], format = 'mjd'))
+                full_phot_table.sort("MJD")
+                full_phot_table["t"] = Time(full_phot_table["MJD"], format = 'mjd')
+                full_phot_table["MJD"].unit = u.day
 
                 full_phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
                 full_phot_table["flux_err"].unit =  full_phot_table["flux"].unit
@@ -383,7 +387,7 @@ class PhotometryClass():
                 self.phot = full_phot_table
 
                 ## Sort the OrderedDict
-                self.sort_phot()
+                self._sort_phot()
             else:
                 warning.warn("Couldn't find any photometry")
         else:
@@ -392,7 +396,7 @@ class PhotometryClass():
         pass
 
 
-    def sort_phot(self):
+    def _sort_phot(self):
         """
         resorts the photometry according to effective wavelength of the filter.
 
@@ -491,7 +495,7 @@ class PhotometryClass():
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
-                ax1.errorbar(self.data[filter_key]['MJD'].value, self.data[filter_key]['flux'],
+                ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o',
                              label = plot_label_string)
