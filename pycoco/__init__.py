@@ -381,6 +381,9 @@ class PhotometryClass():
                 full_phot_table["flux_err"].unit =  full_phot_table["flux"].unit
 
                 self.phot = full_phot_table
+
+                ## Sort the OrderedDict
+                self.sort_phot()
             else:
                 warning.warn("Couldn't find any photometry")
         else:
@@ -388,6 +391,35 @@ class PhotometryClass():
 
         pass
 
+
+    def sort_phot(self):
+        """
+        resorts the photometry according to effective wavelength of the filter.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data") and hasattr(self, "data_filters"):
+            ## This looks fugly.
+            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
+
+            sorted_data = OrderedDict()
+            sorted_data_filters = OrderedDict()
+
+            for newkey in newkeys:
+                sorted_data[newkey] = self.data[newkey]
+                sorted_data_filters[newkey] = self.data_filters[newkey]
+
+            self.data = sorted_data
+            self.data_filters = sorted_data_filters
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
 
     def _combine_phot(self, verbose = True):
         """
