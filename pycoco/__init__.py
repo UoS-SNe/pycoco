@@ -308,7 +308,7 @@ class PhotometryClass():
     #     self.phot = load_formatted_phot(path)
     #     pass
 
-    def unpack():
+    def unpack(self, filter_file_type = '.dat', verbose = True):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -320,7 +320,26 @@ class PhotometryClass():
         -------
 
         """
-        
+        if hasattr(self, "phot"):
+            filter_names = np.unique(self.phot["filter"])
+            self.phot.add_index('filter', unique = True)
+
+
+            for filter_name in filter_names:
+                phot_table = self.phot.loc["filter", filter_name]
+                if verbose: print(phot_table)
+                indices = phot_table.argsort("MJD")
+                for column_name in phot_table.colnames:
+                    phot_table[column_name] = phot_table[column_name][indices]
+                # phot_table.meta = {"filename}
+                filter_key = np.unique(phot_table["filter"])[0]
+                if len(np.unique(phot_table["filter"])) > 1:
+                    raise FilterMismatchError("There is a more than one filterdata in here!")
+
+                self.data[filter_name] = phot_table
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+
         pass
 
 
@@ -917,6 +936,7 @@ def load_formatted_phot(path, format = "ascii", verbose = True):
 
     # phot_table = ap.table.Table.read(path, format = format, names = names)
     phot_table = Table.read(path, format = format)
+    phot_table.meta = {"filename" : path}
 
     phot_table["MJD"].unit = u.day
     phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
