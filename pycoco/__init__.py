@@ -581,7 +581,8 @@ class PhotometryClass():
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o',
-                             label = plot_label_string)
+                             label = plot_label_string,
+                             *args, **kwargs)
 
             if legend:
 
@@ -667,11 +668,11 @@ class FilterClass():
         pass
 
 
-    def read_filter_file(self, path, wavelength_units = u.angstrom):
+    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
         """
         Assumes Response function is fractional rather than %.
         """
-        if check_file_path(os.path.abspath(path)):
+        if check_file_path(os.path.abspath(path), verbose = verbose):
             self.wavelength, self.throughput = np.loadtxt(path).T
             self.wavelength_u = self.wavelength * wavelength_units
             self._filter_file_path = path
@@ -887,13 +888,13 @@ def check_dir_path(path, verbose = False):
         return False
 
 
-def check_file_path(path, verbose = True):
+def check_file_path(path, verbose = False):
     """
 
     """
     try:
         if os.path.isfile(os.path.abspath(str(path))):
-            if verbose: print("foo")
+            if verbose: print("bar")
             return True
         else:
             warnings.warn(os.path.abspath(path) +
@@ -954,7 +955,8 @@ def load_formatted_phot(path, format = "ascii", verbose = True):
 
 def load(path, format = "ascii", verbose = True):
     pc = PhotometryClass()
-    pc.phot = load_formatted_phot(path, format = "ascii", verbose = True)
+    pc.phot = load_formatted_phot(path, format = "ascii", verbose = verbose)
+    pc.unpack(verbose = verbose)
     return pc
 
 
@@ -1034,6 +1036,10 @@ def find_phot(path = _default_data_dir_path, snname = False,
     ls = os.listdir(path)
 
     phot_list = [os.path.abspath(os.path.join(path, match.group(0))) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
 
     if verbose:
         print("Found: ")
