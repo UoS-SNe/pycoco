@@ -327,17 +327,20 @@ class PhotometryClass():
 
             for filter_name in filter_names:
                 phot_table = self.phot.loc["filter", filter_name]
+                filter_filename = filter_name + filter_file_type
+                phot_table.meta = {"filter_filename": filter_filename}
+
                 if verbose: print(phot_table)
                 indices = phot_table.argsort("MJD")
                 # for column_name in phot_table.colnames:
                 #     phot_table[column_name] = phot_table[column_name][indices]
                 sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
-                # phot_table.meta = {"filename}
                 filter_key = np.unique(phot_table["filter"])[0]
-                if len(np.unique(phot_table["filter"])) > 1:
-                    raise FilterMismatchError("There is a more than one filterdata in here!")
+
+                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-                
+
                 self.data_filters[filter_key] = load_filter(path_to_filter)
                 self.data[filter_name] = sorted_phot_table
         else:
@@ -580,9 +583,9 @@ class PhotometryClass():
                              capsize = 0, fmt = 'o',
                              label = plot_label_string)
 
-                if legend:
+            if legend:
 
-                    plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ## Use ap table groups instead? - can't; no support for mixin columns.
@@ -645,13 +648,14 @@ class PhotometryClass():
             ax1.yaxis.set_minor_locator(yminorLocator)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
-            if legend: ax1.legend(loc = 0)
+            if legend:
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
 
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any filters here (empty self.filter_data)")
         pass
-
 
 
 class FilterClass():
@@ -947,10 +951,12 @@ def load_formatted_phot(path, format = "ascii", verbose = True):
 
     return phot_table
 
+
 def load(path, format = "ascii", verbose = True):
     pc = PhotometryClass()
     pc.phot = load_formatted_phot(path, format = "ascii", verbose = True)
     return pc
+
 
 def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = True):
     """
