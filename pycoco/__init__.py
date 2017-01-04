@@ -1,5 +1,5 @@
 '''
-This is the module for the PyCoCo python tools.
+This is the module for the pycoco python tools.
 
 author: Rob Firth, Southampton
 date: 06-12-2016
@@ -159,6 +159,13 @@ class FilterMismatchError(ValueError):
 		ValueError.__init__(self, *args, **kwargs)
 
 
+class TableReadError(ValueError):
+    """
+    Raise when something goes wrong with the table I/O
+    """
+    def __init__(self, *args, **kwargs):
+		ValueError.__init__(self, *args, **kwargs)
+
 def StringWarning(path):
     """
 
@@ -173,7 +180,7 @@ def StringWarning(path):
 
 
 ##------------------------------------##
-##                                    ##
+##  Classes                           ##
 ##------------------------------------##
 
 class PhotometryClass():
@@ -355,11 +362,12 @@ class PhotometryClass():
         """
 
         """
-        phot_table = load_phot(path, names = names, format = format, verbose = verbose)
-        self.data[np.unique(phot_table["filter"])[0]] = phot_table
-        # self.photometry
-        # phot_list = find_phot(self.data_directory)
-        # print(phot_list)
+        StringWarning(path)
+        try:
+            phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+            self.data[np.unique(phot_table["filter"])[0]] = phot_table
+        except:
+            raise StandardError
 
         pass
 
@@ -583,6 +591,7 @@ class PhotometryClass():
         Returns
         -------
         """
+
         if hasattr(self, "data"):
 
             setup_plot_defaults()
@@ -820,10 +829,165 @@ class FilterClass():
 
 class SpectrumClass():
     """
-
+    Class for handling Spectra.
     """
 
     def __init__(self):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
+
+        ## Initialise using class methods
+        self.set_data_directory(self._get_data_directory())
+
+        pass
+
+
+    def _get_data_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the data data directory set as environment variable
+        $PYCOCO_DATA_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
+
+
+    def set_data_directory(self, data_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(data_dir_path, self._default_data_dir_path)
+            if os.path.isdir(os.path.abspath(data_dir_path)):
+                self.data_directory = os.path.abspath(data_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(data_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_data_dir_path, UserWarning)
+                self.data_directory = self._default_data_dir_path
+
+                if not os.path.isdir(self.data_directory):
+                    if verbose: print(os.path.isdir(self.data_directory))
+                    raise PathError("The default data directory '" + self.data_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_data_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_data_dir_path?")
+            pass
+
+
+    def load(self, filename, directory = False, fmt = "ascii",
+             names = ("wavelength", "flux"), wavelength_u = u.angstrom,
+             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
+        """
+
+        """
+
+
+        StringWarning(filename)
+
+        if not directory:
+            path = os.path.abspath(os.path.join(self.data_directory, filename))
+            if verbose: print("You didn't supply a directory, so using self.data_directory")
+        else:
+            StringWarning(directory)
+            check_dir_path(directory)
+
+            path = os.path.abspath(os.path.join(directory, filename))
+
+        if os.path.isfile(path):
+
+            ## Some might have three columns, deal with laters - this is untidy
+            try:
+                spec_table = Table.read(path, format = fmt, names = names)
+
+            except:
+                names = names + ("flux_err",)
+                spec_table = Table.read(path, format = fmt, names = names)
+
+            if verbose:print("Reading " + path)
+
+            spec_table.meta = {"filename": path}
+
+            spec_table['wavelength'].unit = wavelength_u
+            spec_table['flux'].unit = flux_u
+
+            if "flux_err" in spec_table.colnames:
+                spec_table["flux_err"].unit = flux_u
+
+            self.data = spec_table
+
+        else:
+            warnings.warn(path + " is not a valid file path")
+
+
+    def plot(self, xminorticks = 250, legend = True,
+             verbose = True,
+             *args, **kwargs):
+        """
+        Plots spec.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+
+            if verbose: print(self.data.__dict__)
+            plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
+
+            ax1.plot(self.data['wavelength'], self.data['flux'], lw = 2,
+                         label = plot_label_string,
+                         *args, **kwargs)
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(np.nanmin(self.data['flux']), np.nanmax(self.data['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
