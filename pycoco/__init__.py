@@ -194,7 +194,7 @@ class PhotometryClass():
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = _default_data_dir_path
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
         self._default_filter_dir_path = _default_filter_dir_path
         self.data = OrderedDict()
         self.data_filters = OrderedDict()
@@ -225,10 +225,10 @@ class PhotometryClass():
         $PYCOCO_DATA_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-                 default datalocation: '../testdata/'.
+                 default datalocation: '../testdata/', with '/lc/' appended.
         """
 
-        return os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', self._default_data_dir_path))
+        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
 
 
     def set_filter_directory(self, filter_dir_path = '', verbose = False):
@@ -270,6 +270,7 @@ class PhotometryClass():
 
         """
         try:
+            if verbose: print(data_dir_path, self._default_data_dir_path)
             if os.path.isdir(os.path.abspath(data_dir_path)):
                 self.data_directory = os.path.abspath(data_dir_path)
                 pass
