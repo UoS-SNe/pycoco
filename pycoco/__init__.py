@@ -555,6 +555,7 @@ class PhotometryClass():
 
     def _phot_format_for_save(self):
         """
+        This is hacky - clear it up!
 
         Parameters
         ----------
