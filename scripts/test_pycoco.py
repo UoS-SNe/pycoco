@@ -22,19 +22,19 @@ class TestClass(unittest.TestCase):
     #     self.assertEqual(x._get_data_directory(), pcc._default_data_dir_path)
     def test_PhotometryClass_get_data_dir_returns_default(self):
         x = pcc.PhotometryClass()
-        self.assertEqual(x._get_data_directory(), pcc._default_data_dir_path)
+        self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc._default_data_dir_path))
 
     def test_load_all_phot_returns_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
     def test_find_phot_finds_SN2005bf_B(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
+        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
         phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, u'SN2005bf_B.dat')
 
     def test_find_phot_finds_no_SN2011fe_data(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/"
+        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
         self.assertEqual(len(pcc.find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)),
                          0)
 
@@ -54,7 +54,7 @@ class TestClass(unittest.TestCase):
         self.assertEqual(pcc.check_dir_path(__file__), False)
 
     def test_check_file_path_finds_SN2005bf_B(self):
-        self.assertEqual(pcc.check_file_path(os.path.join(pcc._default_data_dir_path, 'SN2005bf_B.dat')), True)
+        self.assertEqual(pcc.check_file_path(os.path.join(pcc._default_data_dir_path, 'lc/SN2005bf_B.dat')), True)
 
     def test_check_file_path_raises_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.check_file_path, None)
