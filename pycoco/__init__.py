@@ -541,16 +541,33 @@ class PhotometryClass():
                 warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
-                    self.phot.write(outpath, format = "ascii.fast_commented_header")
+                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
 
 
             else:
                     print("Writing " + outpath)
-                    self.phot.write(outpath, format = "ascii")
+                    self._phot_format_for_save().write(outpath, format = "ascii")
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
+    def _phot_format_for_save(self):
+        """
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        save_table = self.phot
+        save_table['MJD'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+        save_table['flux_err'].format = "5.5e"
+
+        return save_table
 
 
     def plot(self, legend = True, xminorticks = 5,
