@@ -932,6 +932,8 @@ class SpectrumClass():
                 spec_table["flux_err"].unit = flux_u
 
             self.data = spec_table
+            self.wavelength = spec_table["wavelength"]
+            self.flux = spec_table["flux"]
 
         else:
             warnings.warn(path + " is not a valid file path")
@@ -988,6 +990,19 @@ class SpectrumClass():
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def get_MJD_obs(self):
+        """
+        Calculate the MJD of the observation.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         pass
 
 
