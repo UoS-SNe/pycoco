@@ -37,6 +37,7 @@ from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
+from .extinction import *
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
