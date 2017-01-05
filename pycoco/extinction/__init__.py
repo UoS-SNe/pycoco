@@ -1,3 +1,11 @@
+"""
+This contains the extinction sub-module for pycoco
+"""
+from __future__ import print_function
+
+import numpy as np
+
+__all__ = ['extinction_law', 'unred']
 
 def extinction_law(a, b, Rv = 3.1):
     """Eqn 1 from Cardelli 1989"""
@@ -59,7 +67,7 @@ def angstrom_to_inv_micron(wavl):
 def inv_micron_to_angstrom(x):
     return 10000./x
 
-def rf_unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False):
+def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False):
     """
 
     """
@@ -79,7 +87,7 @@ def rf_unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host =
 
     return funred
 
-def rf_ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, return_frac = True):
+def ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, return_frac = True):
     """
 
     """

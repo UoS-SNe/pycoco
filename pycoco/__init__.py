@@ -39,6 +39,7 @@ from scipy.interpolate import interp1d as interp1d
 
 from .extinction import *
 
+
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
 ##----------------------------------------------------------------------------##
@@ -166,6 +167,7 @@ class TableReadError(ValueError):
     """
     def __init__(self, *args, **kwargs):
 		ValueError.__init__(self, *args, **kwargs)
+
 
 def StringWarning(path):
     """
@@ -941,7 +943,7 @@ class SpectrumClass():
 
 
     def plot(self, xminorticks = 250, legend = True,
-             verbose = True,
+             verbose = True, compare_red = True,
              *args, **kwargs):
         """
         Plots spec.
@@ -971,12 +973,21 @@ class SpectrumClass():
                          label = plot_label_string,
                          *args, **kwargs)
 
+            maxplotydata = np.nanmax(self.data['flux'])
+            minplotydata = np.nanmin(self.data['flux'])
+
+            if hasattr(self, 'flux_dered') and compare_red:
+                ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
+                             label = plot_label_string,
+                             *args, **kwargs)
+                maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
+                minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
             if legend:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            ax1.set_ylim(np.nanmin(self.data['flux']), np.nanmax(self.data['flux']))
+            ax1.set_ylim(minplotydata, maxplotydata)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
@@ -1006,6 +1017,34 @@ class SpectrumClass():
         """
         pass
 
+
+    def set_EBV(self, EBV):
+        """
+
+        """
+        self.EBV = EBV
+
+
+    def deredden(self, verbose = True):
+        """
+
+        """
+
+        if hasattr(self, "EBV") and hasattr(self, "data"):
+            if verbose: print("Foo")
+
+            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            self.data["flux_dered"] = self.flux_dered
+
+        else:
+            warnings.warn("No extinction value set")
+        pass
+
+    def use_flux_dered(self):
+        """
+
+        """
+        pass
 
 class SNClass():
     """docstring for SNClass."""
