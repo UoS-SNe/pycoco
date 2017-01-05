@@ -301,21 +301,6 @@ class PhotometryClass():
             pass
 
 
-    # def load(self, path, verbose = True):
-    #     """
-    #     Finds and loads pycoco formatted data (from file) into phot objects.
-    #
-    #     Parameters
-    #     ----------
-    #
-    #     Returns
-    #     -------
-    #
-    #     """
-    #
-    #     self.phot = load_formatted_phot(path)
-    #     pass
-
     def unpack(self, filter_file_type = '.dat', verbose = True):
         """
         If loading from preformatted file, then unpack the table into self.data
