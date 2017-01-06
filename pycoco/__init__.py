@@ -958,16 +958,16 @@ class SpectrumClass():
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
 
-            ax1.plot(self.data['wavelength'], self.data['flux'], lw = 2,
-                         label = plot_label_string,
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
-            maxplotydata = np.nanmax(self.data['flux'])
-            minplotydata = np.nanmin(self.data['flux'])
+            maxplotydata = np.nanmax(self.flux)
+            minplotydata = np.nanmin(self.flux)
 
             if hasattr(self, 'flux_dered') and compare_red:
                 ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
-                             label = plot_label_string,
+                             label = plot_label_string, color = 'Blue',
                              *args, **kwargs)
                 maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
                 minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
@@ -976,7 +976,7 @@ class SpectrumClass():
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            ax1.set_ylim(minplotydata, maxplotydata)
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
@@ -994,7 +994,7 @@ class SpectrumClass():
         pass
 
 
-    def get_MJD_obs(self):
+    def get_MJD_obs(self, verbose = True):
         """
         Calculate the MJD of the observation.
 
@@ -1004,6 +1004,9 @@ class SpectrumClass():
         Returns
         -------
         """
+
+        filename = self.data.meta['filename']
+        if verbose: print(filename)
         pass
 
 
@@ -1049,6 +1052,65 @@ class SpectrumClass():
         if hasattr(self, "data"):
             self.flux_red = self.flux
             self.flux = self.data['flux_dered']
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def _spec_format_for_save(self):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        save_table = Table()
+
+        save_table['wavelength'] = self.wavelength
+        save_table['flux'] = self.flux
+
+        save_table['wavelength'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+
+        return save_table
+
+
+    def save(self, filename, path = False,
+             squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the spectrum loaded into the Class via self.load into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+
+
+            else:
+                    print("Writing " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii")
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
