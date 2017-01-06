@@ -304,21 +304,6 @@ class PhotometryClass():
             pass
 
 
-    # def load(self, path, verbose = True):
-    #     """
-    #     Finds and loads pycoco formatted data (from file) into phot objects.
-    #
-    #     Parameters
-    #     ----------
-    #
-    #     Returns
-    #     -------
-    #
-    #     """
-    #
-    #     self.phot = load_formatted_phot(path)
-    #     pass
-
     def unpack(self, filter_file_type = '.dat', verbose = True):
         """
         If loading from preformatted file, then unpack the table into self.data
@@ -899,7 +884,11 @@ class SpectrumClass():
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
 
@@ -1020,14 +1009,22 @@ class SpectrumClass():
 
     def set_EBV(self, EBV):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
         self.EBV = EBV
 
 
     def deredden(self, verbose = True):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
         if hasattr(self, "EBV") and hasattr(self, "data"):
@@ -1042,8 +1039,18 @@ class SpectrumClass():
 
     def use_flux_dered(self):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
+
+        if hasattr(self, "data"):
+            self.flux_red = self.flux
+            self.flux = self.data['flux_dered']
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 class SNClass():
