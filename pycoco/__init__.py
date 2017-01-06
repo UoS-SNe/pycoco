@@ -826,7 +826,8 @@ class SpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
+        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -994,7 +995,45 @@ class SpectrumClass():
         pass
 
 
-    def get_MJD_obs(self, verbose = True):
+    def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
+        """
+        Retrieve the MJD of the observation from a '.list' file.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        try:
+
+            if not list_dir:
+                list_dir = self._default_list_dir_path
+
+            check_dir_path(list_dir)
+            list_path = os.path.abspath(os.path.join(list_dir, list_filename))
+            check_file_path(list_path)
+        except:
+
+            raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+
+            return False
+
+        data = np.genfromtxt(list_path, dtype = np.str)
+        short_filenames = [f.split('/')[-1] for f in  data.T[0]]
+        filename = self.data.meta['filename'].split('/')[-1]
+        print(filename)
+        if verbose: print(data.T[0])
+
+        if filename in short_filenames:
+            print("Foo")
+
+        # pass
+        return data
+
+
+    def set_MJD_obs():
         """
         Calculate the MJD of the observation.
 
@@ -1004,10 +1043,6 @@ class SpectrumClass():
         Returns
         -------
         """
-
-        filename = self.data.meta['filename']
-        if verbose: print(filename)
-        pass
 
 
     def set_EBV(self, EBV):
@@ -1114,6 +1149,7 @@ class SpectrumClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
 
 class SNClass():
     """docstring for SNClass."""
