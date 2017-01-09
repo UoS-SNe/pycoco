@@ -119,12 +119,18 @@ _somevar = 'Foo'
 ##  CODE                                                                      ##
 ##----------------------------------------------------------------------------##
 
-__all__ = ["_default_data_dir_path", "_default_filter_dir_path", "_colourmap_name", "_colour_upper_lambda_limit", "_colour_lower_lambda_limit"]
+__all__ = ["_default_data_dir_path",
+           "_default_filter_dir_path",
+           "_default_coco_dir_path",
+           "_colourmap_name",
+           "_colour_upper_lambda_limit",
+           "_colour_lower_lambda_limit"]
 
 ## Important variables
 
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
-_default_filter_dir_path = "/Users/berto/Code/CoCo/data/filters/"
+_default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/")
+_default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 colourmap = plt.get_cmap(_colourmap_name)
@@ -1085,6 +1091,7 @@ class SpectrumClass():
             warnings.warn("No extinction value set")
         pass
 
+
     def use_flux_dered(self):
         """
         Parameters
@@ -1166,6 +1173,177 @@ class SNClass():
 
     def __init__(self):
         pass
+
+
+class LCfit():
+    """
+    Small class to hold the output from CoCo LCfit
+    """
+
+    def __init__(self):
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
+        self._default_filter_dir_path = _default_filter_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+        ## Initialise some other stuff
+        self.data = OrderedDict()
+        self.data_filters = OrderedDict()
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the CoCo home directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new recon directory path.
+
+        Enables the recon directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default recon directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default recon directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
+
+    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii', verbose = True):
+        """
+
+        """
+        StringWarning(path)
+
+        try:
+            phot_table = load_formatted_phot(path, format = format, names = names,
+                                             verbose = verbose)
+            self.phot = phot_table
+        except:
+            raise StandardError
+
+        pass
+
+    def unpack(self, filter_file_type = '.dat', verbose = False):
+        """
+        If loading from preformatted file, then unpack the table into self.data
+        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        
+        if hasattr(self, "phot"):
+            filter_names = np.unique(self.phot["filter"])
+            self.phot.add_index('filter', unique = True)
+
+
+            for filter_name in filter_names:
+                phot_table = self.phot.loc["filter", filter_name]
+                filter_filename = filter_name + filter_file_type
+                phot_table.meta = {"filter_filename": filter_filename}
+
+                if verbose: print(phot_table)
+                indices = phot_table.argsort("MJD")
+                # for column_name in phot_table.colnames:
+                #     phot_table[column_name] = phot_table[column_name][indices]
+                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                filter_key = np.unique(phot_table["filter"])[0]
+
+                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
+
+                self.data_filters[filter_key] = load_filter(path_to_filter)
+                self.data[filter_name] = sorted_phot_table
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+
+        pass
+
+
+    def _get_filter_directory(self):
+        """
+        Get the default path to the filter directory.
+
+        Looks for the filter data directory set as environment variable
+        $PYCOCO_FILTER_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
+                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+        """
+        return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
+
+
+    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+        """
+        Set a new filter directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if os.path.isdir(os.path.abspath(filter_dir_path)):
+                self.filter_directory = os.path.abspath(filter_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(filter_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_filter_dir_path, UserWarning)
+                self.data_directory = self._default_data_dir_path
+
+                if not os.path.isdir(self.filter_directory):
+                    if verbose: print(os.path.isdir(self.filter_directory))
+                    raise PathError("The default data directory '" + self.filter_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default filter directory '" + self._default_filter_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_filter_dir_path?")
+            pass
+
 
 ##------------------------------------##
 ##                                    ##
@@ -1284,7 +1462,8 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
     return phot_table
 
 
-def load_formatted_phot(path, format = "ascii", verbose = True):
+def load_formatted_phot(path, format = "ascii", names = False,
+                        verbose = True):
     """
     Loads a single photometry file.
 
@@ -1296,8 +1475,11 @@ def load_formatted_phot(path, format = "ascii", verbose = True):
 
     StringWarning(path)
 
-    # phot_table = ap.table.Table.read(path, format = format, names = names)
-    phot_table = Table.read(path, format = format)
+    if names:
+        phot_table = Table.read(path, format = format, names = names)
+    else:
+        phot_table = Table.read(path, format = format)
+
     phot_table.meta = {"filename" : path}
 
     phot_table["MJD"].unit = u.day
@@ -1309,7 +1491,7 @@ def load_formatted_phot(path, format = "ascii", verbose = True):
 
 def load(path, format = "ascii", verbose = True):
     pc = PhotometryClass()
-    pc.phot = load_formatted_phot(path, format = "ascii", verbose = verbose)
+    pc.phot = load_formatted_phot(path, format = format, verbose = verbose)
     pc.unpack(verbose = verbose)
     return pc
 
