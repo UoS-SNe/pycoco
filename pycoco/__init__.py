@@ -37,6 +37,8 @@ from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
+from .extinction import *
+
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -165,6 +167,7 @@ class TableReadError(ValueError):
     """
     def __init__(self, *args, **kwargs):
 		ValueError.__init__(self, *args, **kwargs)
+
 
 def StringWarning(path):
     """
@@ -833,7 +836,8 @@ class SpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
+        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -891,7 +895,11 @@ class SpectrumClass():
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
 
@@ -927,13 +935,15 @@ class SpectrumClass():
                 spec_table["flux_err"].unit = flux_u
 
             self.data = spec_table
+            self.wavelength = spec_table["wavelength"]
+            self.flux = spec_table["flux"]
 
         else:
             warnings.warn(path + " is not a valid file path")
 
 
     def plot(self, xminorticks = 250, legend = True,
-             verbose = True,
+             verbose = True, compare_red = True,
              *args, **kwargs):
         """
         Plots spec.
@@ -959,16 +969,25 @@ class SpectrumClass():
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
 
-            ax1.plot(self.data['wavelength'], self.data['flux'], lw = 2,
-                         label = plot_label_string,
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
+            maxplotydata = np.nanmax(self.flux)
+            minplotydata = np.nanmin(self.flux)
+
+            if hasattr(self, 'flux_dered') and compare_red:
+                ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
+                             label = plot_label_string, color = 'Blue',
+                             *args, **kwargs)
+                maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
+                minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
             if legend:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            ax1.set_ylim(np.nanmin(self.data['flux']), np.nanmax(self.data['flux']))
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
@@ -981,6 +1000,162 @@ class SpectrumClass():
             ax1.xaxis.set_minor_locator(xminorLocator)
 
             plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
+        """
+        Retrieve the MJD of the observation from a '.list' file.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        try:
+
+            if not list_dir:
+                list_dir = self._default_list_dir_path
+
+            check_dir_path(list_dir)
+            list_path = os.path.abspath(os.path.join(list_dir, list_filename))
+            check_file_path(list_path)
+        except:
+
+            raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+
+            return False
+
+        data = np.genfromtxt(list_path, dtype = np.str)
+        short_filenames = [f.split('/')[-1] for f in  data.T[0]]
+        filename = self.data.meta['filename'].split('/')[-1]
+        print(filename)
+        if verbose: print(data.T[0])
+
+        if filename in short_filenames:
+            print("Foo")
+
+        # pass
+        return data
+
+
+    def set_MJD_obs():
+        """
+        Calculate the MJD of the observation.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+
+    def set_EBV(self, EBV):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self.EBV = EBV
+
+
+    def deredden(self, verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "EBV") and hasattr(self, "data"):
+            if verbose: print("Foo")
+
+            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            self.data["flux_dered"] = self.flux_dered
+
+        else:
+            warnings.warn("No extinction value set")
+        pass
+
+    def use_flux_dered(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            self.flux_red = self.flux
+            self.flux = self.data['flux_dered']
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def _spec_format_for_save(self):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        save_table = Table()
+
+        save_table['wavelength'] = self.wavelength
+        save_table['flux'] = self.flux
+
+        save_table['wavelength'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+
+        return save_table
+
+
+    def save(self, filename, path = False,
+             squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the spectrum loaded into the Class via self.load into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+
+
+            else:
+                    print("Writing " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii")
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
