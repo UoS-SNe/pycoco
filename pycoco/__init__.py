@@ -304,21 +304,6 @@ class PhotometryClass():
             pass
 
 
-    # def load(self, path, verbose = True):
-    #     """
-    #     Finds and loads pycoco formatted data (from file) into phot objects.
-    #
-    #     Parameters
-    #     ----------
-    #
-    #     Returns
-    #     -------
-    #
-    #     """
-    #
-    #     self.phot = load_formatted_phot(path)
-    #     pass
-
     def unpack(self, filter_file_type = '.dat', verbose = True):
         """
         If loading from preformatted file, then unpack the table into self.data
@@ -354,6 +339,7 @@ class PhotometryClass():
 
                 self.data_filters[filter_key] = load_filter(path_to_filter)
                 self.data[filter_name] = sorted_phot_table
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
 
@@ -505,22 +491,23 @@ class PhotometryClass():
             if verbose: print(self.data.keys())
 
             for i, phot_filter in enumerate(self.data.keys()):
+
                 if verbose: print(i, phot_filter)
+
                 if i == 0:
+
                     full_phot = self.data[phot_filter]
+
                 else:
+
                     full_phot = vstack([full_phot, self.data[phot_filter]])
+
                     pass
 
             self.data['full'] = full_phot
 
-
-
-
         else:
             warnings.warn("Cant find self.data")
-
-
 
         pass
 
@@ -639,7 +626,8 @@ class PhotometryClass():
         pass
 
 
-    def plot_filters(self, xminorticks = 250, yminorticks = 0.1, legend = True, verbose = False):
+    def plot_filters(self, xminorticks = 250, yminorticks = 0.1,
+                     legend = True, use_cmap = False, verbose = False):
         """
         Plots filters.
 
@@ -666,8 +654,15 @@ class PhotometryClass():
             for i, filter_key in enumerate(self.data_filters):
                 if verbose: print(i, self.data_filters[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
-
-                ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom), self.data_filters[filter_key].throughput, lw = 2, label = plot_label_string)
+                if hasattr(self.data_filters[filter_key], "_plot_colour") and use_cmap:
+                    ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom),
+                             self.data_filters[filter_key].throughput,
+                             color = self.data_filters[filter_key]._plot_colour,
+                             lw = 2, label = plot_label_string)
+                else:
+                    ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom),
+                             self.data_filters[filter_key].throughput,
+                             lw = 2, label = plot_label_string)
             # if hasattr(self, "_plot_colour"):
             #     ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
             #              lw = 2, label = plot_label_string)
@@ -841,7 +836,8 @@ class SpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
+        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -899,7 +895,11 @@ class SpectrumClass():
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
 
@@ -969,16 +969,16 @@ class SpectrumClass():
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
 
-            ax1.plot(self.data['wavelength'], self.data['flux'], lw = 2,
-                         label = plot_label_string,
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
-            maxplotydata = np.nanmax(self.data['flux'])
-            minplotydata = np.nanmin(self.data['flux'])
+            maxplotydata = np.nanmax(self.flux)
+            minplotydata = np.nanmin(self.flux)
 
             if hasattr(self, 'flux_dered') and compare_red:
                 ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
-                             label = plot_label_string,
+                             label = plot_label_string, color = 'Blue',
                              *args, **kwargs)
                 maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
                 minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
@@ -987,7 +987,7 @@ class SpectrumClass():
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            ax1.set_ylim(minplotydata, maxplotydata)
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
@@ -1005,7 +1005,45 @@ class SpectrumClass():
         pass
 
 
-    def get_MJD_obs(self):
+    def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
+        """
+        Retrieve the MJD of the observation from a '.list' file.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        try:
+
+            if not list_dir:
+                list_dir = self._default_list_dir_path
+
+            check_dir_path(list_dir)
+            list_path = os.path.abspath(os.path.join(list_dir, list_filename))
+            check_file_path(list_path)
+        except:
+
+            raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+
+            return False
+
+        data = np.genfromtxt(list_path, dtype = np.str)
+        short_filenames = [f.split('/')[-1] for f in  data.T[0]]
+        filename = self.data.meta['filename'].split('/')[-1]
+        print(filename)
+        if verbose: print(data.T[0])
+
+        if filename in short_filenames:
+            print("Foo")
+
+        # pass
+        return data
+
+
+    def set_MJD_obs():
         """
         Calculate the MJD of the observation.
 
@@ -1015,19 +1053,26 @@ class SpectrumClass():
         Returns
         -------
         """
-        pass
 
 
     def set_EBV(self, EBV):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
         self.EBV = EBV
 
 
     def deredden(self, verbose = True):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
         if hasattr(self, "EBV") and hasattr(self, "data"):
@@ -1042,9 +1087,79 @@ class SpectrumClass():
 
     def use_flux_dered(self):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
+
+        if hasattr(self, "data"):
+            self.flux_red = self.flux
+            self.flux = self.data['flux_dered']
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
+    def _spec_format_for_save(self):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        save_table = Table()
+
+        save_table['wavelength'] = self.wavelength
+        save_table['flux'] = self.flux
+
+        save_table['wavelength'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+
+        return save_table
+
+
+    def save(self, filename, path = False,
+             squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the spectrum loaded into the Class via self.load into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+
+
+            else:
+                    print("Writing " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii")
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
 
 class SNClass():
     """docstring for SNClass."""
@@ -1068,6 +1183,7 @@ def load_filter(path, verbose = True):
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
         filter_object.read_filter_file(os.path.abspath(path))
+        filter_object.calculate_plot_colour()
 
         return filter_object
     else:
