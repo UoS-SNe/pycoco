@@ -336,6 +336,7 @@ class PhotometryClass():
 
                 self.data_filters[filter_key] = load_filter(path_to_filter)
                 self.data[filter_name] = sorted_phot_table
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
 
@@ -487,22 +488,23 @@ class PhotometryClass():
             if verbose: print(self.data.keys())
 
             for i, phot_filter in enumerate(self.data.keys()):
+
                 if verbose: print(i, phot_filter)
+
                 if i == 0:
+
                     full_phot = self.data[phot_filter]
+
                 else:
+
                     full_phot = vstack([full_phot, self.data[phot_filter]])
+
                     pass
 
             self.data['full'] = full_phot
 
-
-
-
         else:
             warnings.warn("Cant find self.data")
-
-
 
         pass
 
@@ -621,7 +623,8 @@ class PhotometryClass():
         pass
 
 
-    def plot_filters(self, xminorticks = 250, yminorticks = 0.1, legend = True, verbose = False):
+    def plot_filters(self, xminorticks = 250, yminorticks = 0.1,
+                     legend = True, use_cmap = False, verbose = False):
         """
         Plots filters.
 
@@ -648,8 +651,15 @@ class PhotometryClass():
             for i, filter_key in enumerate(self.data_filters):
                 if verbose: print(i, self.data_filters[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
-
-                ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom), self.data_filters[filter_key].throughput, lw = 2, label = plot_label_string)
+                if hasattr(self.data_filters[filter_key], "_plot_colour") and use_cmap:
+                    ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom),
+                             self.data_filters[filter_key].throughput,
+                             color = self.data_filters[filter_key]._plot_colour,
+                             lw = 2, label = plot_label_string)
+                else:
+                    ax1.plot((self.data_filters[filter_key].wavelength_u).to(u.angstrom),
+                             self.data_filters[filter_key].throughput,
+                             lw = 2, label = plot_label_string)
             # if hasattr(self, "_plot_colour"):
             #     ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
             #              lw = 2, label = plot_label_string)
@@ -998,6 +1008,7 @@ def load_filter(path, verbose = True):
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
         filter_object.read_filter_file(os.path.abspath(path))
+        filter_object.calculate_plot_colour()
 
         return filter_object
     else:
