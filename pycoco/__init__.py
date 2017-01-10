@@ -1254,10 +1254,15 @@ class LCfit():
             phot_table = load_formatted_phot(path, format = format, names = names,
                                              verbose = verbose)
             self.phot = phot_table
+
+            self.phot['flux_upper'] = phot_table['flux'] + phot_table['flux_err']
+            self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
+
         except:
             raise StandardError
 
         pass
+
 
     def unpack(self, filter_file_type = '.dat', verbose = False):
         """
@@ -1371,12 +1376,22 @@ class LCfit():
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
-                ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
-                             yerr = self.data[filter_key]['flux_err'],
-                             capsize = 0, fmt = 'o',
-                             label = plot_label_string,
-                             *args, **kwargs)
+                # ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #              yerr = self.data[filter_key]['flux_err'],
+                #              capsize = 0, fmt = 'o',
+                #              label = plot_label_string,
+                #              *args, **kwargs)
 
+                # ## Best Fit
+                # ax1.plot(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #          lw = 2, label = plot_label_string,
+                #           *args, **kwargs)
+
+                ## With error
+                ax1.fill_between(self.data[filter_key]['MJD'], self.data[filter_key]['flux_upper'], self.data[filter_key]['flux_lower'],
+                                 label = plot_label_string, color = self.data_filters[filter_key]._plot_colour,
+                                 alpha = 0.8,
+                                 *args, **kwargs)
             if legend:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
