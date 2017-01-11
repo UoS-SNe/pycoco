@@ -38,7 +38,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
 from .extinction import *
-
+from .colours import *
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -601,10 +601,12 @@ class PhotometryClass():
             for i, filter_key in enumerate(self.data_filters):
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+                if filter_key in hex.keys():
+                    self.data_filters[filter_key]._plot_colour = hex[filter_key]
 
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
-                             capsize = 0, fmt = 'o',
+                             capsize = 0, fmt = 'o', color = self.data_filters[filter_key]._plot_colour,
                              label = plot_label_string,
                              *args, **kwargs)
 

@@ -66,21 +66,21 @@ hex['SDSS_u'] = '#3498db'
 hex['SDSS_g'] = '#00ff00'
 hex['SDSS_r'] = '#ff0000'
 hex['SDSS_i'] = '#fd00ff'
-hex['SDSS_z'] = '#4d0000'
+hex['SDSS_z'] = '#660066'
 
 hex['u'] = '#40d47e'
 hex['b'] = '#0000ff'
 hex['v'] = '#ffff00'
 hex['r'] = '#c0392b'
-hex['i'] = '#cc0000'
-hex['z'] = '#660066'
+hex['i'] = '#8e44ad'
+hex['z'] = '#000000'
 
 hex['U'] = hex['u']
 hex['B'] = hex['b']
-hex['v'] = hex['v']
-hex['r'] = hex['r']
-hex['i'] = hex['i']
-hex['z'] = hex['z']
+hex['V'] = hex['v']
+hex['R'] = hex['r']
+hex['I'] = hex['i']
+hex['Z'] = hex['z']
 
 ## Random Others
 hex['white'] = '#FFFFFF'
@@ -107,8 +107,3 @@ RGB255 = dict()
 for i in hex.keys():
     RGB[i] = rgb(hex[i])
     RGB255[i] = rgb255(hex[i])
-
-
-import colourmaps as cmaps
-
-# cmap = cmaps
