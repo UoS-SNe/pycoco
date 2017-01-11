@@ -1172,6 +1172,11 @@ class SNClass():
     """docstring for SNClass."""
 
     def __init__(self):
+        ## Initialise
+        self.spec = SpectrumClass()
+        self.phot = PhotometryClass()
+
+        self.fit = LCfit()
         pass
 
 
@@ -1271,7 +1276,7 @@ class LCfit():
         -------
 
         """
-        
+
         if hasattr(self, "phot"):
             filter_names = np.unique(self.phot["filter"])
             self.phot.add_index('filter', unique = True)
