@@ -1171,13 +1171,16 @@ class SpectrumClass():
 class SNClass():
     """docstring for SNClass."""
 
-    def __init__(self):
+    def __init__(self, snname):
         ## Initialise
         self.spec = SpectrumClass()
         self.phot = PhotometryClass()
 
         self.fit = LCfit()
+
+        self.name = snname
         pass
+
 
 
 class LCfit():
