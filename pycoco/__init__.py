@@ -310,7 +310,7 @@ class PhotometryClass():
             pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = True):
+    def unpack(self, filter_file_type = '.dat', verbose = False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -328,6 +328,7 @@ class PhotometryClass():
 
 
             for filter_name in filter_names:
+                
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 phot_table.meta = {"filter_filename": filter_filename}
@@ -340,7 +341,9 @@ class PhotometryClass():
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+
                     raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
                 self.data_filters[filter_key] = load_filter(path_to_filter)
@@ -353,7 +356,7 @@ class PhotometryClass():
 
 
     def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii', verbose = True):
+                  format = 'ascii.commented_header', verbose = True):
         """
         Loads a single photometry file.
 
@@ -365,15 +368,13 @@ class PhotometryClass():
         StringWarning(path)
         try:
             phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
-            self.data = phot_table
+            self.phot = phot_table
             self.unpack()
         except:
             raise StandardError
 
 
-
-
-    def _load_formatted_phot(path, format = "ascii", names = False,
+    def _load_formatted_phot(self, path, format = "ascii", names = False,
                             verbose = True):
         """
         Loads a single photometry file.
