@@ -328,7 +328,7 @@ class PhotometryClass():
 
 
             for filter_name in filter_names:
-                
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 phot_table.meta = {"filter_filename": filter_filename}
@@ -346,7 +346,7 @@ class PhotometryClass():
 
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
-                self.data_filters[filter_key] = load_filter(path_to_filter)
+                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
                 self.data[filter_name] = sorted_phot_table
 
         else:
@@ -858,7 +858,7 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
         """
 
 
@@ -1231,16 +1231,34 @@ class SNClass():
         -------
         """
         ## Initialise
-        self.spec = SpectrumClass()
+        self.spec = OrderedDict()
+        # self.spec = SpectrumClass()
         self.phot = PhotometryClass()
 
         self.fit = LCfit()
+
+        self.coco_directory = self._get_coco_directory()
 
         self.name = snname
         pass
 
 
-    def load_phot(self, snname):
+    def _get_coco_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the CoCo home directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default CoCo location: '~/Code/CoCo/', with appended.
+        """
+
+        return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
+
+
+    def load_phot(self, snname = False, path = False, file_type = '.dat',
+                  verbose = True):
         """
         Parameters
         ----------
@@ -1249,9 +1267,85 @@ class SNClass():
         -------
         """
 
-        self.phot.load()
+        if not snname:
+            snname = self.name
+        if not path:
+            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+        if verbose: print(path)
+        self.phot.load(path, verbose = verbose)
 
         pass
+
+
+    def load_list(self, path, verbose = True):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        self.list = read_list_file(path, verbose = verbose)
+
+
+    def load_spec(self, snname = False, spec_dir_path = False, verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+
+        # if not snname:
+        #     snname = self.name
+        #
+        # if not spec_dir_path:
+        #     spec_dir_path = os.path.abspath(os.path.join(self._default_spec_data_dir_path, snname))
+        #
+        # if verbose: print("Loading spectra from: ", spec_dir_path)
+
+        # spec_dir_path =
+
+
+        if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
+            for path in self.list['spec_path']:
+                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_filename = path.split('/')[-1]
+                spec_dir_path = spec_fullpath.replace(spec_filename, '')
+                if verbose: print(spec_dir_path, spec_filename)
+
+                self.spec[spec_filename] = SpectrumClass()
+                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path)
+
+
+        else:
+            warnings.warn("no coco or no listfile")
+        pass
+
+
+    def plot_lc(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        pass
+
+
+    def plot_spec(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        pass
+
 
 
 
@@ -1501,7 +1595,7 @@ class LCfit():
 ##                                    ##
 ##------------------------------------##
 
-def load_filter(path, verbose = True):
+def load_filter(path, verbose = False):
     """
     Loads a filter response into FilterClass and returns it.
 
@@ -1512,8 +1606,8 @@ def load_filter(path, verbose = True):
     """
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
-        filter_object.read_filter_file(os.path.abspath(path))
-        filter_object.calculate_plot_colour()
+        filter_object.read_filter_file(os.path.abspath(path), verbose = verbose)
+        filter_object.calculate_plot_colour(verbose = verbose)
 
         return filter_object
     else:
@@ -1775,6 +1869,24 @@ def setup_plot_defaults():
     plt.rc('font', family='sans-serif')
     plt.rc('font', serif='Helvetica')
     pass
+
+
+def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    #
+    # ifile = open(path, 'r')
+    #
+    # for line in ifile:
+    #     if verbose: print(line.strip('\n'))
+    # ifile.close()
+    data = Table.read(path, names = names, format = 'ascii')
+    return data
 
 
 
