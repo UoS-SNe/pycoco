@@ -352,6 +352,54 @@ class PhotometryClass():
         pass
 
 
+    def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii', verbose = True):
+        """
+        Loads a single photometry file.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        StringWarning(path)
+        try:
+            phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
+            self.data = phot_table
+            self.unpack()
+        except:
+            raise StandardError
+
+
+
+
+    def _load_formatted_phot(path, format = "ascii", names = False,
+                            verbose = True):
+        """
+        Loads a single photometry file.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        StringWarning(path)
+
+        if names:
+            phot_table = Table.read(path, format = format, names = names)
+        else:
+            phot_table = Table.read(path, format = format)
+
+        phot_table.meta = {"filename" : path}
+
+        phot_table["MJD"].unit = u.day
+        phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+        phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+        return phot_table
+
+
     def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
                   format = 'ascii', verbose = True):
         """
@@ -607,7 +655,7 @@ class PhotometryClass():
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o', color = self.data_filters[filter_key]._plot_colour,
-                             label = plot_label_string,
+                             label = plot_label_string, ecolor = hex['batman'],
                              *args, **kwargs)
 
             if legend:
@@ -1174,6 +1222,13 @@ class SNClass():
     """docstring for SNClass."""
 
     def __init__(self, snname):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         ## Initialise
         self.spec = SpectrumClass()
         self.phot = PhotometryClass()
@@ -1182,6 +1237,21 @@ class SNClass():
 
         self.name = snname
         pass
+
+
+    def load_phot(self, snname):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        self.phot.load()
+
+        pass
+
 
 
 
