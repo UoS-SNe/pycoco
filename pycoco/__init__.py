@@ -123,6 +123,7 @@ __all__ = ["_default_data_dir_path",
            "_default_filter_dir_path",
            "_default_coco_dir_path",
            "_colourmap_name",
+           "_spec_colourmap_name",
            "_colour_upper_lambda_limit",
            "_colour_lower_lambda_limit"]
 
@@ -133,7 +134,9 @@ _default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/
 _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
+_spec_colourmap_name = 'viridis'
 colourmap = plt.get_cmap(_colourmap_name)
+spec_colourmap = plt.get_cmap(_spec_colourmap_name)
 
 _colour_upper_lambda_limit = 10000 * u.angstrom
 _colour_lower_lambda_limit = 3000 * u.angstrom
@@ -1100,9 +1103,9 @@ class SpectrumClass():
         return data
 
 
-    def set_MJD_obs():
+    def set_MJD_obs(self, mjd):
         """
-        Calculate the MJD of the observation.
+        Log MJD of the observation.
 
         Parameters
         ----------
@@ -1110,6 +1113,9 @@ class SpectrumClass():
         Returns
         -------
         """
+        self.mjd_obs = mjd
+
+        pass
 
 
     def set_EBV(self, EBV):
@@ -1284,10 +1290,12 @@ class SNClass():
         Returns
         -------
         """
-        self.list = read_list_file(path, verbose = verbose)
+        listdata = read_list_file(path, verbose = verbose)
+        listdata.sort('mjd_obs')
+        self.list  = listdata
 
 
-    def load_spec(self, snname = False, spec_dir_path = False, verbose = True):
+    def load_spec(self, snname = False, spec_dir_path = False, verbose = False):
         """
         Parameters
         ----------
@@ -1309,7 +1317,7 @@ class SNClass():
 
 
         if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
-            for path in self.list['spec_path']:
+            for i, path in enumerate(self.list['spec_path']):
                 spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
@@ -1317,7 +1325,8 @@ class SNClass():
 
                 self.spec[spec_filename] = SpectrumClass()
                 self.spec[spec_filename].load(spec_filename, directory = spec_dir_path)
-
+                self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
+                # self.spec[spec_filename].data.add_index('wavelength')
 
         else:
             warnings.warn("no coco or no listfile")
@@ -1332,10 +1341,13 @@ class SNClass():
         Returns
         -------
         """
+
         pass
 
 
-    def plot_spec(self):
+    def plot_spec(self, xminorticks = 250, legend = True,
+                  verbose = False,
+                  *args, **kwargs):
         """
         Parameters
         ----------
@@ -1343,7 +1355,61 @@ class SNClass():
         Returns
         -------
         """
+        if hasattr(self, "spec"):
 
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 10])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            cmap_indices = np.linspace(0,1, len(self.spec))
+
+
+            for i, spec_key in enumerate(self.spec):
+                # if verbose: print(self.spec[spec_key].data.__dict__)
+                plot_label_string = r'$\rm{' + self.spec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
+
+                v_eff = 5436.87 ##Angstrom
+                w = np.logical_and(self.spec[spec_key].data['wavelength'] > (v_eff-100.),self.spec[spec_key].data['wavelength'] < v_eff+100.)
+                if verbose: print(len(w[np.where(w == True)]), spec_key)
+                flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
+
+                ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*i, lw = 2,
+                             label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                             *args, **kwargs)
+                if i == 0:
+                    maxplotydata = np.nanmax(flux_norm - 0.5*i)
+                    minplotydata = np.nanmin(flux_norm - 0.5*i)
+                else:
+                    maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*i))
+                    minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*i))
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, Arbitrary}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.set_yticklabels('')
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
