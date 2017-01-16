@@ -40,6 +40,8 @@ from scipy.interpolate import interp1d as interp1d
 from .extinction import *
 from .colours import *
 
+warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
+
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
 ##----------------------------------------------------------------------------##
@@ -1346,7 +1348,7 @@ class SNClass():
 
 
     def plot_spec(self, xminorticks = 250, legend = True,
-                  verbose = False,
+                  verbose = False, add_mjd = True,
                   *args, **kwargs):
         """
         Parameters
@@ -1375,18 +1377,34 @@ class SNClass():
 
                 v_eff = 5436.87 ##Angstrom
                 w = np.logical_and(self.spec[spec_key].data['wavelength'] > (v_eff-100.),self.spec[spec_key].data['wavelength'] < v_eff+100.)
-                if verbose: print(len(w[np.where(w == True)]), spec_key)
-                flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
 
-                ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*i, lw = 2,
-                             label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
-                             *args, **kwargs)
-                if i == 0:
-                    maxplotydata = np.nanmax(flux_norm - 0.5*i)
-                    minplotydata = np.nanmin(flux_norm - 0.5*i)
+                if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.spec[spec_key].data['wavelength']), len(self.spec[spec_key].data['flux']), len(self.spec[spec_key].flux))
+                if len(w[np.where(w == True)]) > 0:
+                    if verbose: print(len(w), 'Foo')
+                    flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
+
+                    ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*i, lw = 2,
+                                 label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                                 *args, **kwargs)
+
+                    maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
+                    yatmaxspecxdata = (flux_norm - 0.5*i)[-1]
+
+                    if i == 0:
+                        maxplotydata = np.nanmax(flux_norm - 0.5*i)
+                        minplotydata = np.nanmin(flux_norm - 0.5*i)
+
+                        maxplotxdata = maxspecxdata
+                        minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
+                    else:
+                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*i))
+                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*i))
+
+                        maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
+                        minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.spec[spec_key].data['wavelength'])))
+                    if add_mjd:
+                        ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
                 else:
-                    maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*i))
-                    minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*i))
 
             if legend:
 
@@ -1394,7 +1412,7 @@ class SNClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
-
+            if verbose: print(minplotydata, maxplotydata)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
             yaxis_label_string = r'$\textnormal{Flux, Arbitrary}$'
