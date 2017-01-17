@@ -1335,7 +1335,7 @@ class SNClass():
         pass
 
 
-    def plot_lc(self, legend = True, xminorticks = 5,
+    def plot_lc(self, legend = True, xminorticks = 5, mark_spectra = True,
              verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1365,6 +1365,11 @@ class SNClass():
                              capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
                              label = plot_label_string, ecolor = hex['batman'],
                              *args, **kwargs)
+            if mark_spectra:
+                for spec_key in self.spec:
+                    plt.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
+                             [np.nanmin(self.phot.phot['flux'])*1.5, np.nanmax(self.phot.phot['flux'])*1.5],
+                             ls = ':', color = hex['batman'], zorder = 0)
 
             if legend:
 
