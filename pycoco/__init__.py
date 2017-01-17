@@ -1369,9 +1369,10 @@ class SNClass():
 
             cmap_indices = np.linspace(0,1, len(self.spec))
 
-
+            j = 0
             for i, spec_key in enumerate(self.spec):
                 # if verbose: print(self.spec[spec_key].data.__dict__)
+
                 plot_label_string = r'$\rm{' + self.spec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
@@ -1383,29 +1384,36 @@ class SNClass():
                     if verbose: print(len(w), 'Foo')
                     flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
 
-                    ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*i, lw = 2,
+                    ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
                                  label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
                                  *args, **kwargs)
 
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
-                    yatmaxspecxdata = (flux_norm - 0.5*i)[-1]
+                    minspecxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
+
+                    yatmaxspecxdata = (flux_norm - 0.5*j)[-1]
+                    yatminspecxdata = (flux_norm - 0.5*j)[0]
 
                     if i == 0:
-                        maxplotydata = np.nanmax(flux_norm - 0.5*i)
-                        minplotydata = np.nanmin(flux_norm - 0.5*i)
+                        maxplotydata = np.nanmax(flux_norm - 0.5*j)
+                        minplotydata = np.nanmin(flux_norm - 0.5*j)
 
                         maxplotxdata = maxspecxdata
                         minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
                     else:
-                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*i))
-                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*i))
+                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*j))
+                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
 
                         maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
                         minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.spec[spec_key].data['wavelength'])))
                     if add_mjd:
-                        ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                else:
+                        # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
+                        # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([11000, minspecxdata],[yatminspecxdata, yatminspecxdata], ls = '--', color = hex['batman'])
 
+                    j = j + 1
+                else:
+                    if verbose: print("Not enough data to normalise")
             if legend:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
