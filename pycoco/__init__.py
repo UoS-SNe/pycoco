@@ -1391,8 +1391,8 @@ class SNClass():
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
                     minspecxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
 
-                    yatmaxspecxdata = (flux_norm - 0.5*j)[-1]
-                    yatminspecxdata = (flux_norm - 0.5*j)[0]
+                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[-10:-1])
+                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[0:10])
 
                     if i == 0:
                         maxplotydata = np.nanmax(flux_norm - 0.5*j)
@@ -1409,8 +1409,10 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([11000, minspecxdata],[yatminspecxdata, yatminspecxdata], ls = '--', color = hex['batman'])
-
+                        ax1.plot([1000, minspecxdata],[yatminspecxdata, yatminspecxdata], ls = '--', color = hex['batman'])
+                        txt = ax1.text(1000, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                                       horizontalalignment = 'right', verticalalignment = 'center')
+                        # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
                 else:
                     if verbose: print("Not enough data to normalise")
