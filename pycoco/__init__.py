@@ -1492,6 +1492,12 @@ class SNClass():
 
 
 
+    def get_fit(self, path):
+        StringWarning(path)
+        self.lcfit = LCfit()
+        self.lcfit.load_formatted_phot(path)
+        pass
+
 class LCfit():
     """
     Small class to hold the output from CoCo LCfit
