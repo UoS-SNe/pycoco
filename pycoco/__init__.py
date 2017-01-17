@@ -1343,7 +1343,49 @@ class SNClass():
         Returns
         -------
         """
+        if hasattr(self.phot, "data"):
 
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            for i, filter_key in enumerate(self.phot.data_filters):
+                if verbose: print(i, self.phot.data[filter_key].__dict__)
+                plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+                if filter_key in hex.keys():
+                    self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
+
+                ax1.errorbar(self.phot.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                             yerr = self.phot.data[filter_key]['flux_err'],
+                             capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
+                             label = plot_label_string, ecolor = hex['batman'],
+                             *args, **kwargs)
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ## Use ap table groups instead? - can't; no support for mixin columns.
+            ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
