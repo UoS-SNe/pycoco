@@ -1326,7 +1326,7 @@ class SNClass():
                 if verbose: print(spec_dir_path, spec_filename)
 
                 self.spec[spec_filename] = SpectrumClass()
-                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path)
+                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path, verbose = verbose)
                 self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
                 # self.spec[spec_filename].data.add_index('wavelength')
 
@@ -1335,7 +1335,8 @@ class SNClass():
         pass
 
 
-    def plot_lc(self):
+    def plot_lc(self, legend = True, xminorticks = 5,
+             verbose = False, *args, **kwargs):
         """
         Parameters
         ----------
@@ -1359,7 +1360,7 @@ class SNClass():
                 if filter_key in hex.keys():
                     self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
 
-                ax1.errorbar(self.phot.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                              yerr = self.phot.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
                              label = plot_label_string, ecolor = hex['batman'],
