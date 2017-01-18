@@ -137,11 +137,13 @@ _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
+_colourmap_name = 'plasma'
+
 colourmap = plt.get_cmap(_colourmap_name)
 spec_colourmap = plt.get_cmap(_spec_colourmap_name)
 
-_colour_upper_lambda_limit = 10000 * u.angstrom
-_colour_lower_lambda_limit = 3000 * u.angstrom
+_colour_upper_lambda_limit = 11000 * u.angstrom
+_colour_lower_lambda_limit = 3500 * u.angstrom
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
@@ -375,6 +377,9 @@ class PhotometryClass():
             phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
             self.phot = phot_table
             self.unpack()
+            
+            ## Sort the OrderedDict
+            self._sort_phot()
         except:
             raise StandardError
 
@@ -415,6 +420,9 @@ class PhotometryClass():
         try:
             phot_table = load_phot(path, names = names, format = format, verbose = verbose)
             self.data[np.unique(phot_table["filter"])[0]] = phot_table
+
+            ## Sort the OrderedDict
+            self._sort_phot()
         except:
             raise StandardError
 
@@ -1364,15 +1372,16 @@ class SNClass():
                              capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
                              label = plot_label_string, ecolor = hex['batman'],
                              *args, **kwargs)
+
                 if fit and hasattr(self, 'fit'):
                     ax1.fill_between(self.fit.data[filter_key]['MJD'], self.fit.data[filter_key]['flux_upper'], self.fit.data[filter_key]['flux_lower'],
-                                     color = self.data_filters[filter_key]._plot_colour,
+                                     color = self.phot.data_filters[filter_key]._plot_colour,
                                      alpha = 0.8, zorder = 0,
                                      *args, **kwargs)
             if mark_spectra:
                 for spec_key in self.spec:
                     plt.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
-                             [np.nanmin(self.phot.phot['flux'])*1.5, np.nanmax(self.phot.phot['flux'])*1.5],
+                             [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
                              ls = ':', color = hex['batman'], zorder = 0)
 
             if legend:
