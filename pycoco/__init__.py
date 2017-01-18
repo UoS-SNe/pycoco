@@ -1243,8 +1243,6 @@ class SNClass():
         # self.spec = SpectrumClass()
         self.phot = PhotometryClass()
 
-        self.fit = LCfit()
-
         self.coco_directory = self._get_coco_directory()
 
         self.name = snname
@@ -1336,7 +1334,8 @@ class SNClass():
 
 
     def plot_lc(self, legend = True, xminorticks = 5, mark_spectra = True,
-             verbose = False, *args, **kwargs):
+                fit = True,
+                verbose = False, *args, **kwargs):
         """
         Parameters
         ----------
@@ -1365,6 +1364,11 @@ class SNClass():
                              capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
                              label = plot_label_string, ecolor = hex['batman'],
                              *args, **kwargs)
+                if fit and hasattr(self, 'fit'):
+                    ax1.fill_between(self.fit.data[filter_key]['MJD'], self.fit.data[filter_key]['flux_upper'], self.fit.data[filter_key]['flux_lower'],
+                                     color = self.data_filters[filter_key]._plot_colour,
+                                     alpha = 0.8, zorder = 0,
+                                     *args, **kwargs)
             if mark_spectra:
                 for spec_key in self.spec:
                     plt.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
@@ -1489,16 +1493,14 @@ class SNClass():
         pass
 
 
-
-
-
     def get_fit(self, path):
         StringWarning(path)
-        self.lcfit = LCfit()
-        self.lcfit.load_formatted_phot(path)
+        self.fit = LCfitClass()
+        self.fit.load_formatted_phot(path)
+        self.fit.unpack()
         pass
 
-class LCfit():
+class LCfitClass():
     """
     Small class to hold the output from CoCo LCfit
     """
@@ -2042,7 +2044,7 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 ##                                    ##
 ##------------------------------------##
 
-def run_LCfit():
+def run_LCfitClass():
     """
     Parameters
     ----------
