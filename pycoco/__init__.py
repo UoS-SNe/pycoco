@@ -2092,7 +2092,7 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 ## CoCo                               ##
 ##------------------------------------##
 
-def run_LCfitClass():
+def run_LCfit():
     """
     Parameters
     ----------
