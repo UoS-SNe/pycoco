@@ -38,7 +38,9 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
 from .extinction import *
+from .colours import *
 
+warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -123,6 +125,7 @@ __all__ = ["_default_data_dir_path",
            "_default_filter_dir_path",
            "_default_coco_dir_path",
            "_colourmap_name",
+           "_spec_colourmap_name",
            "_colour_upper_lambda_limit",
            "_colour_lower_lambda_limit"]
 
@@ -133,10 +136,14 @@ _default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/
 _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
-colourmap = plt.get_cmap(_colourmap_name)
+_spec_colourmap_name = 'viridis'
+_colourmap_name = 'plasma'
 
-_colour_upper_lambda_limit = 10000 * u.angstrom
-_colour_lower_lambda_limit = 3000 * u.angstrom
+colourmap = plt.get_cmap(_colourmap_name)
+spec_colourmap = plt.get_cmap(_spec_colourmap_name)
+
+_colour_upper_lambda_limit = 11000 * u.angstrom
+_colour_lower_lambda_limit = 3500 * u.angstrom
 
 ##------------------------------------##
 ##  ERROR DEFS                        ##
@@ -310,7 +317,7 @@ class PhotometryClass():
             pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = True):
+    def unpack(self, filter_file_type = '.dat', verbose = False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -328,6 +335,7 @@ class PhotometryClass():
 
 
             for filter_name in filter_names:
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 phot_table.meta = {"filter_filename": filter_filename}
@@ -340,16 +348,67 @@ class PhotometryClass():
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+
                     raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
-                self.data_filters[filter_key] = load_filter(path_to_filter)
+                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
                 self.data[filter_name] = sorted_phot_table
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
 
         pass
+
+
+    def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii.commented_header', verbose = True):
+        """
+        Loads a single photometry file.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        StringWarning(path)
+        try:
+            phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
+            self.phot = phot_table
+            self.unpack()
+
+            ## Sort the OrderedDict
+            self._sort_phot()
+        except:
+            raise StandardError
+
+
+    def _load_formatted_phot(self, path, format = "ascii", names = False,
+                            verbose = True):
+        """
+        Loads a single photometry file.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        StringWarning(path)
+
+        if names:
+            phot_table = Table.read(path, format = format, names = names)
+        else:
+            phot_table = Table.read(path, format = format)
+
+        phot_table.meta = {"filename" : path}
+
+        phot_table["MJD"].unit = u.day
+        phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+        phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+        return phot_table
 
 
     def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
@@ -361,6 +420,9 @@ class PhotometryClass():
         try:
             phot_table = load_phot(path, names = names, format = format, verbose = verbose)
             self.data[np.unique(phot_table["filter"])[0]] = phot_table
+
+            ## Sort the OrderedDict
+            self._sort_phot()
         except:
             raise StandardError
 
@@ -601,11 +663,13 @@ class PhotometryClass():
             for i, filter_key in enumerate(self.data_filters):
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+                if filter_key in hex.keys():
+                    self.data_filters[filter_key]._plot_colour = hex[filter_key]
 
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
-                             capsize = 0, fmt = 'o',
-                             label = plot_label_string,
+                             capsize = 0, fmt = 'o', color = self.data_filters[filter_key]._plot_colour,
+                             label = plot_label_string, ecolor = hex['batman'],
                              *args, **kwargs)
 
             if legend:
@@ -807,7 +871,7 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def calculate_plot_colour(self, colourmap = colourmap, verbose = True):
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
         """
 
 
@@ -1049,9 +1113,9 @@ class SpectrumClass():
         return data
 
 
-    def set_MJD_obs():
+    def set_MJD_obs(self, mjd):
         """
-        Calculate the MJD of the observation.
+        Log MJD of the observation.
 
         Parameters
         ----------
@@ -1059,6 +1123,9 @@ class SpectrumClass():
         Returns
         -------
         """
+        self.mjd_obs = mjd
+
+        pass
 
 
     def set_EBV(self, EBV):
@@ -1171,17 +1238,287 @@ class SpectrumClass():
 class SNClass():
     """docstring for SNClass."""
 
-    def __init__(self):
+    def __init__(self, snname):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        ## Initialise
+        self.spec = OrderedDict()
+        # self.spec = SpectrumClass()
+        self.phot = PhotometryClass()
+
+        self.coco_directory = self._get_coco_directory()
+
+        self.name = snname
+        pass
+
+
+    def _get_coco_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the CoCo home directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default CoCo location: '~/Code/CoCo/', with appended.
+        """
+
+        return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
+
+
+    def load_phot(self, snname = False, path = False, file_type = '.dat',
+                  verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if not snname:
+            snname = self.name
+        if not path:
+            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+        if verbose: print(path)
+        self.phot.load(path, verbose = verbose)
+
+        pass
+
+
+    def load_list(self, path, verbose = True):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        listdata = read_list_file(path, verbose = verbose)
+        listdata.sort('mjd_obs')
+        self.list  = listdata
+
+
+    def load_spec(self, snname = False, spec_dir_path = False, verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+
+        # if not snname:
+        #     snname = self.name
+        #
+        # if not spec_dir_path:
+        #     spec_dir_path = os.path.abspath(os.path.join(self._default_spec_data_dir_path, snname))
+        #
+        # if verbose: print("Loading spectra from: ", spec_dir_path)
+
+        # spec_dir_path =
+
+
+        if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
+            for i, path in enumerate(self.list['spec_path']):
+                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_filename = path.split('/')[-1]
+                spec_dir_path = spec_fullpath.replace(spec_filename, '')
+                if verbose: print(spec_dir_path, spec_filename)
+
+                self.spec[spec_filename] = SpectrumClass()
+                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path, verbose = verbose)
+                self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
+                # self.spec[spec_filename].data.add_index('wavelength')
+
+        else:
+            warnings.warn("no coco or no listfile")
+        pass
+
+
+    def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
+                fit = True,
+                verbose = False, *args, **kwargs):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self.phot, "data"):
+
+            if not filters:
+                filters = self.phot.data_filters
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            for i, filter_key in enumerate(filters):
+                if filter_key in self.phot.data:
+                    if verbose: print(i, self.phot.data[filter_key].__dict__)
+                    plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+                    if filter_key in hex.keys():
+                        self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
+
+                    ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
+                                 yerr = self.phot.data[filter_key]['flux_err'],
+                                 capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
+                                 label = plot_label_string, ecolor = hex['batman'],
+                                 *args, **kwargs)
+
+                    if fit and hasattr(self, 'fit'):
+                        ax1.fill_between(self.fit.data[filter_key]['MJD'], self.fit.data[filter_key]['flux_upper'], self.fit.data[filter_key]['flux_lower'],
+                                         color = self.phot.data_filters[filter_key]._plot_colour,
+                                         alpha = 0.8, zorder = 0,
+                                         *args, **kwargs)
+                else:
+                    warnings.warn("Filter '" + filter_key + "' not found")
+
+            if mark_spectra:
+                for spec_key in self.spec:
+                    plt.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
+                             [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
+                             ls = ':', color = hex['batman'], zorder = 0)
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ## Use ap table groups instead? - can't; no support for mixin columns.
+            ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def plot_spec(self, xminorticks = 250, legend = True,
+                  verbose = False, add_mjd = True,
+                  *args, **kwargs):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self, "spec"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 10])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            cmap_indices = np.linspace(0,1, len(self.spec))
+
+            j = 0
+            for i, spec_key in enumerate(self.spec):
+                # if verbose: print(self.spec[spec_key].data.__dict__)
+
+                plot_label_string = r'$\rm{' + self.spec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
+
+                v_eff = 5436.87 ##Angstrom
+                w = np.logical_and(self.spec[spec_key].data['wavelength'] > (v_eff-100.),self.spec[spec_key].data['wavelength'] < v_eff+100.)
+
+                if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.spec[spec_key].data['wavelength']), len(self.spec[spec_key].data['flux']), len(self.spec[spec_key].flux))
+                if len(w[np.where(w == True)]) > 0:
+                    if verbose: print(len(w), 'Foo')
+                    flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
+
+                    ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
+                                 label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                                 *args, **kwargs)
+
+                    maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
+                    minspecxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
+
+                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[-10:-1])
+                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[0:10])
+
+                    if i == 0:
+                        maxplotydata = np.nanmax(flux_norm - 0.5*j)
+                        minplotydata = np.nanmin(flux_norm - 0.5*j)
+
+                        maxplotxdata = maxspecxdata
+                        minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
+                    else:
+                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*j))
+                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
+
+                        maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
+                        minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.spec[spec_key].data['wavelength'])))
+                    if add_mjd:
+                        # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
+                        # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([1000, minspecxdata],[yatminspecxdata, yatminspecxdata], ls = '--', color = hex['batman'])
+                        txt = ax1.text(1000, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                                       horizontalalignment = 'right', verticalalignment = 'center')
+                        # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
+                    j = j + 1
+                else:
+                    if verbose: print("Not enough data to normalise")
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
+            if verbose: print(minplotydata, maxplotydata)
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, Arbitrary}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.set_yticklabels('')
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
     def get_fit(self, path):
         StringWarning(path)
-        self.lcfit = LCfit()
-        self.lcfit.load_formatted_phot(path)
+        self.fit = LCfitClass()
+        self.fit.load_formatted_phot(path)
+        self.fit.unpack()
+        self.fit._sort_phot()
         pass
 
-class LCfit():
+
+class LCfitClass():
     """
     Small class to hold the output from CoCo LCfit
     """
@@ -1422,11 +1759,41 @@ class LCfit():
         pass
 
 
+    def _sort_phot(self):
+        """
+        resorts the photometry according to effective wavelength of the filter.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data") and hasattr(self, "data_filters"):
+            ## This looks fugly.
+            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
+
+            sorted_data = OrderedDict()
+            sorted_data_filters = OrderedDict()
+
+            for newkey in newkeys:
+                sorted_data[newkey] = self.data[newkey]
+                sorted_data_filters[newkey] = self.data_filters[newkey]
+
+            self.data = sorted_data
+            self.data_filters = sorted_data_filters
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
 ##------------------------------------##
 ##                                    ##
 ##------------------------------------##
 
-def load_filter(path, verbose = True):
+def load_filter(path, verbose = False):
     """
     Loads a filter response into FilterClass and returns it.
 
@@ -1437,8 +1804,8 @@ def load_filter(path, verbose = True):
     """
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
-        filter_object.read_filter_file(os.path.abspath(path))
-        filter_object.calculate_plot_colour()
+        filter_object.read_filter_file(os.path.abspath(path), verbose = verbose)
+        filter_object.calculate_plot_colour(verbose = verbose)
 
         return filter_object
     else:
@@ -1702,20 +2069,39 @@ def setup_plot_defaults():
     pass
 
 
-
-##------------------------------------##
-## CoCo                               ##
-##------------------------------------##
-
-def run_LCfit():
+def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
     """
     Parameters
     ----------
     Returns
     -------
     """
+    check_file_path(path)
+    #
+    # ifile = open(path, 'r')
+    #
+    # for line in ifile:
+    #     if verbose: print(line.strip('\n'))
+    # ifile.close()
+    data = Table.read(path, names = names, format = 'ascii')
+    return data
 
-    # subproccess
+
+
+##------------------------------------##
+## CoCo                               ##
+##------------------------------------##
+
+def run_LCfitClass():
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    if verbose: print("Running CoCo lcfit on " + path)
+    subprocess.call(["./lcfit", path])
 
     pass
 
