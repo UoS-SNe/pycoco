@@ -2092,7 +2092,20 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 ## CoCo                               ##
 ##------------------------------------##
 
-def run_LCfit():
+
+def test_LCfit(snname):
+    """
+    Check to see if a fit has been done. Does this by
+    looking for reconstructed LC files
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    pass
+
+
+def run_LCfit(path):
     """
     Parameters
     ----------
