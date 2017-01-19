@@ -2036,15 +2036,16 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 ##                                    ##
 ##------------------------------------##
 
-def run_LCfit():
+def run_LCfit(path, verbose = True):
     """
     Parameters
     ----------
     Returns
     -------
     """
-
-    # subproccess
+    check_file_path(path)
+    if verbose: print("Running CoCo lcfit on " + path)
+    subprocess.call(["./lcfit", path])
 
     pass
 
