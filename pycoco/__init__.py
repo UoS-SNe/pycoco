@@ -40,7 +40,7 @@ from scipy.interpolate import interp1d as interp1d
 from .extinction import *
 from .colours import *
 
-warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
+# warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -611,11 +611,9 @@ class PhotometryClass():
                 if squash:
                     print("Overwriting " + outpath)
                     self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-
-
             else:
                     print("Writing " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii")
+                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
