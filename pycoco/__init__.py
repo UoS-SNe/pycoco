@@ -137,6 +137,8 @@ _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
+# _spec_colourmap_name = 'plasma'
+# _spec_colourmap_name = 'jet'
 _colourmap_name = 'plasma'
 
 colourmap = plt.get_cmap(_colourmap_name)
