@@ -19,3 +19,16 @@ ___
 
  * Implementing calls to `CoCo LCfit` now
 ___
+
+Ideally set the following environment variables:
+
+`COCO_ROOT_DIR` (my default is `~/Code/CoCo/`)
+`PYCOCO_FILTER_DIR`(my default is `~/Code/CoCo/data/filters/`)
+`PYCOCO_DATA_DIR` (my default is `~/Code/CoCo/data/`)
+
+also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
+
+ `setenv PATH /Users/berto/Code/pycoco/:$PATH`
+ `setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH`
+
+___
