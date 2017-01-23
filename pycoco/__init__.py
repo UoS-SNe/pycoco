@@ -1475,8 +1475,8 @@ class SNClass():
                         minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
                     else:
                         maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*j))
-                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
-
+                        # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
+                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
                         maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
                         minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.spec[spec_key].data['wavelength'])))
                     if add_mjd:
