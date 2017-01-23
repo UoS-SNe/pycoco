@@ -1393,6 +1393,7 @@ class SNClass():
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
                 else:
+                    if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
 
             if mark_spectra:
