@@ -962,6 +962,7 @@ class SpectrumClass():
 
 
     def load(self, filename, directory = False, fmt = "ascii",
+             wmin = 3500, wmax = 11000,
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
         """
@@ -1004,6 +1005,10 @@ class SpectrumClass():
             if "flux_err" in spec_table.colnames:
                 spec_table["flux_err"].unit = flux_u
 
+            ## enforce wmin and wmax
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
+
+            ## assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
             self.flux = spec_table["flux"]
