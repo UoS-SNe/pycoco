@@ -1498,7 +1498,7 @@ class SNClass():
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
                         ax1.plot([1500, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
-                        txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        txt = ax1.text(1500, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                                        horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
@@ -1510,6 +1510,8 @@ class SNClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
+            ax1.set_xlim(500, maxplotxdata)
+            
             if verbose: print(minplotydata, maxplotydata)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
