@@ -670,7 +670,10 @@ class PhotometryClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ## Use ap table groups instead? - can't; no support for mixin columns.
-            ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+            if enforce_zero:
+                ax1.set_ylim(0., np.nanmax(self.phot['flux']))
+            else:
+                ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
