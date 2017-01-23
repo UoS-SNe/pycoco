@@ -40,6 +40,7 @@ from scipy.interpolate import interp1d as interp1d
 from .extinction import *
 from .colours import *
 
+warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
 
 ##----------------------------------------------------------------------------##
@@ -2112,7 +2113,8 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 ##------------------------------------##
 
 
-def test_LCfit(snname):
+def test_LCfit(snname, coco_dir = False,
+               verbose = True):
     """
     Check to see if a fit has been done. Does this by
     looking for reconstructed LC files
@@ -2121,7 +2123,38 @@ def test_LCfit(snname):
     Returns
     -------
     """
-    pass
+
+    try:
+        if not coco_dir:
+            coco_dir = _default_coco_dir_path
+
+    except:
+        warnings.warn("Something funky with your input")
+
+    check_dir_path(coco_dir)
+
+    if verbose: print(coco_dir)
+
+    try:
+        path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
+        path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
+
+        for path in [path_to_test_stat, path_to_test_dat]:
+
+            if os.path.isfile(os.path.abspath(path)):
+                if verbose: print("Looks like you have done a fit, I found ", path )
+                boolflag = True
+            else:
+                warnings.warn(os.path.abspath(path) +
+                " not found. Have you done a fit?")
+                boolflag = False
+
+    except:
+
+        warnings.warn("Failing gracefully. Can't find the droids you are looking for.")
+        boolflag = False
+
+    return boolflag
 
 
 def run_LCfit(path):
