@@ -630,7 +630,7 @@ class PhotometryClass():
         return save_table
 
 
-    def plot(self, legend = True, xminorticks = 5,
+    def plot(self, legend = True, xminorticks = 5, enforce_zero = True,
              verbose = False, *args, **kwargs):
         """
         Plots phot.
