@@ -1347,7 +1347,7 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                fit = True,
+                fit = True, enforce_zero = True,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1401,8 +1401,11 @@ class SNClass():
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            ## Use ap table groups instead? - can't; no support for mixin columns.
-            ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
+            if enforce_zero:
+                ## Use ap table groups instead? - can't; no support for mixin columns.
+                ax1.set_ylim(np.nanmin(np.append(self.phot.phot['flux'], 0.0)), np.nanmax(self.phot.phot['flux']))
+            else:
+                ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
