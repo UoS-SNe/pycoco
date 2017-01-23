@@ -14,4 +14,4 @@ for sn in dir_list:
         P = pcc.PhotometryClass()
         P.load_phot_from_files(path = '/Users/berto/data/CoreCollapse/phot/sn/'+sn,
                                snname = sn)
-        P.save(sn + '.dat', squash = True )
+        P.save(sn + '.dat', squash = True)
