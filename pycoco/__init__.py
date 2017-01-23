@@ -1376,6 +1376,9 @@ class SNClass():
             ax1 = fig.add_subplot(111)
 
             for i, filter_key in enumerate(filters):
+
+                # assert filter_key in self.phot.data ## Adam suggestion
+
                 if filter_key in self.phot.data:
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
                     plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
