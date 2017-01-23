@@ -1336,7 +1336,8 @@ class SNClass():
                 if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
 
                 self.spec[spec_filename] = SpectrumClass()
-                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path, verbose = verbose)
+                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path,
+                                              verbose = verbose)
                 self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
                 # self.spec[spec_filename].data.add_index('wavelength')
 
@@ -1420,6 +1421,7 @@ class SNClass():
 
 
     def plot_spec(self, xminorticks = 250, legend = True,
+                  wmin = 3500,
                   verbose = False, add_mjd = True,
                   *args, **kwargs):
         """
@@ -1463,9 +1465,9 @@ class SNClass():
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
                     minspecxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
 
-                    w = np.where(self.spec[spec_key].data['wavelength'] >=  maxspecxdata - 100)
+                    w = np.where(self.spec[spec_key].data['wavelength'] >=  maxspecxdata - 200)
                     yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
-                    w = np.where(self.spec[spec_key].data['wavelength'] <=  minspecxdata + 100)
+                    w = np.where(self.spec[spec_key].data['wavelength'] <=  minspecxdata + 200)
                     yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
                     if verbose: print(yatminspecxdata)
                     if i == 0:
@@ -1477,7 +1479,7 @@ class SNClass():
                         maxplotxdata = maxspecxdata
                         minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
                     else:
-                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*j))
+                        maxplotydata = np.nanmax(np.append(maxplotydata, np.append(yatminspecxdata, yatminspecxdata)))
                         # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
                         minplotydata = 0. - 0.5*j ## Assumes always positive flux
                         maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
