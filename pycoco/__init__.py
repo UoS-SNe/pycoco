@@ -2170,6 +2170,64 @@ def run_LCfit(path):
 
     pass
 
+def test_specfit(snname, coco_dir = False,
+               verbose = True):
+    """
+    Check to see if a fit has been done. Does this by
+    looking for reconstructed LC files
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    try:
+        if not coco_dir:
+            coco_dir = _default_coco_dir_path
+
+    except:
+        warnings.warn("Something funky with your input")
+
+    check_dir_path(coco_dir)
+
+    if verbose: print(coco_dir)
+
+    try:
+        ##
+        path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
+        path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
+        ## NEED TO THINK OF THE BEST WAY TO DO THIS
+        
+        for path in [path_to_test_stat, path_to_test_dat]:
+
+            if os.path.isfile(os.path.abspath(path)):
+                if verbose: print("Looks like you have done a fit, I found ", path )
+                boolflag = True
+            else:
+                warnings.warn(os.path.abspath(path) +
+                " not found. Have you done a fit?")
+                boolflag = False
+
+    except:
+
+        warnings.warn("Failing gracefully. Can't find the droids you are looking for.")
+        boolflag = False
+
+    return boolflag
+
+
+def run_specfit(path):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    if verbose: print("Running CoCo specfit on " + path)
+    subprocess.call(["./specfit", path])
+
+    pass
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
