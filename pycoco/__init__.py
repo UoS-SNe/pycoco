@@ -1353,7 +1353,7 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                fit = True, enforce_zero = True,
+                fit = True, enforce_zero = True, multiplot = True,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1368,16 +1368,26 @@ class SNClass():
                 filters = self.phot.data_filters
 
             setup_plot_defaults()
+            if not multiplot:
+                fig = plt.figure(figsize=[8, 4])
+            else:
+                fig = plt.figure(figsize=[8, len(filters)])
 
-            fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
 
-            ax1 = fig.add_subplot(111)
+
+            if not multiplot:
+                ax1 = fig.add_subplot(111)
+            else:
+                axes_list = [plt.subplot2grid((len(filters), 1), (j, 0)) for j, k in enumerate(filters)]
 
             for i, filter_key in enumerate(filters):
-
-                # assert filter_key in self.phot.data ## Adam suggestion
+                if multiplot:
+                    ax1 = axes_list[i]
 
                 if filter_key in self.phot.data:
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
@@ -1396,15 +1406,29 @@ class SNClass():
                                          color = self.phot.data_filters[filter_key]._plot_colour,
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
+
+
+                    if i == len(axes_list)-1:
+                        ax1.set_xlabel(xaxis_label_string)
+                    else:
+                        ax1.set_xticklabels('')
+
+                    xminorLocator = MultipleLocator(xminorticks)
+                    ax1.xaxis.set_minor_locator(xminorLocator)
+
+                    if mark_spectra:
+
+                        for spec_key in self.spec:
+                            ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
+                                     [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
+                                     ls = ':', color = hex['batman'], zorder = 0)
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
 
-            if mark_spectra:
-                for spec_key in self.spec:
-                    plt.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
-                             [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
-                             ls = ':', color = hex['batman'], zorder = 0)
+
+
+
 
             if legend:
 
@@ -1417,15 +1441,11 @@ class SNClass():
             else:
                 ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
 
-            ## Label the axes
-            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
 
-            ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
 
-            xminorLocator = MultipleLocator(xminorticks)
-            ax1.xaxis.set_minor_locator(xminorLocator)
+
+
 
             plt.show()
         else:
@@ -2175,6 +2195,64 @@ def run_LCfit(path):
 
     pass
 
+def test_specfit(snname, coco_dir = False,
+               verbose = True):
+    """
+    Check to see if a fit has been done. Does this by
+    looking for reconstructed LC files
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    try:
+        if not coco_dir:
+            coco_dir = _default_coco_dir_path
+
+    except:
+        warnings.warn("Something funky with your input")
+
+    check_dir_path(coco_dir)
+
+    if verbose: print(coco_dir)
+
+    try:
+        ##
+        path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
+        path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
+        ## NEED TO THINK OF THE BEST WAY TO DO THIS
+        
+        for path in [path_to_test_stat, path_to_test_dat]:
+
+            if os.path.isfile(os.path.abspath(path)):
+                if verbose: print("Looks like you have done a fit, I found ", path )
+                boolflag = True
+            else:
+                warnings.warn(os.path.abspath(path) +
+                " not found. Have you done a fit?")
+                boolflag = False
+
+    except:
+
+        warnings.warn("Failing gracefully. Can't find the droids you are looking for.")
+        boolflag = False
+
+    return boolflag
+
+
+def run_specfit(path):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    if verbose: print("Running CoCo specfit on " + path)
+    subprocess.call(["./specfit", path])
+
+    pass
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
