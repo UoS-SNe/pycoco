@@ -40,7 +40,8 @@ from scipy.interpolate import interp1d as interp1d
 from .extinction import *
 from .colours import *
 
-# warnings.simplefilter("error") ## Turn warnings into errors (sort of) - good for debugging
+warnings.resetwarnings()
+# warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -137,6 +138,8 @@ _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
+# _spec_colourmap_name = 'plasma'
+# _spec_colourmap_name = 'jet'
 _colourmap_name = 'plasma'
 
 colourmap = plt.get_cmap(_colourmap_name)
@@ -609,11 +612,9 @@ class PhotometryClass():
                 if squash:
                     print("Overwriting " + outpath)
                     self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-
-
             else:
                     print("Writing " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii")
+                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -987,7 +988,7 @@ class SpectrumClass():
             check_dir_path(directory)
 
             path = os.path.abspath(os.path.join(directory, filename))
-
+            if verbose: print(path)
         if os.path.isfile(path):
 
             ## Some might have three columns, deal with laters - this is untidy
@@ -1018,6 +1019,7 @@ class SpectrumClass():
 
         else:
             warnings.warn(path + " is not a valid file path")
+            if verbose: print(path + ' not found')
 
 
     def plot(self, xminorticks = 250, legend = True,
@@ -1337,10 +1339,11 @@ class SNClass():
                 spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
-                if verbose: print(spec_dir_path, spec_filename)
+                if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
 
                 self.spec[spec_filename] = SpectrumClass()
-                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path, verbose = verbose)
+                self.spec[spec_filename].load(spec_filename, directory = spec_dir_path,
+                                              verbose = verbose)
                 self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
                 # self.spec[spec_filename].data.add_index('wavelength')
 
@@ -1451,6 +1454,7 @@ class SNClass():
 
 
     def plot_spec(self, xminorticks = 250, legend = True,
+                  wmin = 3500,
                   verbose = False, add_mjd = True,
                   *args, **kwargs):
         """
@@ -1494,19 +1498,23 @@ class SNClass():
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
                     minspecxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
 
-                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[-10:-1])
-                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[0:10])
-
+                    w = np.where(self.spec[spec_key].data['wavelength'] >=  maxspecxdata - 200)
+                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                    w = np.where(self.spec[spec_key].data['wavelength'] <=  minspecxdata + 200)
+                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                    if verbose: print(yatminspecxdata)
                     if i == 0:
                         maxplotydata = np.nanmax(flux_norm - 0.5*j)
-                        minplotydata = np.nanmin(flux_norm - 0.5*j)
+                        # minplotydata = np.nanmin(flux_norm - 0.5*j)
+                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
+
 
                         maxplotxdata = maxspecxdata
                         minplotxdata = np.nanmin(self.spec[spec_key].data['wavelength'])
                     else:
-                        maxplotydata = np.nanmax(np.append(maxplotydata, flux_norm - 0.5*j))
-                        minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
-
+                        maxplotydata = np.nanmax(np.append(maxplotydata, np.append(yatminspecxdata, yatminspecxdata)))
+                        # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
+                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
                         maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.spec[spec_key].data['wavelength'])))
                         minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.spec[spec_key].data['wavelength'])))
                     if add_mjd:
@@ -2124,21 +2132,125 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 
 
 ##------------------------------------##
-##                                    ##
+## CoCo                               ##
 ##------------------------------------##
 
-def run_LCfitClass():
+
+def test_LCfit(snname, coco_dir = False,
+               verbose = True):
     """
+    Check to see if a fit has been done. Does this by
+    looking for reconstructed LC files
     Parameters
     ----------
     Returns
     -------
     """
 
-    # subproccess
+    try:
+        if not coco_dir:
+            coco_dir = _default_coco_dir_path
+
+    except:
+        warnings.warn("Something funky with your input")
+
+    check_dir_path(coco_dir)
+
+    if verbose: print(coco_dir)
+
+    try:
+        path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
+        path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
+
+        for path in [path_to_test_stat, path_to_test_dat]:
+
+            if os.path.isfile(os.path.abspath(path)):
+                if verbose: print("Looks like you have done a fit, I found ", path )
+                boolflag = True
+            else:
+                warnings.warn(os.path.abspath(path) +
+                " not found. Have you done a fit?")
+                boolflag = False
+
+    except:
+
+        warnings.warn("Failing gracefully. Can't find the droids you are looking for.")
+        boolflag = False
+
+    return boolflag
+
+
+def run_LCfit(path):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    if verbose: print("Running CoCo lcfit on " + path)
+    subprocess.call(["./lcfit", path])
 
     pass
 
+def test_specfit(snname, coco_dir = False,
+               verbose = True):
+    """
+    Check to see if a fit has been done. Does this by
+    looking for reconstructed LC files
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    try:
+        if not coco_dir:
+            coco_dir = _default_coco_dir_path
+
+    except:
+        warnings.warn("Something funky with your input")
+
+    check_dir_path(coco_dir)
+
+    if verbose: print(coco_dir)
+
+    try:
+        ##
+        path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
+        path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
+        ## NEED TO THINK OF THE BEST WAY TO DO THIS
+        
+        for path in [path_to_test_stat, path_to_test_dat]:
+
+            if os.path.isfile(os.path.abspath(path)):
+                if verbose: print("Looks like you have done a fit, I found ", path )
+                boolflag = True
+            else:
+                warnings.warn(os.path.abspath(path) +
+                " not found. Have you done a fit?")
+                boolflag = False
+
+    except:
+
+        warnings.warn("Failing gracefully. Can't find the droids you are looking for.")
+        boolflag = False
+
+    return boolflag
+
+
+def run_specfit(path):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+    if verbose: print("Running CoCo specfit on " + path)
+    subprocess.call(["./specfit", path])
+
+    pass
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##

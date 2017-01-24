@@ -1,7 +1,7 @@
 # verbose-enigma
 ___
 
-#v0.3#
+#v0.4#
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -14,5 +14,21 @@ ___
 
 
  * File I/O and interaction with `CoCo LCfit` output now operational - 11/01/17
+
+ * Usage of a `SN` class now solid
+
+ * Implementing calls to `CoCo LCfit` now
+___
+
+Ideally set the following environment variables:
+
+`COCO_ROOT_DIR` (my default is `~/Code/CoCo/`)
+`PYCOCO_FILTER_DIR`(my default is `~/Code/CoCo/data/filters/`)
+`PYCOCO_DATA_DIR` (my default is `~/Code/CoCo/data/`)
+
+also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
+
+ `setenv PATH /Users/berto/Code/pycoco/:$PATH`
+ `setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH`
 
 ___
