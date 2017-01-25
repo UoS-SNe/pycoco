@@ -29,7 +29,19 @@ for dir in dirlist:
                 print(charar)
                 snname = file.split('.')[0]
                 print(snname)
-                if not os.path.isdir(os.path.abspath(os.path.join(outpath, snname))):
-                    os.makedirs(os.path.abspath(os.path.join(outpath, snname)))
+                if snname[:2] != 'PT' and snname[:2] != 'SN' and snname[:2] != 'iP':
+                    print('Foo')
+                    if snname[:2] == 'cf':
+                        print('Bar')
+                        newsnname = 'SN'+ snname.replace('cfa_', '')
+                    else:
+                        newsnname = 'SN' + snname
+                else:
+                    newsnname = snname
 
-                data.write(os.path.abspath(os.path.join(outpath, snname, snname + '_' + dir+ '.dat')), format = 'ascii.commented_header')
+                print(newsnname)
+
+                if not os.path.isdir(os.path.abspath(os.path.join(outpath, newsnname))):
+                    os.makedirs(os.path.abspath(os.path.join(outpath, newsnname)))
+
+                data.write(os.path.abspath(os.path.join(outpath, newsnname, newsnname + '_' + dir+ '.dat')), format = 'ascii.commented_header')
