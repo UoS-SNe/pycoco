@@ -1575,11 +1575,30 @@ class SNClass():
 
 
     def get_lcfit(self, path):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         StringWarning(path)
         self.lcfit = LCfitClass()
         self.lcfit.load_formatted_phot(path)
         self.lcfit.unpack()
         self.lcfit._sort_phot()
+        pass
+
+
+    def get_specfit(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self.specfit = OrderedDict()
         pass
 
 
