@@ -1413,7 +1413,7 @@ class SNClass():
 
 
                     if i == len(axes_list)-1:
-                        
+
                         ax1.set_xlabel(xaxis_label_string)
 
                     else:
@@ -1532,7 +1532,7 @@ class SNClass():
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
                         ax1.plot([1500, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
                         txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
-                                       horizontalalignment = 'rights', verticalalignment = 'center')
+                                       horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
                 else:
