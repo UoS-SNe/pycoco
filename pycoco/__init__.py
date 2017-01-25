@@ -1409,7 +1409,10 @@ class SNClass():
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
 
-                    if legend and not multiplot:
+                    if legend and multiplot:
+                        plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
+                                              numpoints = 1, frameon = True, bbox_to_anchor=(1., 1.),
+                                              fontsize = 12.)
 
 
                     if i == len(axes_list)-1:
@@ -1530,8 +1533,10 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([1500, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
-                        txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        ax1.plot([1800, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        #                horizontalalignment = 'right', verticalalignment = 'center')
+                        txt = ax1.text(1800, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                                        horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
@@ -1543,6 +1548,8 @@ class SNClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
+            ax1.set_xlim(1500, maxplotxdata*1.02)
+
             if verbose: print(minplotydata, maxplotydata)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
