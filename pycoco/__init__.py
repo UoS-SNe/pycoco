@@ -1374,7 +1374,7 @@ class SNClass():
             else:
                 fig = plt.figure(figsize=[8, len(filters)*1.5])
 
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+            fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
@@ -1411,9 +1411,12 @@ class SNClass():
 
                     if legend and multiplot:
                         plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
-                                              numpoints = 1, frameon = True, bbox_to_anchor=(1., 1.),
+                                              numpoints = 1, frameon = False, bbox_to_anchor=(1., 1.),
                                               fontsize = 12.)
 
+                        # bbox_props = dict(boxstyle="square,pad=0.0", fc=hex["silver"], lw = 0)
+                        # ax1.text(1., 1., plot_label_string, bbox=bbox_props, transform=ax1.transAxes,
+                        #          va = 'top', ha = 'right')
 
                     if i == len(axes_list)-1:
 
@@ -1448,16 +1451,18 @@ class SNClass():
                     if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
 
-            if legend and not multiplot:
-
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
 
 
+            if not multiplot:
 
-            ax1.set_ylabel(yaxis_label_string)
+                ax1.set_ylabel(yaxis_label_string)
 
+                if legend:
 
+                    plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                          numpoints = 1, frameon = False, fontsize = 12)
+            else:
+                fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
 
             plt.show()
@@ -1533,10 +1538,10 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([1800, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
                         # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                         #                horizontalalignment = 'right', verticalalignment = 'center')
-                        txt = ax1.text(1800, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                                        horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
@@ -1548,7 +1553,7 @@ class SNClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
-            ax1.set_xlim(1500, maxplotxdata*1.02)
+            ax1.set_xlim(1250, maxplotxdata*1.02)
 
             if verbose: print(minplotydata, maxplotydata)
             ## Label the axes
@@ -1847,6 +1852,8 @@ class LCfitClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
 
 
 ##------------------------------------##
