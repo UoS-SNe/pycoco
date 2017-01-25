@@ -1353,7 +1353,8 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                fit = True, enforce_zero = True, multiplot = True,
+                fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
+                lock_axis = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1371,9 +1372,9 @@ class SNClass():
             if not multiplot:
                 fig = plt.figure(figsize=[8, 4])
             else:
-                fig = plt.figure(figsize=[8, len(filters)])
+                fig = plt.figure(figsize=[8, len(filters)*1.5])
 
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+            fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
@@ -1382,6 +1383,7 @@ class SNClass():
 
             if not multiplot:
                 ax1 = fig.add_subplot(111)
+                axes_list = [ax1]
             else:
                 axes_list = [plt.subplot2grid((len(filters), 1), (j, 0)) for j, k in enumerate(filters)]
 
@@ -1401,16 +1403,27 @@ class SNClass():
                                  label = plot_label_string, ecolor = hex['batman'],
                                  *args, **kwargs)
 
-                    if fit and hasattr(self, 'fit'):
-                        ax1.fill_between(self.fit.data[filter_key]['MJD'], self.fit.data[filter_key]['flux_upper'], self.fit.data[filter_key]['flux_lower'],
+                    if fit and hasattr(self, 'lcfit'):
+                        ax1.fill_between(self.lcfit.data[filter_key]['MJD'], self.lcfit.data[filter_key]['flux_upper'], self.lcfit.data[filter_key]['flux_lower'],
                                          color = self.phot.data_filters[filter_key]._plot_colour,
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
 
+                    if legend and multiplot:
+                        plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
+                                              numpoints = 1, frameon = False, bbox_to_anchor=(1., 1.),
+                                              fontsize = 12.)
+
+                        # bbox_props = dict(boxstyle="square,pad=0.0", fc=hex["silver"], lw = 0)
+                        # ax1.text(1., 1., plot_label_string, bbox=bbox_props, transform=ax1.transAxes,
+                        #          va = 'top', ha = 'right')
 
                     if i == len(axes_list)-1:
+
                         ax1.set_xlabel(xaxis_label_string)
+
                     else:
+
                         ax1.set_xticklabels('')
 
                     xminorLocator = MultipleLocator(xminorticks)
@@ -1422,29 +1435,34 @@ class SNClass():
                             ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
                                      [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
                                      ls = ':', color = hex['batman'], zorder = 0)
+                    if enforce_zero:
+                        ## Use ap table groups instead? - can't; no support for mixin columns.
+                        if multiplot and not lock_axis:
+                            ax1.set_ylim(np.nanmin(np.append(self.phot.data[filter_key]['flux'], 0.0)), np.nanmax(self.phot.data[filter_key]['flux'])*yaxis_lim_multiplier)
+                        else:
+                            ax1.set_ylim(np.nanmin(np.append(self.phot.phot['flux'], 0.0)), np.nanmax(self.phot.phot['flux'])*yaxis_lim_multiplier)
+                    else:
+                        if multiplot and not lock_axis:
+                            ax1.set_ylim(np.nanmin(self.phot.data[filter_key]['flux']), np.nanmax(self.phot.data[filter_key]['flux'])*yaxis_lim_multiplier)
+                        else:
+                            ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux'])*yaxis_lim_multiplier)
+
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
 
 
 
+            if not multiplot:
 
+                ax1.set_ylabel(yaxis_label_string)
 
-            if legend:
+                if legend:
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
-
-            if enforce_zero:
-                ## Use ap table groups instead? - can't; no support for mixin columns.
-                ax1.set_ylim(np.nanmin(np.append(self.phot.phot['flux'], 0.0)), np.nanmax(self.phot.phot['flux']))
+                    plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                          numpoints = 1, frameon = False, fontsize = 12)
             else:
-                ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
-
-
-            ax1.set_ylabel(yaxis_label_string)
-
-
+                fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
 
             plt.show()
@@ -1520,8 +1538,10 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([1750, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
-                        txt = ax1.text(1750, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
+                        #                horizontalalignment = 'right', verticalalignment = 'center')
+                        txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                                        horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
@@ -1533,7 +1553,7 @@ class SNClass():
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
-            ax1.set_xlim(500, maxplotxdata)
+            ax1.set_xlim(1250, maxplotxdata*1.02)
 
             if verbose: print(minplotydata, maxplotydata)
             ## Label the axes
@@ -1554,12 +1574,31 @@ class SNClass():
         pass
 
 
-    def get_fit(self, path):
+    def get_lcfit(self, path):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         StringWarning(path)
-        self.fit = LCfitClass()
-        self.fit.load_formatted_phot(path)
-        self.fit.unpack()
-        self.fit._sort_phot()
+        self.lcfit = LCfitClass()
+        self.lcfit.load_formatted_phot(path)
+        self.lcfit.unpack()
+        self.lcfit._sort_phot()
+        pass
+
+
+    def get_specfit(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self.specfit = OrderedDict()
         pass
 
 
@@ -1833,6 +1872,13 @@ class LCfitClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+class specfitClass(SpectrumClass):
+    """
+    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    """
+
+    pass
 
 ##------------------------------------##
 ##                                    ##
@@ -2200,7 +2246,7 @@ def test_specfit(snname, coco_dir = False,
                verbose = True):
     """
     Check to see if a fit has been done. Does this by
-    looking for reconstructed LC files
+    looking for reconstructed .spec filess
     Parameters
     ----------
     Returns
@@ -2254,6 +2300,7 @@ def run_specfit(path):
     subprocess.call(["./specfit", path])
 
     pass
+
 
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
