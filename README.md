@@ -1,7 +1,7 @@
 # verbose-enigma
 ___
 
-#v0.4#
+#v0.5#
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -18,6 +18,8 @@ ___
  * Usage of a `SN` class now solid
 
  * Implementing calls to `CoCo LCfit` now
+
+ * Calls to `CoCo specfit` and interaction with output in infancy
 ___
 
 Ideally set the following environment variables:
