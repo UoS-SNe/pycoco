@@ -1353,7 +1353,8 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                fit = True, enforce_zero = True, multiplot = True,
+                fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
+                lock_axis = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1371,7 +1372,7 @@ class SNClass():
             if not multiplot:
                 fig = plt.figure(figsize=[8, 4])
             else:
-                fig = plt.figure(figsize=[8, len(filters)])
+                fig = plt.figure(figsize=[8, len(filters)*1.5])
 
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
@@ -1382,6 +1383,7 @@ class SNClass():
 
             if not multiplot:
                 ax1 = fig.add_subplot(111)
+                axes_list = [ax1]
             else:
                 axes_list = [plt.subplot2grid((len(filters), 1), (j, 0)) for j, k in enumerate(filters)]
 
@@ -1407,10 +1409,15 @@ class SNClass():
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
 
+                    if legend and not multiplot:
+
 
                     if i == len(axes_list)-1:
+                        
                         ax1.set_xlabel(xaxis_label_string)
+
                     else:
+
                         ax1.set_xticklabels('')
 
                     xminorLocator = MultipleLocator(xminorticks)
@@ -1422,24 +1429,27 @@ class SNClass():
                             ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
                                      [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
                                      ls = ':', color = hex['batman'], zorder = 0)
+                    if enforce_zero:
+                        ## Use ap table groups instead? - can't; no support for mixin columns.
+                        if multiplot and not lock_axis:
+                            ax1.set_ylim(np.nanmin(np.append(self.phot.data[filter_key]['flux'], 0.0)), np.nanmax(self.phot.data[filter_key]['flux'])*yaxis_lim_multiplier)
+                        else:
+                            ax1.set_ylim(np.nanmin(np.append(self.phot.phot['flux'], 0.0)), np.nanmax(self.phot.phot['flux'])*yaxis_lim_multiplier)
+                    else:
+                        if multiplot and not lock_axis:
+                            ax1.set_ylim(np.nanmin(self.phot.data[filter_key]['flux']), np.nanmax(self.phot.data[filter_key]['flux'])*yaxis_lim_multiplier)
+                        else:
+                            ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux'])*yaxis_lim_multiplier)
+
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
 
-
-
-
-
-            if legend:
+            if legend and not multiplot:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
-            if enforce_zero:
-                ## Use ap table groups instead? - can't; no support for mixin columns.
-                ax1.set_ylim(np.nanmin(np.append(self.phot.phot['flux'], 0.0)), np.nanmax(self.phot.phot['flux']))
-            else:
-                ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux']))
 
 
             ax1.set_ylabel(yaxis_label_string)
@@ -2193,6 +2203,7 @@ def run_LCfit(path):
 
     pass
 
+
 def test_specfit(snname, coco_dir = False,
                verbose = True):
     """
@@ -2220,7 +2231,7 @@ def test_specfit(snname, coco_dir = False,
         path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
         path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
         ## NEED TO THINK OF THE BEST WAY TO DO THIS
-        
+
         for path in [path_to_test_stat, path_to_test_dat]:
 
             if os.path.isfile(os.path.abspath(path)):
@@ -2251,6 +2262,8 @@ def run_specfit(path):
     subprocess.call(["./specfit", path])
 
     pass
+
+
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
