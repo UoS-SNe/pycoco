@@ -1388,8 +1388,8 @@ class SNClass():
                                  label = plot_label_string, ecolor = hex['batman'],
                                  *args, **kwargs)
 
-                    if fit and hasattr(self, 'fit'):
-                        ax1.fill_between(self.fit.data[filter_key]['MJD'], self.fit.data[filter_key]['flux_upper'], self.fit.data[filter_key]['flux_lower'],
+                    if fit and hasattr(self, 'lcfit'):
+                        ax1.fill_between(self.lcfit.data[filter_key]['MJD'], self.lcfit.data[filter_key]['flux_upper'], self.lcfit.data[filter_key]['flux_lower'],
                                          color = self.phot.data_filters[filter_key]._plot_colour,
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
@@ -1529,12 +1529,12 @@ class SNClass():
         pass
 
 
-    def get_fit(self, path):
+    def get_lcfit(self, path):
         StringWarning(path)
-        self.fit = LCfitClass()
-        self.fit.load_formatted_phot(path)
-        self.fit.unpack()
-        self.fit._sort_phot()
+        self.lcfit = LCfitClass()
+        self.lcfit.load_formatted_phot(path)
+        self.lcfit.unpack()
+        self.lcfit._sort_phot()
         pass
 
 
@@ -2177,11 +2177,12 @@ def run_LCfit(path):
 
     pass
 
+
 def test_specfit(snname, coco_dir = False,
                verbose = True):
     """
     Check to see if a fit has been done. Does this by
-    looking for reconstructed LC files
+    looking for reconstructed .spec filess
     Parameters
     ----------
     Returns
