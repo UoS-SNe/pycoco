@@ -1809,6 +1809,13 @@ class LCfitClass():
         pass
 
 
+class specfitClass(SpectrumClass):
+    """
+    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    """
+
+    pass
+
 ##------------------------------------##
 ##                                    ##
 ##------------------------------------##
@@ -2197,7 +2204,7 @@ def test_specfit(snname, coco_dir = False,
         path_to_test_dat = os.path.join(coco_dir, 'recon', snname + '.dat')
         path_to_test_stat = os.path.join(coco_dir, 'recon', snname + '.stat')
         ## NEED TO THINK OF THE BEST WAY TO DO THIS
-        
+
         for path in [path_to_test_stat, path_to_test_dat]:
 
             if os.path.isfile(os.path.abspath(path)):
