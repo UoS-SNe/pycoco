@@ -202,6 +202,21 @@ def StringWarning(path):
 ##  Classes                           ##
 ##------------------------------------##
 
+
+##------------------------------------##
+##  Base Classes                      ##
+##------------------------------------##
+
+class BaseSpectrumClass():
+        """
+        Base class for handling Spectra.
+        """
+
+##------------------------------------##
+##  Inheriting Classes                ##
+##------------------------------------##
+
+
 class PhotometryClass():
     """
     Probably also overkill - but should be easier to store metadata etc. Hopefully
