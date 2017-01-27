@@ -212,6 +212,347 @@ class BaseSpectrumClass():
         Base class for handling Spectra.
         """
 
+    def __init__(self):
+        """
+
+        """
+
+        ## Initialise the class variables
+        # self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        # self._default_list_dir_path = self._default_data_dir_path
+        #
+        # ## Initialise using class methods
+        # self.set_data_directory(self._get_data_directory())
+
+        pass
+
+
+    # def _get_data_directory(self):
+    #     """
+    #     Get the default path to the data directory.
+    #
+    #     Looks for the data data directory set as environment variable
+    #     $PYCOCO_DATA_DIR. if not found, returns default.
+    #
+    #     returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+    #              default datalocation: '../testdata/', with '/spec/' appended.
+    #     """
+    #
+    #     return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
+
+
+    def set_data_directory(self, data_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(data_dir_path, self._default_data_dir_path)
+            if os.path.isdir(os.path.abspath(data_dir_path)):
+                self.data_directory = os.path.abspath(data_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(data_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_data_dir_path, UserWarning)
+                self.data_directory = self._default_data_dir_path
+
+                if not os.path.isdir(self.data_directory):
+                    if verbose: print(os.path.isdir(self.data_directory))
+                    raise PathError("The default data directory '" + self.data_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_data_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_data_dir_path?")
+            pass
+
+
+    def load(self, filename, directory = False, fmt = "ascii",
+             wmin = 3500, wmax = 11000,
+             names = ("wavelength", "flux"), wavelength_u = u.angstrom,
+             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+
+        StringWarning(filename)
+
+        if not directory:
+            path = os.path.abspath(os.path.join(self.data_directory, filename))
+            if verbose: print("You didn't supply a directory, so using self.data_directory")
+        else:
+            StringWarning(directory)
+            check_dir_path(directory)
+
+            path = os.path.abspath(os.path.join(directory, filename))
+            if verbose: print(path)
+        if os.path.isfile(path):
+
+            ## Some might have three columns, deal with laters - this is untidy
+            try:
+                spec_table = Table.read(path, format = fmt, names = names)
+
+            except:
+                names = names + ("flux_err",)
+                spec_table = Table.read(path, format = fmt, names = names)
+
+            if verbose:print("Reading " + path)
+
+            spec_table.meta = {"filename": path}
+
+            spec_table['wavelength'].unit = wavelength_u
+            spec_table['flux'].unit = flux_u
+
+            if "flux_err" in spec_table.colnames:
+                spec_table["flux_err"].unit = flux_u
+
+            ## enforce wmin and wmax
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
+
+            ## assign to class
+            self.data = spec_table
+            self.wavelength = spec_table["wavelength"]
+            self.flux = spec_table["flux"]
+
+        else:
+            warnings.warn(path + " is not a valid file path")
+            if verbose: print(path + ' not found')
+
+
+    def plot(self, xminorticks = 250, legend = True,
+             verbose = True, compare_red = True,
+             *args, **kwargs):
+        """
+        Plots spec.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+
+            if verbose: print(self.data.__dict__)
+            plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
+
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
+                         *args, **kwargs)
+
+            maxplotydata = np.nanmax(self.flux)
+            minplotydata = np.nanmin(self.flux)
+
+            if hasattr(self, 'flux_dered') and compare_red:
+                ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
+                             label = plot_label_string, color = 'Blue',
+                             *args, **kwargs)
+                maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
+                minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    # def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
+    #     """
+    #     Retrieve the MJD of the observation from a '.list' file.
+    #
+    #     Parameters
+    #     ----------
+    #
+    #     Returns
+    #     -------
+    #     """
+    #
+    #     try:
+    #
+    #         if not list_dir:
+    #             list_dir = self._default_list_dir_path
+    #
+    #         check_dir_path(list_dir)
+    #         list_path = os.path.abspath(os.path.join(list_dir, list_filename))
+    #         check_file_path(list_path)
+    #     except:
+    #
+    #         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+    #
+    #         return False
+    #
+    #     data = np.genfromtxt(list_path, dtype = np.str)
+    #     short_filenames = [f.split('/')[-1] for f in  data.T[0]]
+    #     filename = self.data.meta['filename'].split('/')[-1]
+    #     print(filename)
+    #     if verbose: print(data.T[0])
+    #
+    #     if filename in short_filenames:
+    #         print("Foo")
+    #
+    #     # pass
+    #     return data
+
+
+    def set_MJD_obs(self, mjd):
+        """
+        Log MJD of the observation.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self.mjd_obs = mjd
+
+        pass
+
+
+    def set_EBV(self, EBV):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self.EBV = EBV
+
+
+    def deredden(self, verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "EBV") and hasattr(self, "data"):
+            if verbose: print("Foo")
+
+            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            self.data["flux_dered"] = self.flux_dered
+
+        else:
+            warnings.warn("No extinction value set")
+        pass
+
+
+    def use_flux_dered(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            self.flux_red = self.flux
+            self.flux = self.data['flux_dered']
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def _spec_format_for_save(self):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        save_table = Table()
+
+        save_table['wavelength'] = self.wavelength
+        save_table['flux'] = self.flux
+
+        save_table['wavelength'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+
+        return save_table
+
+
+    def save(self, filename, path = False,
+             squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the spectrum loaded into the Class via self.load into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+
+
+            else:
+                    print("Writing " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii")
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
 ##------------------------------------##
 ##  Inheriting Classes                ##
 ##------------------------------------##
@@ -914,7 +1255,7 @@ class FilterClass():
             warnings.warn("No self.lambda_effective set.")
 
 
-class SpectrumClass():
+class SpectrumClass(BaseSpectrumClass):
     """
     Class for handling Spectra.
     """
@@ -946,318 +1287,6 @@ class SpectrumClass():
         """
 
         return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
-
-
-    def set_data_directory(self, data_dir_path = '', verbose = False):
-        """
-        Set a new data directory path.
-
-        Enables the data directory to be changed by the user.
-
-        """
-        try:
-            if verbose: print(data_dir_path, self._default_data_dir_path)
-            if os.path.isdir(os.path.abspath(data_dir_path)):
-                self.data_directory = os.path.abspath(data_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(data_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_data_dir_path, UserWarning)
-                self.data_directory = self._default_data_dir_path
-
-                if not os.path.isdir(self.data_directory):
-                    if verbose: print(os.path.isdir(self.data_directory))
-                    raise PathError("The default data directory '" + self.data_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_data_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_data_dir_path?")
-            pass
-
-
-    def load(self, filename, directory = False, fmt = "ascii",
-             wmin = 3500, wmax = 11000,
-             names = ("wavelength", "flux"), wavelength_u = u.angstrom,
-             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-
-        StringWarning(filename)
-
-        if not directory:
-            path = os.path.abspath(os.path.join(self.data_directory, filename))
-            if verbose: print("You didn't supply a directory, so using self.data_directory")
-        else:
-            StringWarning(directory)
-            check_dir_path(directory)
-
-            path = os.path.abspath(os.path.join(directory, filename))
-            if verbose: print(path)
-        if os.path.isfile(path):
-
-            ## Some might have three columns, deal with laters - this is untidy
-            try:
-                spec_table = Table.read(path, format = fmt, names = names)
-
-            except:
-                names = names + ("flux_err",)
-                spec_table = Table.read(path, format = fmt, names = names)
-
-            if verbose:print("Reading " + path)
-
-            spec_table.meta = {"filename": path}
-
-            spec_table['wavelength'].unit = wavelength_u
-            spec_table['flux'].unit = flux_u
-
-            if "flux_err" in spec_table.colnames:
-                spec_table["flux_err"].unit = flux_u
-
-            ## enforce wmin and wmax
-            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
-
-            ## assign to class
-            self.data = spec_table
-            self.wavelength = spec_table["wavelength"]
-            self.flux = spec_table["flux"]
-
-        else:
-            warnings.warn(path + " is not a valid file path")
-            if verbose: print(path + ' not found')
-
-
-    def plot(self, xminorticks = 250, legend = True,
-             verbose = True, compare_red = True,
-             *args, **kwargs):
-        """
-        Plots spec.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "data"):
-
-            setup_plot_defaults()
-
-            fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
-
-            ax1 = fig.add_subplot(111)
-
-
-            if verbose: print(self.data.__dict__)
-            plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
-
-            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
-                         label = plot_label_string, color = 'Red',
-                         *args, **kwargs)
-
-            maxplotydata = np.nanmax(self.flux)
-            minplotydata = np.nanmin(self.flux)
-
-            if hasattr(self, 'flux_dered') and compare_red:
-                ax1.plot(self.data['wavelength'], self.data['flux_dered'], lw = 2,
-                             label = plot_label_string, color = 'Blue',
-                             *args, **kwargs)
-                maxplotydata = np.nanmax(np.append(maxplotydata, np.nanmax(self.data['flux_dered'])))
-                minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
-            if legend:
-
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
-
-            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
-
-            ## Label the axes
-            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
-
-            ax1.set_xlabel(xaxis_label_string)
-            ax1.set_ylabel(yaxis_label_string)
-
-            xminorLocator = MultipleLocator(xminorticks)
-            ax1.xaxis.set_minor_locator(xminorLocator)
-
-            plt.show()
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-    def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
-        """
-        Retrieve the MJD of the observation from a '.list' file.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        try:
-
-            if not list_dir:
-                list_dir = self._default_list_dir_path
-
-            check_dir_path(list_dir)
-            list_path = os.path.abspath(os.path.join(list_dir, list_filename))
-            check_file_path(list_path)
-        except:
-
-            raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
-
-            return False
-
-        data = np.genfromtxt(list_path, dtype = np.str)
-        short_filenames = [f.split('/')[-1] for f in  data.T[0]]
-        filename = self.data.meta['filename'].split('/')[-1]
-        print(filename)
-        if verbose: print(data.T[0])
-
-        if filename in short_filenames:
-            print("Foo")
-
-        # pass
-        return data
-
-
-    def set_MJD_obs(self, mjd):
-        """
-        Log MJD of the observation.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        self.mjd_obs = mjd
-
-        pass
-
-
-    def set_EBV(self, EBV):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        self.EBV = EBV
-
-
-    def deredden(self, verbose = True):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "EBV") and hasattr(self, "data"):
-            if verbose: print("Foo")
-
-            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
-            self.data["flux_dered"] = self.flux_dered
-
-        else:
-            warnings.warn("No extinction value set")
-        pass
-
-
-    def use_flux_dered(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "data"):
-            self.flux_red = self.flux
-            self.flux = self.data['flux_dered']
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-    def _spec_format_for_save(self):
-        """
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-
-        save_table = Table()
-
-        save_table['wavelength'] = self.wavelength
-        save_table['flux'] = self.flux
-
-        save_table['wavelength'].format = "5.5f"
-        save_table['flux'].format = "5.5e"
-
-        return save_table
-
-
-    def save(self, filename, path = False,
-             squash = False, verbose = True, *args, **kwargs):
-        """
-        Output the spectrum loaded into the Class via self.load into a format
-        and location recognised by CoCo.
-
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-
-        if hasattr(self, "data"):
-            if verbose: print("has data")
-            if not path:
-                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
-                path = self._default_data_dir_path
-            else:
-                StringWarning(path)
-
-            outpath = os.path.join(path, filename)
-
-            check_dir_path(path)
-
-            if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
-                if squash:
-                    print("Overwriting " + outpath)
-                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-
-
-            else:
-                    print("Writing " + outpath)
-                    self._spec_format_for_save().write(outpath, format = "ascii")
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
 
 
 class SNClass():
@@ -1888,7 +1917,7 @@ class LCfitClass():
         pass
 
 
-class specfitClass(SpectrumClass):
+class specfitClass(BaseSpectrumClass):
     """
     Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
     """
