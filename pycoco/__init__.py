@@ -208,9 +208,9 @@ def StringWarning(path):
 ##------------------------------------##
 
 class BaseSpectrumClass():
-        """
-        Base class for handling Spectra.
-        """
+    """
+    Base class for handling Spectra.
+    """
 
     def __init__(self):
         """
