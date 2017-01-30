@@ -352,10 +352,13 @@ class BaseSpectrumClass():
 
             ## Some might have three columns, deal with laters - this is untidy
             try:
+                if hasattr(self, "recon_directory"):
+                    names = names + ("flux_err",)
                 spec_table = Table.read(path, format = fmt, names = names)
 
             except:
-                names = names + ("flux_err",)
+                if "flux_err" not in names:
+                    names = names + ("flux_err",)
                 spec_table = Table.read(path, format = fmt, names = names)
 
             if verbose:print("Reading " + path)
@@ -1725,8 +1728,11 @@ class SNClass():
         Returns
         -------
         """
+
         self.specfit = OrderedDict()
+
         pass
+
 
 
 class LCfitClass():
@@ -2066,6 +2072,18 @@ class specfitClass(BaseSpectrumClass):
             pass
 
 
+    def set_orig_specpath(self, orig_specpath, verbose = False):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        self.orig_specpath = orig_specpath
+
+        pass
+
 ##------------------------------------##
 ##                                    ##
 ##------------------------------------##
@@ -2364,6 +2382,76 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
     return data
 
 
+def load_specfit(path):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    specfit = specfitClass()
+
+    return specfit
+
+
+def compare_spec(orig_spec, specfit,
+                 xminorticks = 250, legend = True, verbose = True,
+                 *args, **kwargs):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        if hasattr(orig_spec, "data") and hasattr(specfit, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            if verbose: print(np.nanmean(specfit.flux), np.nanmean(orig_spec.flux))
+
+            plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"] + '}$'
+
+            ax1.plot(orig_spec.data['wavelength'], orig_spec.flux/np.nanmean(orig_spec.flux), lw = 2,
+                         label = plot_label_string, color = 'Red',
+                         *args, **kwargs)
+
+            plot_label_string = r'$\rm{' + specfit.data.meta["filename"] + '}$'
+
+            ax1.plot(specfit.data['wavelength'], specfit.flux/np.nanmean(specfit.flux), lw = 2,
+                         label = plot_label_string, color = 'Blue',
+                         *args, **kwargs)
+
+            # maxplotydata = np.nanmax(orig_spec.flux)
+            # minplotydata = np.nanmin(orig_spec.flux)
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(0, maxplotydata*1.02)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
 
 ##------------------------------------##
 ## CoCo                               ##
