@@ -218,11 +218,10 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        # self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
-        # self._default_list_dir_path = self._default_data_dir_path
+        self._default_list_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "lists/"))
         #
         # ## Initialise using class methods
-        # self.set_data_directory(self._get_data_directory())
+        self.set_list_directory(self._get_list_directory())
 
         pass
 
@@ -241,7 +240,53 @@ class BaseSpectrumClass():
     #     return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
 
 
-    def set_data_directory(self, data_dir_path = '', verbose = False):
+    # def set_data_directory(self, data_dir_path = '', verbose = False):
+    #     """
+    #     Set a new data directory path.
+    #
+    #     Enables the data directory to be changed by the user.
+    #
+    #     """
+    #     try:
+    #         if verbose: print(data_dir_path, self._default_data_dir_path)
+    #         if os.path.isdir(os.path.abspath(data_dir_path)):
+    #             self.data_directory = os.path.abspath(data_dir_path)
+    #             pass
+    #         else:
+    #             warnings.warn(os.path.abspath(data_dir_path) +
+    #             " is not a valid directory. Restoring default path: " +
+    #             self._default_data_dir_path, UserWarning)
+    #             self.data_directory = self._default_data_dir_path
+    #
+    #             if not os.path.isdir(self.data_directory):
+    #                 if verbose: print(os.path.isdir(self.data_directory))
+    #                 raise PathError("The default data directory '" + self.data_directory
+    #                  + "' doesn't exist. Or isn't a directory. Or can't be located.")
+    #             else:
+    #                 pass
+    #     except:
+    #         if verbose: print("foo")
+    #         raise PathError("The default data directory '" + self._default_data_dir_path
+    #          + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+    #          + " you messed with _default_data_dir_path?")
+    #         pass
+
+
+    def _get_list_directory(self):
+        """
+        Get the default path to the spec lists directory.
+
+        Looks for the list file directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default location: '~/Code/CoCo/', with 'lists/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir))), "lists/")
+
+
+    def set_list_directory(self, list_dir_path = '', verbose = False):
         """
         Set a new data directory path.
 
@@ -249,27 +294,27 @@ class BaseSpectrumClass():
 
         """
         try:
-            if verbose: print(data_dir_path, self._default_data_dir_path)
-            if os.path.isdir(os.path.abspath(data_dir_path)):
-                self.data_directory = os.path.abspath(data_dir_path)
+            if verbose: print(list_dir_path, self._default_list_dir_path)
+            if os.path.isdir(os.path.abspath(list_dir_path)):
+                self.list_directory = os.path.abspath(list_dir_path)
                 pass
             else:
-                warnings.warn(os.path.abspath(data_dir_path) +
+                warnings.warn(os.path.abspath(list_dir_path) +
                 " is not a valid directory. Restoring default path: " +
-                self._default_data_dir_path, UserWarning)
-                self.data_directory = self._default_data_dir_path
+                self._default_list_dir_path, UserWarning)
+                self.list_directory = self._default_list_dir_path
 
-                if not os.path.isdir(self.data_directory):
-                    if verbose: print(os.path.isdir(self.data_directory))
-                    raise PathError("The default data directory '" + self.data_directory
+                if not os.path.isdir(self.list_directory):
+                    if verbose: print(os.path.isdir(self.list_directory))
+                    raise PathError("The default list directory '" + self.list_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_data_dir_path
+            raise PathError("The default list directory '" + self._default_list_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_data_dir_path?")
+             + " you messed with _default_list_dir_path?")
             pass
 
 
@@ -289,8 +334,14 @@ class BaseSpectrumClass():
         StringWarning(filename)
 
         if not directory:
-            path = os.path.abspath(os.path.join(self.data_directory, filename))
-            if verbose: print("You didn't supply a directory, so using self.data_directory")
+            ## Differentiate between the two child classes
+            if hasattr(self, 'data_directory'):
+                path = os.path.abspath(os.path.join(self.data_directory, filename))
+                if verbose: print("You didn't supply a directory, so using self.data_directory")
+
+            if hasattr(self, 'recon_directory'):
+                path = os.path.abspath(os.path.join(self.recon_directory, filename))
+                if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
             StringWarning(directory)
             check_dir_path(directory)
@@ -1267,7 +1318,7 @@ class SpectrumClass(BaseSpectrumClass):
 
         ## Initialise the class variables
         self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
-        self._default_list_dir_path = self._default_data_dir_path
+        # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._get_data_directory())
@@ -1287,6 +1338,38 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
+
+
+    def set_data_directory(self, data_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(data_dir_path, self._default_data_dir_path)
+            if os.path.isdir(os.path.abspath(data_dir_path)):
+                self.data_directory = os.path.abspath(data_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(data_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_data_dir_path, UserWarning)
+                self.data_directory = self._default_data_dir_path
+
+                if not os.path.isdir(self.data_directory):
+                    if verbose: print(os.path.isdir(self.data_directory))
+                    raise PathError("The default data directory '" + self.data_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_data_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_data_dir_path?")
+            pass
 
 
 class SNClass():
@@ -1922,7 +2005,66 @@ class specfitClass(BaseSpectrumClass):
     Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
     """
 
-    pass
+    def __init__(self):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        # self._default_list_dir_path = self._default_data_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the recon directory.
+
+        Looks for the CoCo directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default data directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
 
 ##------------------------------------##
 ##                                    ##
