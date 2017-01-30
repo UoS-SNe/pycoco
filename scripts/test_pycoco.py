@@ -58,14 +58,23 @@ class TestClass(unittest.TestCase):
     def test_check_file_path_returns_False_for_dir(self):
         self.assertEqual(pcc.check_file_path(pcc._default_data_dir_path), False)
 
-    ## CLASS TESTS
+    ## CLASS TESTS ##
+
     # PhotometryClass
 
     def test_PhotometryClass_get_data_dir_returns_default(self):
         x = pcc.PhotometryClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc._default_data_dir_path))
 
+
+    # BaseSpectrumClass
+
+    def test_BaseSpectrumClass_get_list_dir_returns_default(self):
+        x = pcc.BaseSpectrumClass()
+        self.assertEqual(os.path.abspath(x.list_directory), os.path.abspath('/Users/berto/Code/CoCo/lists/'))
+
     # SpectrumClass
+
     def test_SpectrumClass_get_data_dir_returns_default(self):
         x = pcc.SpectrumClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc._default_data_dir_path))
@@ -73,6 +82,10 @@ class TestClass(unittest.TestCase):
     def test_SpectrumClass_get_data_dir_returns_default_spec_dir(self):
         x = pcc.SpectrumClass()
         self.assertEqual(os.path.abspath(x._get_data_directory()), os.path.abspath(os.path.join(pcc._default_data_dir_path, "spec/")))
+
+    # specfitClass
+
+    # def test_specfitClass
 
 if __name__ is '__main__':
 
