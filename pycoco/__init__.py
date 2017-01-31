@@ -2453,6 +2453,105 @@ def compare_spec(orig_spec, specfit,
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/BessellB-stats.dat'):
+    verbose = False
+    fitparams = None
+    j = None
+    stat = None
+    modenumber = 0
+    modes = OrderedDict()
+
+    del j
+    del stat
+    del fitparams
+
+    # stats_path = '/Users/berto/Code/CoCo/chains/SN2006aj/B-stats.dat'
+
+
+    stat =  OrderedDict()
+    nparams = 8
+
+    key_string = 'Params'
+
+    ifile = open(stats_path, 'r')
+
+    for i, line in enumerate(ifile):
+        if line != '\n':
+            if verbose: print(i, line)
+            if line[:17] == "Total Modes Found":
+                nmodes = int(line.split()[-1])
+
+            if line[:4] == "Mode":
+                modenumber = modenumber + 1
+                fitparams = OrderedDict()
+            if line[:8] == 'Strictly':
+                try:
+                    stat["SLLE"] = np.float64(line.split()[3])
+                    stat["SLLE_err"] = np.float64(line.split()[5])
+                except:
+                    if verbose: print("NOPE1")
+                if verbose: print("BAR")
+            if line[:9] == "Local Log":
+                try:
+                    stat["LLE"] = np.float64(line.split()[2])
+                    stat["LLE_err"] = np.float64(line.split()[4])
+                except:
+                    if verbose: print("NOPE2")
+                if verbose: print("SPAM")
+
+            if line[:3] == "MAP":
+                key_string = key_string + "-MAP"
+                fitparams = OrderedDict()
+
+            if line[:7] == "Maximum":
+                key_string = key_string + "-ML"
+                fitparams = OrderedDict()
+
+            if line[:7] == 'Dim No.':
+                j = i + nparams+1
+                if verbose: print("FOO")
+                try:
+                    fitparams["Dim No."] = np.array([])
+                    fitparams["Mean"] = np.array([])
+                    if len(line.split()) > 2:
+                        fitparams["Sigma"] = np.array([])
+                except:
+                    if verbose: print("NOPE3")
+            try:
+                if verbose: print(i, j)
+                if i<j and line[:7] != 'Dim No.' :
+
+                    if verbose: print("READ")
+                    if verbose: print(len(line.split()) ,line.split())
+                    fitparams["Dim No."] = np.append(fitparams["Dim No."], int(line.split()[0]))
+                    fitparams["Mean"] = np.append(fitparams["Mean"], np.float64(line.split()[1]))
+                    if len(line.split()) > 2:
+                        if verbose: print("GT 2")
+                        if verbose: print(np.float64(line.split()[2]))
+                        fitparams["Sigma"] = np.append(fitparams["Sigma"], np.float64(line.split()[2]))
+                        if verbose: print("fitparams sigma", fitparams["Sigma"])
+                if i > j:
+    #                 print("SAVE")
+                    if verbose: print("SAVE")
+                    if verbose: print(key_string)
+                    stat[key_string] = fitparams
+
+                    if key_string[-3:] ==  "MAP":
+                        modes["Mode"+str(modenumber)] = stat
+                    key_string = 'Params'
+
+            except:
+                if verbose: print("NOPE4")
+                pass
+    #         if line
+
+    ifile.close()
+    print(nmodes)
+    print(stat.keys())
+    return modes
+
+
 ##------------------------------------##
 ## CoCo                               ##
 ##------------------------------------##
