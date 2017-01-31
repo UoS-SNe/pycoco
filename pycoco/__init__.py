@@ -373,7 +373,9 @@ class BaseSpectrumClass():
 
             ## enforce wmin and wmax
             spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
-
+            self.min_wavelength = np.nanmin(spec_table["wavelength"])
+            self.max_wavelength = np.nanmax(spec_table["wavelength"])
+            
             ## assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
