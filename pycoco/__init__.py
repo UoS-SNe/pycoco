@@ -375,7 +375,7 @@ class BaseSpectrumClass():
             spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
             self.min_wavelength = np.nanmin(spec_table["wavelength"])
             self.max_wavelength = np.nanmax(spec_table["wavelength"])
-            
+
             ## assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
@@ -1194,6 +1194,8 @@ class FilterClass():
             filename_no_extension = filename.split('.')[0]
             self.filter_name = filename_no_extension
 
+            self.set_plot_colour(verbose = verbose)
+
             self.calculate_effective_wavelength()
             self.calculate_edges()
 
@@ -1358,6 +1360,29 @@ class FilterClass():
 
         else:
             warnings.warn("No self.lambda_effective set.")
+
+
+    def set_plot_colour(self, colour = False, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if colour:
+            self._plot_colour = colour
+
+        else:
+            if verbose: print(hex[self.filter_name])
+            try:
+                self._plot_colour = hex[self.filter_name]
+            except:
+                if verbose: print("Nope")
+
+        pass
 
 
 class SpectrumClass(BaseSpectrumClass):
@@ -1535,7 +1560,7 @@ class SNClass():
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
-                lock_axis = False,
+                lock_axis = False, filter_uncertainty = 10,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1613,9 +1638,19 @@ class SNClass():
                     if mark_spectra:
 
                         for spec_key in self.spec:
-                            ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
-                                     [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
-                                     ls = ':', color = hex['batman'], zorder = 0)
+                            if verbose: print(np.nanmin(self.spec[spec_key].wavelength) - filter_uncertainty, self.phot.data_filters[filter_key]._lower_edge)
+                            if verbose: print(np.nanmax(self.spec[spec_key].wavelength) + filter_uncertainty, self.phot.data_filters[filter_key]._upper_edge)
+
+                            if verbose: print(self.spec[spec_key].data.meta["filename"] )
+                            too_blue =  self.phot.data_filters[filter_key]._lower_edge < np.nanmin(self.spec[spec_key].wavelength) - filter_uncertainty
+                            too_red = self.phot.data_filters[filter_key]._upper_edge > np.nanmax(self.spec[spec_key].wavelength) + filter_uncertainty
+                            # if self.spec[spec_key]. self.phot.data_filters[filter_key]._upper_edge and self.phot.data_filters[filter_key]._lower_edge
+                            if verbose: print(too_blue, too_red)
+                            if not too_red and not too_blue:
+                                ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
+                                         [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
+                                         ls = ':', color = hex['batman'], zorder = 0)
+
                     if enforce_zero:
                         ## Use ap table groups instead? - can't; no support for mixin columns.
                         if multiplot and not lock_axis:
@@ -1752,6 +1787,71 @@ class SNClass():
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def plot_filters(self, filters = False, xminorticks = 250, yminorticks = 0.1,
+                     show_lims = False,
+                     *args, **kwargs):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self.phot, 'data_filters'):
+            if not filters:
+                filters = self.phot.data_filters
+
+            setup_plot_defaults()
+            xaxis_label_string = r'$\textnormal{Wavelength, Angstrom }(\AA)$'
+            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            for i, filter_key in enumerate(filters):
+                ## Check if there is something in the class to plot
+                if hasattr(self.phot.data_filters[filter_key], "wavelength") and hasattr(self.phot.data_filters[filter_key], "throughput"):
+
+                    plot_label_string = r'$' + self.phot.data_filters[filter_key].filter_name + '$'
+
+
+                    if hasattr(self.phot.data_filters[filter_key], "_plot_colour"):
+                        ax1.plot(self.phot.data_filters[filter_key].wavelength, self.phot.data_filters[filter_key].throughput, color = self.phot.data_filters[filter_key]._plot_colour,
+                                 lw = 2, label = plot_label_string)
+                    else:
+                        ax1.plot(self.phot.data_filters[filter_key].wavelength, self.phot.data_filters[filter_key].throughput, lw = 2, label = plot_label_string)
+
+                    if show_lims:
+                        try:
+                            ax1.plot([self.phot.data_filters[filter_key]._upper_edge, self.phot.data_filters[filter_key]._upper_edge], [0,1] ,
+                                     lw = 1.5, alpha = 0.5, ls = ':',
+                                     color = self.phot.data_filters[filter_key]._plot_colour, zorder = 0, )
+                            ax1.plot([self.phot.data_filters[filter_key]._lower_edge, self.phot.data_filters[filter_key]._lower_edge], [0,1] ,
+                                     lw = 1.5, alpha = 0.5, ls = ':',
+                                     color = self.phot.data_filters[filter_key]._plot_colour, zorder = 0, )
+                        except:
+                            print("Failed")
+                else:
+                    warning.warn("Doesn't look like you have loaded a filter into the object")
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.yaxis.set_minor_locator(yminorLocator)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            ax1.legend(loc = 0)
+
+            plt.show()
         pass
 
 
@@ -2139,7 +2239,7 @@ class specfitClass(BaseSpectrumClass):
 ##                                    ##
 ##------------------------------------##
 
-def load_filter(path, verbose = False):
+def load_filter(path, cmap = False, verbose = False):
     """
     Loads a filter response into FilterClass and returns it.
 
@@ -2148,10 +2248,13 @@ def load_filter(path, verbose = False):
     Returns
     -------
     """
+
     if check_file_path(os.path.abspath(path)):
         filter_object = FilterClass()
         filter_object.read_filter_file(os.path.abspath(path), verbose = verbose)
-        filter_object.calculate_plot_colour(verbose = verbose)
+
+        if cmap:
+            filter_object.calculate_plot_colour(verbose = verbose)
 
         return filter_object
     else:
