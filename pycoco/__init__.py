@@ -411,7 +411,7 @@ class BaseSpectrumClass():
 
 
             if verbose: print(self.data.__dict__)
-            plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            plot_label_string = r'$\rm{' + self.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
@@ -2474,7 +2474,7 @@ def compare_spec(orig_spec, specfit,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
-            plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            plot_label_string = r'$\rm{' + specfit.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
             ax1.plot(specfit.data['wavelength'], specfit.flux/np.nanmean(specfit.flux), lw = 2,
