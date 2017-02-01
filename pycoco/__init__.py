@@ -1177,6 +1177,7 @@ class FilterClass():
     def __init__(self, verbose = True):
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
+
         pass
 
 
@@ -1194,6 +1195,7 @@ class FilterClass():
             self.filter_name = filename_no_extension
 
             self.calculate_effective_wavelength()
+            self.calculate_edges()
 
         else:
             warnings.warn("Foo")
@@ -1211,7 +1213,43 @@ class FilterClass():
         self.lambda_effective = lambda_eff * self._wavelength_units
 
 
-    def plot(self, xminorticks = 250, yminorticks = 0.1, *args, **kwargs):
+    def calculate_edges(self, verbose = True):
+        """
+        calculates the first and last wavelength that has non-zero and steps one
+         away
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        ## calculates the first and last wavelength that has non-zero
+        # w = np.where(self.throughput > 0)[0]
+        # if verbose: print(w)
+        # self._upper_edge = self.wavelength[w[-1]]
+        # self._lower_edge = self.wavelength[w[0]]
+
+        w = np.where(self.throughput > 0)[0]
+        if verbose: print(w)
+        if w[0] - 1 < 0:
+            w_low = 0
+        else:
+            w_low =  w[0] - 1
+
+        if w[-1] + 1 == len(self.throughput):
+            w_high = w[-1]
+        else:
+            w_high = w[-1] + 1
+
+        self._upper_edge = self.wavelength[w_high]
+        self._lower_edge = self.wavelength[w_low]
+
+
+    def plot(self, xminorticks = 250, yminorticks = 0.1,
+             show_lims = False,
+             *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
 
@@ -1245,6 +1283,17 @@ class FilterClass():
                          lw = 2, label = plot_label_string)
             else:
                 ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
+
+            if show_lims:
+                try:
+                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                except:
+                    print("Failed")
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
