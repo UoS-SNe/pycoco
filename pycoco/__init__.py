@@ -375,7 +375,7 @@ class BaseSpectrumClass():
             spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
             self.min_wavelength = np.nanmin(spec_table["wavelength"])
             self.max_wavelength = np.nanmax(spec_table["wavelength"])
-            
+
             ## assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
@@ -1213,7 +1213,7 @@ class FilterClass():
         self.lambda_effective = lambda_eff * self._wavelength_units
 
 
-    def calculate_edges(self, verbose = True):
+    def calculate_edges(self, verbose = False):
         """
         calculates the first and last wavelength that has non-zero and steps one
          away
@@ -1783,7 +1783,6 @@ class SNClass():
         self.specfit = OrderedDict()
 
         pass
-
 
 
 class LCfitClass():
