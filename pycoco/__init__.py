@@ -1536,7 +1536,7 @@ class SNClass():
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
-                lock_axis = False,
+                lock_axis = False, xextent = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1610,8 +1610,7 @@ class SNClass():
 
                     xminorLocator = MultipleLocator(xminorticks)
                     ax1.xaxis.set_minor_locator(xminorLocator)
-                    ax1.set_ylim(np.nanmin(self.phot.phot["MJD"]), np.nanmax(self.phot.phot["MJD"]))
-                    
+
                     if mark_spectra:
 
                         for spec_key in self.spec:
@@ -1629,6 +1628,14 @@ class SNClass():
                             ax1.set_ylim(np.nanmin(self.phot.data[filter_key]['flux']), np.nanmax(self.phot.data[filter_key]['flux'])*yaxis_lim_multiplier)
                         else:
                             ax1.set_ylim(np.nanmin(self.phot.phot['flux']), np.nanmax(self.phot.phot['flux'])*yaxis_lim_multiplier)
+
+                    if multiplot:
+                        if not xextent:
+                            ax1.set_xlim(np.nanmin(self.phot.phot["MJD"])-10, np.nanmax(self.phot.phot["MJD"]))
+                        if xextent:
+                            ax1.set_xlim(np.nanmin(self.phot.phot["MJD"])-10,np.nanmin(self.phot.phot["MJD"]) + xextent)
+                    else:
+                        pass
 
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
@@ -2484,8 +2491,8 @@ def compare_spec(orig_spec, specfit,
                          label = plot_label_string, color = 'Blue',
                          *args, **kwargs)
 
-            # maxplotydata = np.nanmax(orig_spec.flux)
-            # minplotydata = np.nanmin(orig_spec.flux)
+            maxplotydata = np.nanmax(np.append(orig_spec.flux/np.nanmean(orig_spec.flux), specfit.flux/np.nanmean(specfit.flux)))
+            minplotydata = np.nanmin(np.append(orig_spec.flux/np.nanmean(orig_spec.flux), specfit.flux/np.nanmean(specfit.flux)))
 
             if legend:
 
