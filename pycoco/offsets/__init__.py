@@ -6,11 +6,14 @@ SDSS DR4 Web site ( http://www.sdss.org/dr4/ ). The JHKs filters are those from
 Cohen et al. (2003).
 """
 
+from __future__ import print_function
+
+__all__ = ['offset', 'convert_AB_to_Vega', 'convert_Vega_to_AB']
 
 ## offset is calculated as m_AB - m_vega
 offset = {
     "U" : 0.79,
-    "B" : 0.09,
+    "B" : 0.09,
     "V" : 0.02,
     "R" : 0.21,
     "I" : 0.45,
@@ -23,13 +26,13 @@ offset = {
     "H" : 1.39,
     "Ks" : 1.85 ,
     "0:1u" : 1.25 ,
-    "0:1g" : 0.01 ,
+    "0:1g" : 0.01 ,
     "0:1r" : 0.04 ,
     "0:1i" : 0.27 ,
     "0:1z" : 0.46,
 }
 
-def convert_Vega_to_AB(phot_table):
+def convert_Vega_to_AB(phot_table, filters = False):
     """
     Parameters
     ----------

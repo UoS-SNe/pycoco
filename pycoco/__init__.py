@@ -39,6 +39,7 @@ from scipy.interpolate import interp1d as interp1d
 
 from .extinction import *
 from .colours import *
+# from .offsets
 
 warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
@@ -1609,7 +1610,8 @@ class SNClass():
 
                     xminorLocator = MultipleLocator(xminorticks)
                     ax1.xaxis.set_minor_locator(xminorLocator)
-
+                    ax1.set_ylim(np.nanmin(self.phot.phot["MJD"]), np.nanmax(self.phot.phot["MJD"]))
+                    
                     if mark_spectra:
 
                         for spec_key in self.spec:
@@ -1644,6 +1646,10 @@ class SNClass():
                                           numpoints = 1, frameon = False, fontsize = 12)
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
+
+
+
+
 
 
             plt.show()
