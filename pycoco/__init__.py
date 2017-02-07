@@ -1900,6 +1900,14 @@ class SNClass():
 
         self.specfit = OrderedDict()
 
+        if hasattr(self, "name"):
+            print("foo")
+
+
+        else:
+            warnings.warn("This SNClass object has no name")
+            if verbose: print("This SNClass object has no name")
+
         pass
 
 
@@ -2172,7 +2180,6 @@ class LCfitClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
-
 
 
     def get_fit_splines(self):
@@ -2524,6 +2531,45 @@ def find_phot(path = _default_data_dir_path, snname = False,
     if len(phot_list) is 0:
         warnings.warn("No matches found.")
     return phot_list
+
+
+def find_recon_spec(dir_path, snname, verbose = True):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    file_type = ".spec"
+    StringWarning(dir_path)
+    if not check_dir_path(dir_path):
+        return False
+
+    try:
+        ls = np.array(os.listdir(dir_path))
+
+        wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+        spec_list = ls[wspec]
+
+        ## The last 18 chars are for the MJD and file_type
+        wsn = np.where([i[:-18] == snname for i in spec_list])
+        snmatch_list = spec_list[wsn]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False
 
 
 def check_url_status(url):
