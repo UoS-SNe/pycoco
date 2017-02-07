@@ -412,7 +412,8 @@ class BaseSpectrumClass():
 
 
             if verbose: print(self.data.__dict__)
-            plot_label_string = r'$\rm{' + self.data.meta["filename"] + '}$'
+            plot_label_string = r'$\rm{' + self.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
 
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
                          label = plot_label_string, color = 'Red',
@@ -2593,6 +2594,7 @@ def compare_spec(orig_spec, specfit,
         Returns
         -------
         """
+
         if hasattr(orig_spec, "data") and hasattr(specfit, "data"):
 
             setup_plot_defaults()
@@ -2605,20 +2607,21 @@ def compare_spec(orig_spec, specfit,
 
             if verbose: print(np.nanmean(specfit.flux), np.nanmean(orig_spec.flux))
 
-            plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"] + '}$'
+            plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
             ax1.plot(orig_spec.data['wavelength'], orig_spec.flux/np.nanmean(orig_spec.flux), lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
-            plot_label_string = r'$\rm{' + specfit.data.meta["filename"] + '}$'
+            plot_label_string = r'$\rm{' + specfit.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
 
             ax1.plot(specfit.data['wavelength'], specfit.flux/np.nanmean(specfit.flux), lw = 2,
                          label = plot_label_string, color = 'Blue',
                          *args, **kwargs)
 
-            maxplotydata = np.nanmax(np.append(orig_spec.flux/np.nanmean(orig_spec.flux), specfit.flux/np.nanmean(specfit.flux)))
-            minplotydata = np.nanmin(np.append(orig_spec.flux/np.nanmean(orig_spec.flux), specfit.flux/np.nanmean(specfit.flux)))
+            maxplotydata = np.nanmax([specfit.flux/np.nanmean(specfit.flux), orig_spec.flux/np.nanmean(orig_spec.flux)])
+            minplotydata = np.nanmin([specfit.flux/np.nanmean(specfit.flux), orig_spec.flux/np.nanmean(orig_spec.flux)])
 
             if legend:
 
