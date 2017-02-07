@@ -1197,7 +1197,7 @@ class FilterClass():
             self.filter_name = filename_no_extension
 
             self.set_plot_colour(verbose = verbose)
-
+            # self.
             self.calculate_effective_wavelength()
             self.calculate_edges()
 
@@ -1383,6 +1383,7 @@ class FilterClass():
                 self._plot_colour = hex[self.filter_name]
             except:
                 if verbose: print("Nope")
+                self.calculate_plot_colour(verbose = verbose)
 
         pass
 
