@@ -1,3 +1,5 @@
+#!/usr/bin env python
+
 '''
 This is the module for the pycoco python tools.
 
