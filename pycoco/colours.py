@@ -82,6 +82,13 @@ hex['R'] = hex['r']
 hex['I'] = hex['i']
 hex['Z'] = hex['z']
 
+hex['BessellU'] = hex['u']
+hex['BessellB'] = hex['b']
+hex['BessellV'] = hex['v']
+hex['BessellR'] = hex['r']
+hex['BessellI'] = hex['i']
+hex['BessellZ'] = hex['z']
+
 ## Random Others
 hex['white'] = '#FFFFFF'
 
