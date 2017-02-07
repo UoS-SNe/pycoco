@@ -80,7 +80,7 @@ class DummyClass():
         print(self.test_string)
 
 
-def dummy_function(*args, **kwargs):
+def dummy_function(verbose = True, *args, **kwargs):
     '''
     Quick dummy function.
 
@@ -89,7 +89,7 @@ def dummy_function(*args, **kwargs):
 
     RF
     '''
-
+    if verbose: print(__name__)
     warnings.simplefilter('always')
     print(args)
     print(kwargs)
@@ -2155,6 +2155,29 @@ class LCfitClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
+
+    def get_fit_splines(self):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data"):
+            for i, filter_key in enumerate(self.data):
+                print(filter_key)
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+    def colour_from_model(self, filter_key1, filter_key2):
+
+        return phot_1 - phot_2
 
 
 class specfitClass(BaseSpectrumClass):
