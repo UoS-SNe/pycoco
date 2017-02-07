@@ -366,7 +366,8 @@ class BaseSpectrumClass():
 
             if verbose:print("Reading " + path)
 
-            spec_table.meta = {"filename": path}
+            spec_table.meta["filepath"] = path
+            spec_table.meta["filename"] = path.split("/")[-1]
 
             spec_table['wavelength'].unit = wavelength_u
             spec_table['flux'].unit = flux_u
@@ -2191,6 +2192,7 @@ class LCfitClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
     def colour_from_model(self, filter_key1, filter_key2):
 
         return phot_1 - phot_2
@@ -2262,7 +2264,7 @@ class specfitClass(BaseSpectrumClass):
             pass
 
 
-    def set_orig_specpath(self, orig_specpath, verbose = False):
+    def set_orig_specpath(self, orig_specpath = False, verbose = False):
         """
         Parameters
         ----------
@@ -2270,9 +2272,14 @@ class specfitClass(BaseSpectrumClass):
         -------
         """
 
-        self.orig_specpath = orig_specpath
+        if not orig_specpath:
+            self.orig_specpath = self.data.meta["comments"][0].split("/")[-1]
+
+        else:
+            self.orig_specpath = orig_specpath
 
         pass
+
 
 ##------------------------------------##
 ##                                    ##
