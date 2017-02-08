@@ -530,37 +530,19 @@ class BaseSpectrumClass():
         pass
 
 
-##------------------------------------##
-##  Inheriting Classes                ##
-##------------------------------------##
-
-
-class PhotometryClass():
+class BaseLightCurveClass():
     """
-    Probably also overkill - but should be easier to store metadata etc. Hopefully
-    flexible enough to just be a wrapper for AP tables of phot.
-
-    Photometry stored in PhotometryClass.data should have a FilterClass method
-    describing the observations stored in PhotometryClass.data_filters.
-
-    ## NOTE should I use properties instead of get/set? http://www.python-course.eu/python3_properties.php
-    looks like only python3?
+    Base class for handling Lightcurves.
     """
-
     def __init__(self, verbose = False):
         """
 
         """
-
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
-        self._default_filter_dir_path = _default_filter_dir_path
-        self.data = OrderedDict()
-        self.data_filters = OrderedDict()
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
-        self.set_filter_directory(self._get_filter_directory())
+
+        pass
 
 
     def _get_filter_directory(self):
@@ -574,20 +556,6 @@ class PhotometryClass():
                  default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
-
-
-    def _get_data_directory(self):
-        """
-        Get the default path to the data directory.
-
-        Looks for the data data directory set as environment variable
-        $PYCOCO_DATA_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-                 default datalocation: '../testdata/', with '/lc/' appended.
-        """
-
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
 
 
     def set_filter_directory(self, filter_dir_path = '', verbose = False):
@@ -621,6 +589,127 @@ class PhotometryClass():
             pass
 
 
+    def _sort_phot(self):
+        """
+        resorts the photometry according to effective wavelength of the filter.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data") and hasattr(self, "data_filters"):
+            ## This looks fugly.
+            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
+
+            sorted_data = OrderedDict()
+            sorted_data_filters = OrderedDict()
+
+            for newkey in newkeys:
+                sorted_data[newkey] = self.data[newkey]
+                sorted_data_filters[newkey] = self.data_filters[newkey]
+
+            self.data = sorted_data
+            self.data_filters = sorted_data_filters
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def unpack(self, filter_file_type = '.dat', verbose = False):
+        """
+        If loading from preformatted file, then unpack the table into self.data
+        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
+        if hasattr(self, "phot"):
+            filter_names = np.unique(self.phot["filter"])
+            self.phot.add_index('filter', unique = True)
+
+
+            for filter_name in filter_names:
+                phot_table = self.phot.loc["filter", filter_name]
+                filter_filename = filter_name + filter_file_type
+                phot_table.meta = {"filter_filename": filter_filename}
+
+                if verbose: print(phot_table)
+                indices = phot_table.argsort("MJD")
+                # for column_name in phot_table.colnames:
+                #     phot_table[column_name] = phot_table[column_name][indices]
+                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                filter_key = np.unique(phot_table["filter"])[0]
+
+                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
+
+                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
+                self.data[filter_name] = sorted_phot_table
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+
+        pass
+
+
+##------------------------------------##
+##  Inheriting Classes                ##
+##------------------------------------##
+
+
+class PhotometryClass(BaseLightCurveClass):
+    """
+    Inherits from BaseLightCurveClass
+
+    Probably also overkill - but should be easier to store metadata etc. Hopefully
+    flexible enough to just be a wrapper for AP tables of phot.
+
+    Photometry stored in PhotometryClass.data should have a FilterClass method
+    describing the observations stored in PhotometryClass.data_filters.
+
+    ## NOTE should I use properties instead of get/set? http://www.python-course.eu/python3_properties.php
+    looks like only python3?
+    """
+
+    def __init__(self, verbose = False):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
+        self._default_filter_dir_path = _default_filter_dir_path
+        self.data = OrderedDict()
+        self.data_filters = OrderedDict()
+
+        ## Initialise using class methods
+        self.set_data_directory(self._get_data_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+
+    def _get_data_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the data data directory set as environment variable
+        $PYCOCO_DATA_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+                 default datalocation: '../testdata/', with '/lc/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
+
+
     def set_data_directory(self, data_dir_path = '', verbose = False):
         """
         Set a new data directory path.
@@ -651,51 +740,6 @@ class PhotometryClass():
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_data_dir_path?")
             pass
-
-
-    def unpack(self, filter_file_type = '.dat', verbose = False):
-        """
-        If loading from preformatted file, then unpack the table into self.data
-        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "phot"):
-            filter_names = np.unique(self.phot["filter"])
-            self.phot.add_index('filter', unique = True)
-
-
-            for filter_name in filter_names:
-
-                phot_table = self.phot.loc["filter", filter_name]
-                filter_filename = filter_name + filter_file_type
-                phot_table.meta = {"filter_filename": filter_filename}
-
-                if verbose: print(phot_table)
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
-                filter_key = np.unique(phot_table["filter"])[0]
-
-                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
-
-                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
-
-                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-
-                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
-                self.data[filter_name] = sorted_phot_table
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-
-        pass
 
 
     def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
@@ -738,7 +782,7 @@ class PhotometryClass():
         else:
             phot_table = Table.read(path, format = format)
 
-        phot_table.meta = {"filename" : path}
+        phot_table.meta["filename"] = path
 
         phot_table["MJD"].unit = u.day
         phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
@@ -853,36 +897,6 @@ class PhotometryClass():
         else:
             warnings.warn("Provide a SN name")
 
-        pass
-
-
-    def _sort_phot(self):
-        """
-        resorts the photometry according to effective wavelength of the filter.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data") and hasattr(self, "data_filters"):
-            ## This looks fugly.
-            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
-
-            sorted_data = OrderedDict()
-            sorted_data_filters = OrderedDict()
-
-            for newkey in newkeys:
-                sorted_data[newkey] = self.data[newkey]
-                sorted_data_filters[newkey] = self.data_filters[newkey]
-
-            self.data = sorted_data
-            self.data_filters = sorted_data_filters
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
@@ -1819,9 +1833,10 @@ class SNClass():
         pass
 
 
-class LCfitClass():
+class LCfitClass(BaseLightCurveClass):
     """
-    Small class to hold the output from CoCo LCfit
+    Small class to hold the output from CoCo LCfit.
+    Inherits from BaseLightCurveClass
     """
 
     def __init__(self):
@@ -1908,92 +1923,6 @@ class LCfitClass():
         pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = False):
-        """
-        If loading from preformatted file, then unpack the table into self.data
-        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-
-        if hasattr(self, "phot"):
-            filter_names = np.unique(self.phot["filter"])
-            self.phot.add_index('filter', unique = True)
-
-
-            for filter_name in filter_names:
-                phot_table = self.phot.loc["filter", filter_name]
-                filter_filename = filter_name + filter_file_type
-                phot_table.meta = {"filter_filename": filter_filename}
-
-                if verbose: print(phot_table)
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
-                filter_key = np.unique(phot_table["filter"])[0]
-
-                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
-                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
-                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-
-                self.data_filters[filter_key] = load_filter(path_to_filter)
-                self.data[filter_name] = sorted_phot_table
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-
-        pass
-
-
-    def _get_filter_directory(self):
-        """
-        Get the default path to the filter directory.
-
-        Looks for the filter data directory set as environment variable
-        $PYCOCO_FILTER_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
-        """
-        return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
-
-
-    def set_filter_directory(self, filter_dir_path = '', verbose = False):
-        """
-        Set a new filter directory path.
-
-        Enables the data directory to be changed by the user.
-
-        """
-        try:
-            if os.path.isdir(os.path.abspath(filter_dir_path)):
-                self.filter_directory = os.path.abspath(filter_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(filter_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_filter_dir_path, UserWarning)
-                self.data_directory = self._default_data_dir_path
-
-                if not os.path.isdir(self.filter_directory):
-                    if verbose: print(os.path.isdir(self.filter_directory))
-                    raise PathError("The default data directory '" + self.filter_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default filter directory '" + self._default_filter_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_filter_dir_path?")
-            pass
-
-
     def plot(self, legend = True, xminorticks = 5,
              verbose = False, *args, **kwargs):
         """
@@ -2059,35 +1988,6 @@ class LCfitClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
-
-    def _sort_phot(self):
-        """
-        resorts the photometry according to effective wavelength of the filter.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data") and hasattr(self, "data_filters"):
-            ## This looks fugly.
-            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
-
-            sorted_data = OrderedDict()
-            sorted_data_filters = OrderedDict()
-
-            for newkey in newkeys:
-                sorted_data[newkey] = self.data[newkey]
-                sorted_data_filters[newkey] = self.data_filters[newkey]
-
-            self.data = sorted_data
-            self.data_filters = sorted_data_filters
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
 
 
 
