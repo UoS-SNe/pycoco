@@ -611,6 +611,20 @@ class BaseSpectrumClass():
         pass
 
 
+class BaseLightCurveClass():
+    """
+    Base class for handling Lightcurves.
+    """
+    def __init__(self, verbose = False):
+        """
+
+        """
+        ## Initialise the class variables
+
+        ## Initialise using class methods
+
+        pass
+
 ##------------------------------------##
 ##  Inheriting Classes                ##
 ##------------------------------------##
@@ -618,6 +632,8 @@ class BaseSpectrumClass():
 
 class PhotometryClass():
     """
+    Inherits from BaseLightCurveClass
+
     Probably also overkill - but should be easier to store metadata etc. Hopefully
     flexible enough to just be a wrapper for AP tables of phot.
 
@@ -1801,7 +1817,8 @@ class SNClass():
 
 class LCfitClass():
     """
-    Small class to hold the output from CoCo LCfit
+    Small class to hold the output from CoCo LCfit.
+    Inherits from BaseLightCurveClass
     """
 
     def __init__(self):
