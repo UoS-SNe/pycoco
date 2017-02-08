@@ -229,52 +229,6 @@ class BaseSpectrumClass():
         pass
 
 
-    # def _get_data_directory(self):
-    #     """
-    #     Get the default path to the data directory.
-    #
-    #     Looks for the data data directory set as environment variable
-    #     $PYCOCO_DATA_DIR. if not found, returns default.
-    #
-    #     returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-    #              default datalocation: '../testdata/', with '/spec/' appended.
-    #     """
-    #
-    #     return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
-
-
-    # def set_data_directory(self, data_dir_path = '', verbose = False):
-    #     """
-    #     Set a new data directory path.
-    #
-    #     Enables the data directory to be changed by the user.
-    #
-    #     """
-    #     try:
-    #         if verbose: print(data_dir_path, self._default_data_dir_path)
-    #         if os.path.isdir(os.path.abspath(data_dir_path)):
-    #             self.data_directory = os.path.abspath(data_dir_path)
-    #             pass
-    #         else:
-    #             warnings.warn(os.path.abspath(data_dir_path) +
-    #             " is not a valid directory. Restoring default path: " +
-    #             self._default_data_dir_path, UserWarning)
-    #             self.data_directory = self._default_data_dir_path
-    #
-    #             if not os.path.isdir(self.data_directory):
-    #                 if verbose: print(os.path.isdir(self.data_directory))
-    #                 raise PathError("The default data directory '" + self.data_directory
-    #                  + "' doesn't exist. Or isn't a directory. Or can't be located.")
-    #             else:
-    #                 pass
-    #     except:
-    #         if verbose: print("foo")
-    #         raise PathError("The default data directory '" + self._default_data_dir_path
-    #          + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-    #          + " you messed with _default_data_dir_path?")
-    #         pass
-
-
     def _get_list_directory(self):
         """
         Get the default path to the spec lists directory.
@@ -452,44 +406,6 @@ class BaseSpectrumClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
-
-
-    # def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
-    #     """
-    #     Retrieve the MJD of the observation from a '.list' file.
-    #
-    #     Parameters
-    #     ----------
-    #
-    #     Returns
-    #     -------
-    #     """
-    #
-    #     try:
-    #
-    #         if not list_dir:
-    #             list_dir = self._default_list_dir_path
-    #
-    #         check_dir_path(list_dir)
-    #         list_path = os.path.abspath(os.path.join(list_dir, list_filename))
-    #         check_file_path(list_path)
-    #     except:
-    #
-    #         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
-    #
-    #         return False
-    #
-    #     data = np.genfromtxt(list_path, dtype = np.str)
-    #     short_filenames = [f.split('/')[-1] for f in  data.T[0]]
-    #     filename = self.data.meta['filename'].split('/')[-1]
-    #     print(filename)
-    #     if verbose: print(data.T[0])
-    #
-    #     if filename in short_filenames:
-    #         print("Foo")
-    #
-    #     # pass
-    #     return data
 
 
     def set_MJD_obs(self, mjd):
