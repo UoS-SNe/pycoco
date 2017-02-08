@@ -1108,226 +1108,6 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-class FilterClass():
-    """Docstring for FilterClass"""
-
-    def __init__(self, verbose = True):
-        self._wavelength_units = u.Angstrom
-        self._wavelength_units._format['latex'] = r'\rm{\AA}'
-
-        pass
-
-
-    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
-        """
-        Assumes Response function is fractional rather than %.
-        """
-        if check_file_path(os.path.abspath(path), verbose = verbose):
-            self.wavelength, self.throughput = np.loadtxt(path).T
-            self.wavelength_u = self.wavelength * wavelength_units
-            self._filter_file_path = path
-
-            filename = path.split('/')[-1]
-            filename_no_extension = filename.split('.')[0]
-            self.filter_name = filename_no_extension
-
-            self.set_plot_colour(verbose = verbose)
-            # self.
-            self.calculate_effective_wavelength()
-            self.calculate_edges()
-
-        else:
-            warnings.warn("Foo")
-
-
-    def calculate_effective_wavelength(self):
-        """
-        Well, what are you expecting something called `calculate_effective_wavelength`
-         to do?
-        """
-
-        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
-        lambda_eff = spline_rev(0.5)
-
-        self.lambda_effective = lambda_eff * self._wavelength_units
-
-
-    def calculate_edges(self, verbose = False):
-        """
-        calculates the first and last wavelength that has non-zero and steps one
-         away
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## calculates the first and last wavelength that has non-zero
-        # w = np.where(self.throughput > 0)[0]
-        # if verbose: print(w)
-        # self._upper_edge = self.wavelength[w[-1]]
-        # self._lower_edge = self.wavelength[w[0]]
-
-        w = np.where(self.throughput > 0)[0]
-        if verbose: print(w)
-        if w[0] - 1 < 0:
-            w_low = 0
-        else:
-            w_low =  w[0] - 1
-
-        if w[-1] + 1 == len(self.throughput):
-            w_high = w[-1]
-        else:
-            w_high = w[-1] + 1
-
-        self._upper_edge = self.wavelength[w_high]
-        self._lower_edge = self.wavelength[w_low]
-
-
-    def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False,
-             *args, **kwargs):
-        """
-        Plots filter throughput, so you can double check it.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## Check if there is something in the class to plot
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-
-            setup_plot_defaults()
-            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
-
-            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
-
-            yminorLocator = MultipleLocator(yminorticks)
-            xminorLocator = MultipleLocator(xminorticks)
-
-            if not small:
-                fig = plt.figure(figsize=[8, 4])
-            else:
-                fig = plt.figure(figsize=[4, 2])
-                plt.rcParams['font.size'] = 10
-
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
-
-            ax1 = fig.add_subplot(111)
-
-            if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
-                         lw = 2, label = plot_label_string)
-            else:
-                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
-
-            if show_lims:
-                try:
-                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                except:
-                    print("Failed")
-
-            ax1.set_xlabel(xaxis_label_string)
-            ax1.set_ylabel(yaxis_label_string)
-
-            ax1.yaxis.set_minor_locator(yminorLocator)
-            ax1.xaxis.set_minor_locator(xminorLocator)
-
-            ax1.legend(loc = 0)
-
-            plt.show()
-            pass
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def resample_response(self, new_wavelength):
-        """
-        Bit dodgy - spline has weird results for poorly sampled filters
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-            self._wavelength_orig = self.wavelength
-            self._throughput_orig = self.throughput
-
-            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
-            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
-
-            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
-            self.throughput = interp_func(new_wavelength)
-            self.wavelength = new_wavelength
-
-            self.throughput[np.where(self.throughput < 0.0)] = 0.0
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, 'lambda_effective'):
-
-            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
-            relative_lambda = relative_lambda / _colour_lower_lambda_limit
-
-            if verbose: print("relative_lambda = ", relative_lambda)
-
-            self._plot_colour = colourmap(relative_lambda)
-
-        else:
-            warnings.warn("No self.lambda_effective set.")
-
-
-    def set_plot_colour(self, colour = False, verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if colour:
-            self._plot_colour = colour
-
-        else:
-            if verbose: print(hex[self.filter_name])
-            try:
-                self._plot_colour = hex[self.filter_name]
-            except:
-                if verbose: print("Nope")
-                self.calculate_plot_colour(verbose = verbose)
-
-        pass
-
-
 class SpectrumClass(BaseSpectrumClass):
     """
     Class for handling Spectra.
@@ -1393,6 +1173,344 @@ class SpectrumClass(BaseSpectrumClass):
              + " you messed with _default_data_dir_path?")
             pass
 
+
+class LCfitClass(BaseLightCurveClass):
+    """
+    Small class to hold the output from CoCo LCfit.
+    Inherits from BaseLightCurveClass
+    """
+
+    def __init__(self):
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
+        self._default_filter_dir_path = _default_filter_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+        ## Initialise some other stuff
+        self.data = OrderedDict()
+        self.data_filters = OrderedDict()
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the CoCo home directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new recon directory path.
+
+        Enables the recon directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default recon directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default recon directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
+
+    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii', verbose = True):
+        """
+
+        """
+        StringWarning(path)
+
+        try:
+            phot_table = load_formatted_phot(path, format = format, names = names,
+                                             verbose = verbose)
+            self.phot = phot_table
+
+            self.phot['flux_upper'] = phot_table['flux'] + phot_table['flux_err']
+            self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
+
+        except:
+            raise StandardError
+
+        pass
+
+
+    def plot(self, legend = True, xminorticks = 5,
+             verbose = False, *args, **kwargs):
+        """
+        Plots phot.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            for i, filter_key in enumerate(self.data_filters):
+                if verbose: print(i, self.data[filter_key].__dict__)
+                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+
+                # ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #              yerr = self.data[filter_key]['flux_err'],
+                #              capsize = 0, fmt = 'o',
+                #              label = plot_label_string,
+                #              *args, **kwargs)
+
+                # ## Best Fit
+                # ax1.plot(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #          lw = 2, label = plot_label_string,
+                #           *args, **kwargs)
+
+                ## With error
+                ax1.fill_between(self.data[filter_key]['MJD'], self.data[filter_key]['flux_upper'], self.data[filter_key]['flux_lower'],
+                                 label = plot_label_string, color = self.data_filters[filter_key]._plot_colour,
+                                 alpha = 0.8,
+                                 *args, **kwargs)
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ## Use ap table groups instead? - can't; no support for mixin columns.
+            ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+
+    def get_fit_splines(self):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data"):
+            self.spline = OrderedDict()
+
+            for i, filter_key in enumerate(self.data):
+                try:
+                    print(filter_key)
+                    self.spline[filter_key] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux"])
+                    self.spline[filter_key+"_err"] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux_err"])
+                except:
+                    print("NOPE")
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def colour_from_model(self, filter_key1, filter_key2):
+
+        return phot_1 - phot_2
+
+
+class specfitClass(BaseSpectrumClass):
+    """
+    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    """
+
+    def __init__(self):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        # self._default_list_dir_path = self._default_data_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the recon directory.
+
+        Looks for the CoCo directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default data directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
+
+    def set_orig_specpath(self, orig_specpath = False, verbose = False):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if not orig_specpath:
+            self.orig_specpath = self.data.meta["comments"][0].split("/")[-1]
+
+        else:
+            self.orig_specpath = orig_specpath
+
+        pass
+
+
+    def plot_comparision(self, SpectrumClassInstance,
+                         xminorticks = 250, legend = True,
+                         verbose = True,
+                         *args, **kwargs):
+        """
+        Plots spec.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+
+            if verbose: print(self.data.__dict__)
+            plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
+            plot_label_string_compare = r'$\rm{' + SpectrumClassInstance.data.meta["filename"].replace('_', '\_') + '}$'
+
+
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
+                         *args, **kwargs)
+
+            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
+
+            maxplotydata = np.nanmax(np.append(self.flux, SpectrumClassInstance.data['flux']))
+            minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+##------------------------------------##
+##  Inheriting Classes                ##
+##------------------------------------##
 
 class SNClass():
     """docstring for SNClass."""
@@ -1902,100 +2020,55 @@ class SNClass():
         pass
 
 
-class LCfitClass(BaseLightCurveClass):
-    """
-    Small class to hold the output from CoCo LCfit.
-    Inherits from BaseLightCurveClass
-    """
 
-    def __init__(self):
+class FilterClass():
+    """Docstring for FilterClass"""
 
-        ## Initialise the class variables
-        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
-        self._default_filter_dir_path = _default_filter_dir_path
-
-        ## Initialise using class methods
-        self.set_recon_directory(self._get_recon_directory())
-        self.set_filter_directory(self._get_filter_directory())
-
-        ## Initialise some other stuff
-        self.data = OrderedDict()
-        self.data_filters = OrderedDict()
+    def __init__(self, verbose = True):
+        self._wavelength_units = u.Angstrom
+        self._wavelength_units._format['latex'] = r'\rm{\AA}'
 
         pass
 
 
-    def _get_recon_directory(self):
+    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
         """
-        Get the default path to the data directory.
-
-        Looks for the CoCo home directory set as environment variable
-        $COCO_ROOT_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
-                 default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
+        Assumes Response function is fractional rather than %.
         """
+        if check_file_path(os.path.abspath(path), verbose = verbose):
+            self.wavelength, self.throughput = np.loadtxt(path).T
+            self.wavelength_u = self.wavelength * wavelength_units
+            self._filter_file_path = path
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+            self.filter_name = filename_no_extension
+
+            self.set_plot_colour(verbose = verbose)
+            # self.
+            self.calculate_effective_wavelength()
+            self.calculate_edges()
+
+        else:
+            warnings.warn("Foo")
 
 
-    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+    def calculate_effective_wavelength(self):
         """
-        Set a new recon directory path.
-
-        Enables the recon directory to be changed by the user.
-
-        """
-        try:
-            if verbose: print(recon_dir_path, self._default_recon_dir_path)
-            if os.path.isdir(os.path.abspath(recon_dir_path)):
-                self.recon_directory = os.path.abspath(recon_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(recon_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_recon_dir_path, UserWarning)
-                self.recon_directory = self._default_recon_dir_path
-
-                if not os.path.isdir(self.recon_directory):
-                    if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default recon directory '" + self.recon_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default recon directory '" + self._default_recon_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_recon_dir_path?")
-            pass
-
-
-    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii', verbose = True):
+        Well, what are you expecting something called `calculate_effective_wavelength`
+         to do?
         """
 
+        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
+        lambda_eff = spline_rev(0.5)
+
+        self.lambda_effective = lambda_eff * self._wavelength_units
+
+
+    def calculate_edges(self, verbose = False):
         """
-        StringWarning(path)
-
-        try:
-            phot_table = load_formatted_phot(path, format = format, names = names,
-                                             verbose = verbose)
-            self.phot = phot_table
-
-            self.phot['flux_upper'] = phot_table['flux'] + phot_table['flux_err']
-            self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
-
-        except:
-            raise StandardError
-
-        pass
-
-
-    def plot(self, legend = True, xminorticks = 5,
-             verbose = False, *args, **kwargs):
-        """
-        Plots phot.
+        calculates the first and last wavelength that has non-zero and steps one
+         away
 
         Parameters
         ----------
@@ -2004,236 +2077,169 @@ class LCfitClass(BaseLightCurveClass):
         -------
         """
 
-        if hasattr(self, "data"):
+        ## calculates the first and last wavelength that has non-zero
+        # w = np.where(self.throughput > 0)[0]
+        # if verbose: print(w)
+        # self._upper_edge = self.wavelength[w[-1]]
+        # self._lower_edge = self.wavelength[w[0]]
+
+        w = np.where(self.throughput > 0)[0]
+        if verbose: print(w)
+        if w[0] - 1 < 0:
+            w_low = 0
+        else:
+            w_low =  w[0] - 1
+
+        if w[-1] + 1 == len(self.throughput):
+            w_high = w[-1]
+        else:
+            w_high = w[-1] + 1
+
+        self._upper_edge = self.wavelength[w_high]
+        self._lower_edge = self.wavelength[w_low]
+
+
+    def plot(self, xminorticks = 250, yminorticks = 0.1,
+             show_lims = False, small = False,
+             *args, **kwargs):
+        """
+        Plots filter throughput, so you can double check it.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        ## Check if there is something in the class to plot
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
             setup_plot_defaults()
+            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            fig = plt.figure(figsize=[8, 4])
+            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
+
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
+
+            if not small:
+                fig = plt.figure(figsize=[8, 4])
+            else:
+                fig = plt.figure(figsize=[4, 2])
+                plt.rcParams['font.size'] = 10
+
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
 
-            for i, filter_key in enumerate(self.data_filters):
-                if verbose: print(i, self.data[filter_key].__dict__)
-                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+            if hasattr(self, "_plot_colour"):
+                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                         lw = 2, label = plot_label_string)
+            else:
+                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
 
-                # ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
-                #              yerr = self.data[filter_key]['flux_err'],
-                #              capsize = 0, fmt = 'o',
-                #              label = plot_label_string,
-                #              *args, **kwargs)
-
-                # ## Best Fit
-                # ax1.plot(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
-                #          lw = 2, label = plot_label_string,
-                #           *args, **kwargs)
-
-                ## With error
-                ax1.fill_between(self.data[filter_key]['MJD'], self.data[filter_key]['flux_upper'], self.data[filter_key]['flux_lower'],
-                                 label = plot_label_string, color = self.data_filters[filter_key]._plot_colour,
-                                 alpha = 0.8,
-                                 *args, **kwargs)
-            if legend:
-
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
-
-            ## Use ap table groups instead? - can't; no support for mixin columns.
-            ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
-
-            ## Label the axes
-            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
-
-            ax1.set_xlabel(xaxis_label_string)
-            ax1.set_ylabel(yaxis_label_string)
-
-            xminorLocator = MultipleLocator(xminorticks)
-            ax1.xaxis.set_minor_locator(xminorLocator)
-
-            plt.show()
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-
-    def get_fit_splines(self):
-        """
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data"):
-            self.spline = OrderedDict()
-
-            for i, filter_key in enumerate(self.data):
+            if show_lims:
                 try:
-                    print(filter_key)
-                    self.spline[filter_key] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux"])
-                    self.spline[filter_key+"_err"] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux_err"])
+                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
                 except:
-                    print("NOPE")
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-    def colour_from_model(self, filter_key1, filter_key2):
-
-        return phot_1 - phot_2
-
-
-class specfitClass(BaseSpectrumClass):
-    """
-    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
-    """
-
-    def __init__(self):
-        """
-
-        """
-
-        ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
-        # self._default_list_dir_path = self._default_data_dir_path
-
-        ## Initialise using class methods
-        self.set_recon_directory(self._get_recon_directory())
-
-        pass
-
-
-    def _get_recon_directory(self):
-        """
-        Get the default path to the recon directory.
-
-        Looks for the CoCo directory set as environment variable
-        $COCO_ROOT_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
-                 default datalocation: '../testdata/', with '/spec/' appended.
-        """
-
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
-
-
-    def set_recon_directory(self, recon_dir_path = '', verbose = False):
-        """
-        Set a new data directory path.
-
-        Enables the data directory to be changed by the user.
-
-        """
-        try:
-            if verbose: print(recon_dir_path, self._default_recon_dir_path)
-            if os.path.isdir(os.path.abspath(recon_dir_path)):
-                self.recon_directory = os.path.abspath(recon_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(recon_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_recon_dir_path, UserWarning)
-                self.recon_directory = self._default_recon_dir_path
-
-                if not os.path.isdir(self.recon_directory):
-                    if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default data directory '" + self.recon_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_recon_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_recon_dir_path?")
-            pass
-
-
-    def set_orig_specpath(self, orig_specpath = False, verbose = False):
-        """
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-
-        if not orig_specpath:
-            self.orig_specpath = self.data.meta["comments"][0].split("/")[-1]
-
-        else:
-            self.orig_specpath = orig_specpath
-
-        pass
-
-
-    def plot_comparision(self, SpectrumClassInstance,
-                         xminorticks = 250, legend = True,
-                         verbose = True,
-                         *args, **kwargs):
-        """
-        Plots spec.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "data"):
-
-            setup_plot_defaults()
-
-            fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
-
-            ax1 = fig.add_subplot(111)
-
-
-            if verbose: print(self.data.__dict__)
-            plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
-            plot_label_string_compare = r'$\rm{' + SpectrumClassInstance.data.meta["filename"].replace('_', '\_') + '}$'
-
-
-            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
-                         label = plot_label_string, color = 'Red',
-                         *args, **kwargs)
-
-            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
-                         label = plot_label_string_compare, color = 'Blue',
-                         *args, **kwargs)
-
-            maxplotydata = np.nanmax(np.append(self.flux, SpectrumClassInstance.data['flux']))
-            minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
-
-            if legend:
-
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
-
-            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
-
-            ## Label the axes
-            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+                    print("Failed")
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
 
-            xminorLocator = MultipleLocator(xminorticks)
+            ax1.yaxis.set_minor_locator(yminorLocator)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
+            ax1.legend(loc = 0)
+
             plt.show()
+            pass
         else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def resample_response(self, new_wavelength):
+        """
+        Bit dodgy - spline has weird results for poorly sampled filters
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+            self._wavelength_orig = self.wavelength
+            self._throughput_orig = self.throughput
+
+            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
+            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
+
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
+            self.throughput = interp_func(new_wavelength)
+            self.wavelength = new_wavelength
+
+            self.throughput[np.where(self.throughput < 0.0)] = 0.0
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, 'lambda_effective'):
+
+            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
+            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+
+            if verbose: print("relative_lambda = ", relative_lambda)
+
+            self._plot_colour = colourmap(relative_lambda)
+
+        else:
+            warnings.warn("No self.lambda_effective set.")
+
+
+    def set_plot_colour(self, colour = False, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if colour:
+            self._plot_colour = colour
+
+        else:
+            if verbose: print(hex[self.filter_name])
+            try:
+                self._plot_colour = hex[self.filter_name]
+            except:
+                if verbose: print("Nope")
+                self.calculate_plot_colour(verbose = verbose)
+
         pass
+
 
 
 ##------------------------------------##
