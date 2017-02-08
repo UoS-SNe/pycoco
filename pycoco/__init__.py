@@ -138,6 +138,8 @@ __all__ = ["_default_data_dir_path",
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 _default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/")
 _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
+_default_recon_dir_path = os.path.abspath("/Users/berto/Code/CoCo/recon/")
+
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
@@ -192,7 +194,7 @@ def StringWarning(path):
     """
 
     """
-    if type(path) is not str and type(path) is not unicode:
+    if type(path) is not str and type(path) is not unicode and type(path) is not np.string_:
         warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
                       stacklevel = 2)
 
@@ -324,7 +326,7 @@ class BaseSpectrumClass():
     def load(self, filename, directory = False, fmt = "ascii",
              wmin = 3500, wmax = 11000,
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
-             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
+             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = False):
         """
         Parameters
         ----------
@@ -391,7 +393,7 @@ class BaseSpectrumClass():
 
 
     def plot(self, xminorticks = 250, legend = True,
-             verbose = True, compare_red = True,
+             verbose = False, compare_red = True,
              *args, **kwargs):
         """
         Plots spec.
@@ -1255,7 +1257,7 @@ class FilterClass():
 
 
     def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False,
+             show_lims = False, small = False,
              *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
@@ -1274,12 +1276,17 @@ class FilterClass():
             xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
             yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            plot_label_string = r'$' + self.filter_name + '$'
+            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
 
             yminorLocator = MultipleLocator(yminorticks)
             xminorLocator = MultipleLocator(xminorticks)
 
-            fig = plt.figure(figsize=[8, 4])
+            if not small:
+                fig = plt.figure(figsize=[8, 4])
+            else:
+                fig = plt.figure(figsize=[4, 2])
+                plt.rcParams['font.size'] = 10
+
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
 
@@ -1474,6 +1481,7 @@ class SNClass():
         self.phot = PhotometryClass()
 
         self.coco_directory = self._get_coco_directory()
+        self.recon_directory = self._get_recon_directory()
 
         self.name = snname
         pass
@@ -1491,6 +1499,52 @@ class SNClass():
         """
 
         return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the recon directory.
+
+        Looks for the CoCo directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(_default_recon_dir_path, os.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default data directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
 
 
     def load_phot(self, snname = False, path = False, file_type = '.dat',
@@ -1889,7 +1943,7 @@ class SNClass():
         pass
 
 
-    def get_specfit(self):
+    def get_specfit(self, verbose = False):
         """
         Parameters
         ----------
@@ -1901,8 +1955,15 @@ class SNClass():
         self.specfit = OrderedDict()
 
         if hasattr(self, "name"):
-            print("foo")
+            specfit_list = find_recon_spec(self.recon_directory, self.name, verbose = verbose)
+            # if verbose: print(specfit_list)
 
+            for i, specfit_file in enumerate(specfit_list):
+                if verbose: print(i, specfit_file)
+                self.specfit[specfit_file] = specfitClass()
+                self.specfit[specfit_file].load(filename = specfit_file,
+                            directory = self.recon_directory, verbose = verbose)
+                self.specfit[specfit_file].set_orig_specpath()
 
         else:
             warnings.warn("This SNClass object has no name")
@@ -2193,8 +2254,15 @@ class LCfitClass():
 
         """
         if hasattr(self, "data"):
+            self.spline = OrderedDict()
+
             for i, filter_key in enumerate(self.data):
-                print(filter_key)
+                try:
+                    print(filter_key)
+                    self.spline[filter_key] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux"])
+                    self.spline[filter_key+"_err"] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux_err"])
+                except:
+                    print("NOPE")
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
@@ -2285,6 +2353,70 @@ class specfitClass(BaseSpectrumClass):
         else:
             self.orig_specpath = orig_specpath
 
+        pass
+
+
+    def plot_comparision(self, SpectrumClassInstance,
+                         xminorticks = 250, legend = True,
+                         verbose = True,
+                         *args, **kwargs):
+        """
+        Plots spec.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+
+            if verbose: print(self.data.__dict__)
+            plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
+            plot_label_string_compare = r'$\rm{' + SpectrumClassInstance.data.meta["filename"].replace('_', '\_') + '}$'
+
+
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
+                         *args, **kwargs)
+
+            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
+
+            maxplotydata = np.nanmax(np.append(self.flux, SpectrumClassInstance.data['flux']))
+            minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
@@ -2533,8 +2665,9 @@ def find_phot(path = _default_data_dir_path, snname = False,
     return phot_list
 
 
-def find_recon_spec(dir_path, snname, verbose = True):
+def find_recon_spec(dir_path, snname, verbose = False):
     """
+
     Parameters
     ----------
 
