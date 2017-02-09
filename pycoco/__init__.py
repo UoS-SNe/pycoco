@@ -203,11 +203,9 @@ def StringWarning(path):
 
 
 
-##------------------------------------##
-##  Classes                           ##
-##------------------------------------##
-
-
+##----------------------------------------------------------------------------##
+##  Classes                                                                   ##
+##----------------------------------------------------------------------------##
 ##------------------------------------##
 ##  Base Classes                      ##
 ##------------------------------------##
@@ -666,7 +664,6 @@ class BaseLightCurveClass():
 ##------------------------------------##
 ##  Inheriting Classes                ##
 ##------------------------------------##
-
 
 class PhotometryClass(BaseLightCurveClass):
     """
@@ -1509,7 +1506,7 @@ class specfitClass(BaseSpectrumClass):
 
 
 ##------------------------------------##
-##  Inheriting Classes                ##
+## Standalone Classes                 ##
 ##------------------------------------##
 
 class SNClass():
@@ -2020,7 +2017,6 @@ class SNClass():
         pass
 
 
-
 class FilterClass():
     """Docstring for FilterClass"""
 
@@ -2241,9 +2237,8 @@ class FilterClass():
         pass
 
 
-
 ##------------------------------------##
-##                                    ##
+##  Functions                         ##
 ##------------------------------------##
 
 def load_filter(path, cmap = False, verbose = False):
@@ -2756,7 +2751,7 @@ def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/Besse
 
 
 ##------------------------------------##
-## CoCo                               ##
+## CoCo Functions                     ##
 ##------------------------------------##
 
 
