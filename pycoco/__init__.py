@@ -31,8 +31,10 @@ from collections import OrderedDict
 
 import astropy as ap
 import astropy.units as u
+from astropy.constants import c
 from astropy.time import Time
 from astropy.table import Table, vstack
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -2023,7 +2025,7 @@ class FilterClass():
     def __init__(self, verbose = True):
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
-
+        self._frequency_units = u.Hertz
         pass
 
 
@@ -2059,6 +2061,26 @@ class FilterClass():
         lambda_eff = spline_rev(0.5)
 
         self.lambda_effective = lambda_eff * self._wavelength_units
+        pass
+
+
+    def calculate_frequency(self):
+        nu = c/self.wavelength_u
+        self.frequency_u = nu.to(self._frequency_units)
+        self.frequency = self.frequency_u.value
+
+
+    def calculate_effective_frequency(self):
+        """
+
+        """
+
+        if hasattr(self, "wavelength"):
+            spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
+            nu_eff = spline_rev(0.5)
+
+            self.nu_effective = nu_eff * self._frequency_units
+        pass
 
 
     def calculate_edges(self, verbose = False):
