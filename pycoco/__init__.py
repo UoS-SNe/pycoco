@@ -2184,9 +2184,11 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def resample_response(self, new_wavelength):
+    def resample_response(self, new_wavelength = False, k = 1,
+                          *args, **kwargs):
         """
-        Bit dodgy - spline has weird results for poorly sampled filters
+        Bit dodgy - spline has weird results for poorly sampled filters.
+        Now the order is by default 1, seems to be less likely to introduce artifacts
 
         Parameters
         ----------
@@ -2202,7 +2204,8 @@ class FilterClass():
             self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
             self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
 
-            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput, k = k,
+                                                       *args, **kwargs)
             self.throughput = interp_func(new_wavelength)
             self.wavelength = new_wavelength
 
