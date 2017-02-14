@@ -31,8 +31,10 @@ from collections import OrderedDict
 
 import astropy as ap
 import astropy.units as u
+from astropy.constants import c
 from astropy.time import Time
 from astropy.table import Table, vstack
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -138,6 +140,8 @@ __all__ = ["_default_data_dir_path",
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
 _default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/")
 _default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
+_default_recon_dir_path = os.path.abspath("/Users/berto/Code/CoCo/recon/")
+
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
@@ -192,7 +196,7 @@ def StringWarning(path):
     """
 
     """
-    if type(path) is not str and type(path) is not unicode:
+    if type(path) is not str and type(path) is not unicode and type(path) is not np.string_:
         warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
                       stacklevel = 2)
 
@@ -201,11 +205,9 @@ def StringWarning(path):
 
 
 
-##------------------------------------##
-##  Classes                           ##
-##------------------------------------##
-
-
+##----------------------------------------------------------------------------##
+##  Classes                                                                   ##
+##----------------------------------------------------------------------------##
 ##------------------------------------##
 ##  Base Classes                      ##
 ##------------------------------------##
@@ -227,52 +229,6 @@ class BaseSpectrumClass():
         self.set_list_directory(self._get_list_directory())
 
         pass
-
-
-    # def _get_data_directory(self):
-    #     """
-    #     Get the default path to the data directory.
-    #
-    #     Looks for the data data directory set as environment variable
-    #     $PYCOCO_DATA_DIR. if not found, returns default.
-    #
-    #     returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-    #              default datalocation: '../testdata/', with '/spec/' appended.
-    #     """
-    #
-    #     return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
-
-
-    # def set_data_directory(self, data_dir_path = '', verbose = False):
-    #     """
-    #     Set a new data directory path.
-    #
-    #     Enables the data directory to be changed by the user.
-    #
-    #     """
-    #     try:
-    #         if verbose: print(data_dir_path, self._default_data_dir_path)
-    #         if os.path.isdir(os.path.abspath(data_dir_path)):
-    #             self.data_directory = os.path.abspath(data_dir_path)
-    #             pass
-    #         else:
-    #             warnings.warn(os.path.abspath(data_dir_path) +
-    #             " is not a valid directory. Restoring default path: " +
-    #             self._default_data_dir_path, UserWarning)
-    #             self.data_directory = self._default_data_dir_path
-    #
-    #             if not os.path.isdir(self.data_directory):
-    #                 if verbose: print(os.path.isdir(self.data_directory))
-    #                 raise PathError("The default data directory '" + self.data_directory
-    #                  + "' doesn't exist. Or isn't a directory. Or can't be located.")
-    #             else:
-    #                 pass
-    #     except:
-    #         if verbose: print("foo")
-    #         raise PathError("The default data directory '" + self._default_data_dir_path
-    #          + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-    #          + " you messed with _default_data_dir_path?")
-    #         pass
 
 
     def _get_list_directory(self):
@@ -324,7 +280,7 @@ class BaseSpectrumClass():
     def load(self, filename, directory = False, fmt = "ascii",
              wmin = 3500, wmax = 11000,
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
-             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = True):
+             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = False):
         """
         Parameters
         ----------
@@ -366,7 +322,8 @@ class BaseSpectrumClass():
 
             if verbose:print("Reading " + path)
 
-            spec_table.meta = {"filename": path}
+            spec_table.meta["filepath"] = path
+            spec_table.meta["filename"] = path.split("/")[-1]
 
             spec_table['wavelength'].unit = wavelength_u
             spec_table['flux'].unit = flux_u
@@ -390,7 +347,7 @@ class BaseSpectrumClass():
 
 
     def plot(self, xminorticks = 250, legend = True,
-             verbose = True, compare_red = True,
+             verbose = False, compare_red = True,
              *args, **kwargs):
         """
         Plots spec.
@@ -451,44 +408,6 @@ class BaseSpectrumClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
-
-
-    # def get_MJD_obs(self, list_filename, list_dir = False, verbose = True):
-    #     """
-    #     Retrieve the MJD of the observation from a '.list' file.
-    #
-    #     Parameters
-    #     ----------
-    #
-    #     Returns
-    #     -------
-    #     """
-    #
-    #     try:
-    #
-    #         if not list_dir:
-    #             list_dir = self._default_list_dir_path
-    #
-    #         check_dir_path(list_dir)
-    #         list_path = os.path.abspath(os.path.join(list_dir, list_filename))
-    #         check_file_path(list_path)
-    #     except:
-    #
-    #         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
-    #
-    #         return False
-    #
-    #     data = np.genfromtxt(list_path, dtype = np.str)
-    #     short_filenames = [f.split('/')[-1] for f in  data.T[0]]
-    #     filename = self.data.meta['filename'].split('/')[-1]
-    #     print(filename)
-    #     if verbose: print(data.T[0])
-    #
-    #     if filename in short_filenames:
-    #         print("Foo")
-    #
-    #     # pass
-    #     return data
 
 
     def set_MJD_obs(self, mjd):
@@ -613,37 +532,19 @@ class BaseSpectrumClass():
         pass
 
 
-##------------------------------------##
-##  Inheriting Classes                ##
-##------------------------------------##
-
-
-class PhotometryClass():
+class BaseLightCurveClass():
     """
-    Probably also overkill - but should be easier to store metadata etc. Hopefully
-    flexible enough to just be a wrapper for AP tables of phot.
-
-    Photometry stored in PhotometryClass.data should have a FilterClass method
-    describing the observations stored in PhotometryClass.data_filters.
-
-    ## NOTE should I use properties instead of get/set? http://www.python-course.eu/python3_properties.php
-    looks like only python3?
+    Base class for handling Lightcurves.
     """
-
     def __init__(self, verbose = False):
         """
 
         """
-
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
-        self._default_filter_dir_path = _default_filter_dir_path
-        self.data = OrderedDict()
-        self.data_filters = OrderedDict()
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
-        self.set_filter_directory(self._get_filter_directory())
+
+        pass
 
 
     def _get_filter_directory(self):
@@ -657,20 +558,6 @@ class PhotometryClass():
                  default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
-
-
-    def _get_data_directory(self):
-        """
-        Get the default path to the data directory.
-
-        Looks for the data data directory set as environment variable
-        $PYCOCO_DATA_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-                 default datalocation: '../testdata/', with '/lc/' appended.
-        """
-
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
 
 
     def set_filter_directory(self, filter_dir_path = '', verbose = False):
@@ -704,6 +591,126 @@ class PhotometryClass():
             pass
 
 
+    def _sort_phot(self):
+        """
+        resorts the photometry according to effective wavelength of the filter.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data") and hasattr(self, "data_filters"):
+            ## This looks fugly.
+            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
+
+            sorted_data = OrderedDict()
+            sorted_data_filters = OrderedDict()
+
+            for newkey in newkeys:
+                sorted_data[newkey] = self.data[newkey]
+                sorted_data_filters[newkey] = self.data_filters[newkey]
+
+            self.data = sorted_data
+            self.data_filters = sorted_data_filters
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def unpack(self, filter_file_type = '.dat', verbose = False):
+        """
+        If loading from preformatted file, then unpack the table into self.data
+        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
+        if hasattr(self, "phot"):
+            filter_names = np.unique(self.phot["filter"])
+            self.phot.add_index('filter', unique = True)
+
+
+            for filter_name in filter_names:
+                phot_table = self.phot.loc["filter", filter_name]
+                filter_filename = filter_name + filter_file_type
+                phot_table.meta = {"filter_filename": filter_filename}
+
+                if verbose: print(phot_table)
+                indices = phot_table.argsort("MJD")
+                # for column_name in phot_table.colnames:
+                #     phot_table[column_name] = phot_table[column_name][indices]
+                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                filter_key = np.unique(phot_table["filter"])[0]
+
+                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
+                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
+
+                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
+                self.data[filter_name] = sorted_phot_table
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+
+        pass
+
+
+##------------------------------------##
+##  Inheriting Classes                ##
+##------------------------------------##
+
+class PhotometryClass(BaseLightCurveClass):
+    """
+    Inherits from BaseLightCurveClass
+
+    Probably also overkill - but should be easier to store metadata etc. Hopefully
+    flexible enough to just be a wrapper for AP tables of phot.
+
+    Photometry stored in PhotometryClass.data should have a FilterClass method
+    describing the observations stored in PhotometryClass.data_filters.
+
+    ## NOTE should I use properties instead of get/set? http://www.python-course.eu/python3_properties.php
+    looks like only python3?
+    """
+
+    def __init__(self, verbose = False):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
+        self._default_filter_dir_path = _default_filter_dir_path
+        self.data = OrderedDict()
+        self.data_filters = OrderedDict()
+
+        ## Initialise using class methods
+        self.set_data_directory(self._get_data_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+
+    def _get_data_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the data data directory set as environment variable
+        $PYCOCO_DATA_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+                 default datalocation: '../testdata/', with '/lc/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
+
+
     def set_data_directory(self, data_dir_path = '', verbose = False):
         """
         Set a new data directory path.
@@ -734,51 +741,6 @@ class PhotometryClass():
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_data_dir_path?")
             pass
-
-
-    def unpack(self, filter_file_type = '.dat', verbose = False):
-        """
-        If loading from preformatted file, then unpack the table into self.data
-        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "phot"):
-            filter_names = np.unique(self.phot["filter"])
-            self.phot.add_index('filter', unique = True)
-
-
-            for filter_name in filter_names:
-
-                phot_table = self.phot.loc["filter", filter_name]
-                filter_filename = filter_name + filter_file_type
-                phot_table.meta = {"filter_filename": filter_filename}
-
-                if verbose: print(phot_table)
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
-                filter_key = np.unique(phot_table["filter"])[0]
-
-                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
-
-                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
-
-                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-
-                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
-                self.data[filter_name] = sorted_phot_table
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-
-        pass
 
 
     def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
@@ -821,7 +783,7 @@ class PhotometryClass():
         else:
             phot_table = Table.read(path, format = format)
 
-        phot_table.meta = {"filename" : path}
+        phot_table.meta["filename"] = path
 
         phot_table["MJD"].unit = u.day
         phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
@@ -936,36 +898,6 @@ class PhotometryClass():
         else:
             warnings.warn("Provide a SN name")
 
-        pass
-
-
-    def _sort_phot(self):
-        """
-        resorts the photometry according to effective wavelength of the filter.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data") and hasattr(self, "data_filters"):
-            ## This looks fugly.
-            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
-
-            sorted_data = OrderedDict()
-            sorted_data_filters = OrderedDict()
-
-            for newkey in newkeys:
-                sorted_data[newkey] = self.data[newkey]
-                sorted_data_filters[newkey] = self.data_filters[newkey]
-
-            self.data = sorted_data
-            self.data_filters = sorted_data_filters
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
@@ -1175,221 +1107,6 @@ class PhotometryClass():
         pass
 
 
-class FilterClass():
-    """Docstring for FilterClass"""
-
-    def __init__(self, verbose = True):
-        self._wavelength_units = u.Angstrom
-        self._wavelength_units._format['latex'] = r'\rm{\AA}'
-
-        pass
-
-
-    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
-        """
-        Assumes Response function is fractional rather than %.
-        """
-        if check_file_path(os.path.abspath(path), verbose = verbose):
-            self.wavelength, self.throughput = np.loadtxt(path).T
-            self.wavelength_u = self.wavelength * wavelength_units
-            self._filter_file_path = path
-
-            filename = path.split('/')[-1]
-            filename_no_extension = filename.split('.')[0]
-            self.filter_name = filename_no_extension
-
-            self.set_plot_colour(verbose = verbose)
-            # self.
-            self.calculate_effective_wavelength()
-            self.calculate_edges()
-
-        else:
-            warnings.warn("Foo")
-
-
-    def calculate_effective_wavelength(self):
-        """
-        Well, what are you expecting something called `calculate_effective_wavelength`
-         to do?
-        """
-
-        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
-        lambda_eff = spline_rev(0.5)
-
-        self.lambda_effective = lambda_eff * self._wavelength_units
-
-
-    def calculate_edges(self, verbose = False):
-        """
-        calculates the first and last wavelength that has non-zero and steps one
-         away
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## calculates the first and last wavelength that has non-zero
-        # w = np.where(self.throughput > 0)[0]
-        # if verbose: print(w)
-        # self._upper_edge = self.wavelength[w[-1]]
-        # self._lower_edge = self.wavelength[w[0]]
-
-        w = np.where(self.throughput > 0)[0]
-        if verbose: print(w)
-        if w[0] - 1 < 0:
-            w_low = 0
-        else:
-            w_low =  w[0] - 1
-
-        if w[-1] + 1 == len(self.throughput):
-            w_high = w[-1]
-        else:
-            w_high = w[-1] + 1
-
-        self._upper_edge = self.wavelength[w_high]
-        self._lower_edge = self.wavelength[w_low]
-
-
-    def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False,
-             *args, **kwargs):
-        """
-        Plots filter throughput, so you can double check it.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## Check if there is something in the class to plot
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-
-            setup_plot_defaults()
-            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
-
-            plot_label_string = r'$' + self.filter_name + '$'
-
-            yminorLocator = MultipleLocator(yminorticks)
-            xminorLocator = MultipleLocator(xminorticks)
-
-            fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
-
-            ax1 = fig.add_subplot(111)
-
-            if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
-                         lw = 2, label = plot_label_string)
-            else:
-                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
-
-            if show_lims:
-                try:
-                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                except:
-                    print("Failed")
-
-            ax1.set_xlabel(xaxis_label_string)
-            ax1.set_ylabel(yaxis_label_string)
-
-            ax1.yaxis.set_minor_locator(yminorLocator)
-            ax1.xaxis.set_minor_locator(xminorLocator)
-
-            ax1.legend(loc = 0)
-
-            plt.show()
-            pass
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def resample_response(self, new_wavelength):
-        """
-        Bit dodgy - spline has weird results for poorly sampled filters
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-            self._wavelength_orig = self.wavelength
-            self._throughput_orig = self.throughput
-
-            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
-            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
-
-            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
-            self.throughput = interp_func(new_wavelength)
-            self.wavelength = new_wavelength
-
-            self.throughput[np.where(self.throughput < 0.0)] = 0.0
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, 'lambda_effective'):
-
-            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
-            relative_lambda = relative_lambda / _colour_lower_lambda_limit
-
-            if verbose: print("relative_lambda = ", relative_lambda)
-
-            self._plot_colour = colourmap(relative_lambda)
-
-        else:
-            warnings.warn("No self.lambda_effective set.")
-
-
-    def set_plot_colour(self, colour = False, verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if colour:
-            self._plot_colour = colour
-
-        else:
-            if verbose: print(hex[self.filter_name])
-            try:
-                self._plot_colour = hex[self.filter_name]
-            except:
-                if verbose: print("Nope")
-                self.calculate_plot_colour(verbose = verbose)
-
-        pass
-
-
 class SpectrumClass(BaseSpectrumClass):
     """
     Class for handling Spectra.
@@ -1456,6 +1173,344 @@ class SpectrumClass(BaseSpectrumClass):
             pass
 
 
+class LCfitClass(BaseLightCurveClass):
+    """
+    Small class to hold the output from CoCo LCfit.
+    Inherits from BaseLightCurveClass
+    """
+
+    def __init__(self):
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
+        self._default_filter_dir_path = _default_filter_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+        self.set_filter_directory(self._get_filter_directory())
+
+        ## Initialise some other stuff
+        self.data = OrderedDict()
+        self.data_filters = OrderedDict()
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the data directory.
+
+        Looks for the CoCo home directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new recon directory path.
+
+        Enables the recon directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default recon directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default recon directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
+
+    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                  format = 'ascii', verbose = True):
+        """
+
+        """
+        StringWarning(path)
+
+        try:
+            phot_table = load_formatted_phot(path, format = format, names = names,
+                                             verbose = verbose)
+            self.phot = phot_table
+
+            self.phot['flux_upper'] = phot_table['flux'] + phot_table['flux_err']
+            self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
+
+        except:
+            raise StandardError
+
+        pass
+
+
+    def plot(self, legend = True, xminorticks = 5,
+             verbose = False, *args, **kwargs):
+        """
+        Plots phot.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            for i, filter_key in enumerate(self.data_filters):
+                if verbose: print(i, self.data[filter_key].__dict__)
+                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+
+                # ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #              yerr = self.data[filter_key]['flux_err'],
+                #              capsize = 0, fmt = 'o',
+                #              label = plot_label_string,
+                #              *args, **kwargs)
+
+                # ## Best Fit
+                # ax1.plot(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
+                #          lw = 2, label = plot_label_string,
+                #           *args, **kwargs)
+
+                ## With error
+                ax1.fill_between(self.data[filter_key]['MJD'], self.data[filter_key]['flux_upper'], self.data[filter_key]['flux_lower'],
+                                 label = plot_label_string, color = self.data_filters[filter_key]._plot_colour,
+                                 alpha = 0.8,
+                                 *args, **kwargs)
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ## Use ap table groups instead? - can't; no support for mixin columns.
+            ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+
+    def get_fit_splines(self):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        if hasattr(self, "data"):
+            self.spline = OrderedDict()
+
+            for i, filter_key in enumerate(self.data):
+                try:
+                    print(filter_key)
+                    self.spline[filter_key] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux"])
+                    self.spline[filter_key+"_err"] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux_err"])
+                except:
+                    print("NOPE")
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def colour_from_model(self, filter_key1, filter_key2):
+
+        return phot_1 - phot_2
+
+
+class specfitClass(BaseSpectrumClass):
+    """
+    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    """
+
+    def __init__(self):
+        """
+
+        """
+
+        ## Initialise the class variables
+        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        # self._default_list_dir_path = self._default_data_dir_path
+
+        ## Initialise using class methods
+        self.set_recon_directory(self._get_recon_directory())
+
+        pass
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the recon directory.
+
+        Looks for the CoCo directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default data directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
+
+
+    def set_orig_specpath(self, orig_specpath = False, verbose = False):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if not orig_specpath:
+            self.orig_specpath = self.data.meta["comments"][0].split("/")[-1]
+
+        else:
+            self.orig_specpath = orig_specpath
+
+        pass
+
+
+    def plot_comparision(self, SpectrumClassInstance,
+                         xminorticks = 250, legend = True,
+                         verbose = True,
+                         *args, **kwargs):
+        """
+        Plots spec.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+
+            if verbose: print(self.data.__dict__)
+            plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
+            plot_label_string_compare = r'$\rm{' + SpectrumClassInstance.data.meta["filename"].replace('_', '\_') + '}$'
+
+
+            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+                         label = plot_label_string, color = 'Red',
+                         *args, **kwargs)
+
+            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
+
+            maxplotydata = np.nanmax(np.append(self.flux, SpectrumClassInstance.data['flux']))
+            minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
+
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
+
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+##------------------------------------##
+## Standalone Classes                 ##
+##------------------------------------##
+
 class SNClass():
     """docstring for SNClass."""
 
@@ -1473,6 +1528,7 @@ class SNClass():
         self.phot = PhotometryClass()
 
         self.coco_directory = self._get_coco_directory()
+        self.recon_directory = self._get_recon_directory()
 
         self.name = snname
         pass
@@ -1490,6 +1546,52 @@ class SNClass():
         """
 
         return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
+
+
+    def _get_recon_directory(self):
+        """
+        Get the default path to the recon directory.
+
+        Looks for the CoCo directory set as environment variable
+        $COCO_ROOT_DIR. if not found, returns default.
+
+        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
+                 default datalocation: '../testdata/', with '/spec/' appended.
+        """
+
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(_default_recon_dir_path, os.pardir))), "recon/")
+
+
+    def set_recon_directory(self, recon_dir_path = '', verbose = False):
+        """
+        Set a new data directory path.
+
+        Enables the data directory to be changed by the user.
+
+        """
+        try:
+            if verbose: print(recon_dir_path, self._default_recon_dir_path)
+            if os.path.isdir(os.path.abspath(recon_dir_path)):
+                self.recon_directory = os.path.abspath(recon_dir_path)
+                pass
+            else:
+                warnings.warn(os.path.abspath(recon_dir_path) +
+                " is not a valid directory. Restoring default path: " +
+                self._default_recon_dir_path, UserWarning)
+                self.recon_directory = self._default_recon_dir_path
+
+                if not os.path.isdir(self.recon_directory):
+                    if verbose: print(os.path.isdir(self.recon_directory))
+                    raise PathError("The default data directory '" + self.recon_directory
+                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
+                else:
+                    pass
+        except:
+            if verbose: print("foo")
+            raise PathError("The default data directory '" + self._default_recon_dir_path
+             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
+             + " you messed with _default_recon_dir_path?")
+            pass
 
 
     def load_phot(self, snname = False, path = False, file_type = '.dat',
@@ -1888,7 +1990,7 @@ class SNClass():
         pass
 
 
-    def get_specfit(self):
+    def get_specfit(self, verbose = False):
         """
         Parameters
         ----------
@@ -1899,188 +2001,92 @@ class SNClass():
 
         self.specfit = OrderedDict()
 
-        pass
+        if hasattr(self, "name"):
+            specfit_list = find_recon_spec(self.recon_directory, self.name, verbose = verbose)
+            # if verbose: print(specfit_list)
 
+            for i, specfit_file in enumerate(specfit_list):
+                if verbose: print(i, specfit_file)
+                self.specfit[specfit_file] = specfitClass()
+                self.specfit[specfit_file].load(filename = specfit_file,
+                            directory = self.recon_directory, verbose = verbose)
+                self.specfit[specfit_file].set_orig_specpath()
 
-class LCfitClass():
-    """
-    Small class to hold the output from CoCo LCfit
-    """
-
-    def __init__(self):
-
-        ## Initialise the class variables
-        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
-        self._default_filter_dir_path = _default_filter_dir_path
-
-        ## Initialise using class methods
-        self.set_recon_directory(self._get_recon_directory())
-        self.set_filter_directory(self._get_filter_directory())
-
-        ## Initialise some other stuff
-        self.data = OrderedDict()
-        self.data_filters = OrderedDict()
-
-        pass
-
-
-    def _get_recon_directory(self):
-        """
-        Get the default path to the data directory.
-
-        Looks for the CoCo home directory set as environment variable
-        $COCO_ROOT_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
-                 default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
-        """
-
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
-
-
-    def set_recon_directory(self, recon_dir_path = '', verbose = False):
-        """
-        Set a new recon directory path.
-
-        Enables the recon directory to be changed by the user.
-
-        """
-        try:
-            if verbose: print(recon_dir_path, self._default_recon_dir_path)
-            if os.path.isdir(os.path.abspath(recon_dir_path)):
-                self.recon_directory = os.path.abspath(recon_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(recon_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_recon_dir_path, UserWarning)
-                self.recon_directory = self._default_recon_dir_path
-
-                if not os.path.isdir(self.recon_directory):
-                    if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default recon directory '" + self.recon_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default recon directory '" + self._default_recon_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_recon_dir_path?")
-            pass
-
-
-    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii', verbose = True):
-        """
-
-        """
-        StringWarning(path)
-
-        try:
-            phot_table = load_formatted_phot(path, format = format, names = names,
-                                             verbose = verbose)
-            self.phot = phot_table
-
-            self.phot['flux_upper'] = phot_table['flux'] + phot_table['flux_err']
-            self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
-
-        except:
-            raise StandardError
-
-        pass
-
-
-    def unpack(self, filter_file_type = '.dat', verbose = False):
-        """
-        If loading from preformatted file, then unpack the table into self.data
-        OrderedDict and load FilterClass objects into self.data_filters OrderedDict
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-
-        if hasattr(self, "phot"):
-            filter_names = np.unique(self.phot["filter"])
-            self.phot.add_index('filter', unique = True)
-
-
-            for filter_name in filter_names:
-                phot_table = self.phot.loc["filter", filter_name]
-                filter_filename = filter_name + filter_file_type
-                phot_table.meta = {"filter_filename": filter_filename}
-
-                if verbose: print(phot_table)
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
-                filter_key = np.unique(phot_table["filter"])[0]
-
-                if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
-                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
-                path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-
-                self.data_filters[filter_key] = load_filter(path_to_filter)
-                self.data[filter_name] = sorted_phot_table
         else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+            warnings.warn("This SNClass object has no name")
+            if verbose: print("This SNClass object has no name")
 
         pass
 
 
-    def _get_filter_directory(self):
+class FilterClass():
+    """Docstring for FilterClass"""
+
+    def __init__(self, verbose = True):
+        self._wavelength_units = u.Angstrom
+        self._wavelength_units._format['latex'] = r'\rm{\AA}'
+        self._frequency_units = u.Hertz
+        pass
+
+
+    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
         """
-        Get the default path to the filter directory.
-
-        Looks for the filter data directory set as environment variable
-        $PYCOCO_FILTER_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+        Assumes Response function is fractional rather than %.
         """
-        return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
+        if check_file_path(os.path.abspath(path), verbose = verbose):
+            self.wavelength, self.throughput = np.loadtxt(path).T
+            self.wavelength_u = self.wavelength * wavelength_units
+            self._filter_file_path = path
+
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+            self.filter_name = filename_no_extension
+
+            self.set_plot_colour(verbose = verbose)
+            # self.
+            self.calculate_effective_wavelength()
+            self.calculate_edges()
+
+        else:
+            warnings.warn("Foo")
 
 
-    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+    def calculate_effective_wavelength(self):
         """
-        Set a new filter directory path.
+        Well, what are you expecting something called `calculate_effective_wavelength`
+         to do?
+        """
 
-        Enables the data directory to be changed by the user.
+        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
+        lambda_eff = spline_rev(0.5)
+
+        self.lambda_effective = lambda_eff * self._wavelength_units
+        pass
+
+
+    def calculate_frequency(self):
+        nu = c/self.wavelength_u
+        self.frequency_u = nu.to(self._frequency_units)
+        self.frequency = self.frequency_u.value
+
+
+    def calculate_effective_frequency(self):
+        """
 
         """
-        try:
-            if os.path.isdir(os.path.abspath(filter_dir_path)):
-                self.filter_directory = os.path.abspath(filter_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(filter_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_filter_dir_path, UserWarning)
-                self.data_directory = self._default_data_dir_path
 
-                if not os.path.isdir(self.filter_directory):
-                    if verbose: print(os.path.isdir(self.filter_directory))
-                    raise PathError("The default data directory '" + self.filter_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default filter directory '" + self._default_filter_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_filter_dir_path?")
-            pass
+        if hasattr(self, "wavelength"):
+            spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
+            nu_eff = spline_rev(0.5)
+
+            self.nu_effective = nu_eff * self._frequency_units
+        pass
 
 
-    def plot(self, legend = True, xminorticks = 5,
-             verbose = False, *args, **kwargs):
+    def calculate_edges(self, verbose = False):
         """
-        Plots phot.
+        calculates the first and last wavelength that has non-zero and steps one
+         away
 
         Parameters
         ----------
@@ -2089,193 +2095,172 @@ class LCfitClass():
         -------
         """
 
-        if hasattr(self, "data"):
+        ## calculates the first and last wavelength that has non-zero
+        # w = np.where(self.throughput > 0)[0]
+        # if verbose: print(w)
+        # self._upper_edge = self.wavelength[w[-1]]
+        # self._lower_edge = self.wavelength[w[0]]
+
+        w = np.where(self.throughput > 0)[0]
+        if verbose: print(w)
+        if w[0] - 1 < 0:
+            w_low = 0
+        else:
+            w_low =  w[0] - 1
+
+        if w[-1] + 1 == len(self.throughput):
+            w_high = w[-1]
+        else:
+            w_high = w[-1] + 1
+
+        self._upper_edge = self.wavelength[w_high]
+        self._lower_edge = self.wavelength[w_low]
+
+
+    def plot(self, xminorticks = 250, yminorticks = 0.1,
+             show_lims = False, small = False,
+             *args, **kwargs):
+        """
+        Plots filter throughput, so you can double check it.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        ## Check if there is something in the class to plot
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
             setup_plot_defaults()
+            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            fig = plt.figure(figsize=[8, 4])
+            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
+
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
+
+            if not small:
+                fig = plt.figure(figsize=[8, 4])
+            else:
+                fig = plt.figure(figsize=[4, 2])
+                plt.rcParams['font.size'] = 10
+
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
                                 right = 0.99, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
 
-            for i, filter_key in enumerate(self.data_filters):
-                if verbose: print(i, self.data[filter_key].__dict__)
-                plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+            if hasattr(self, "_plot_colour"):
+                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                         lw = 2, label = plot_label_string)
+            else:
+                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
 
-                # ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
-                #              yerr = self.data[filter_key]['flux_err'],
-                #              capsize = 0, fmt = 'o',
-                #              label = plot_label_string,
-                #              *args, **kwargs)
-
-                # ## Best Fit
-                # ax1.plot(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
-                #          lw = 2, label = plot_label_string,
-                #           *args, **kwargs)
-
-                ## With error
-                ax1.fill_between(self.data[filter_key]['MJD'], self.data[filter_key]['flux_upper'], self.data[filter_key]['flux_lower'],
-                                 label = plot_label_string, color = self.data_filters[filter_key]._plot_colour,
-                                 alpha = 0.8,
-                                 *args, **kwargs)
-            if legend:
-
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
-
-            ## Use ap table groups instead? - can't; no support for mixin columns.
-            ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
-
-            ## Label the axes
-            xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+            if show_lims:
+                try:
+                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                except:
+                    print("Failed")
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
 
-            xminorLocator = MultipleLocator(xminorticks)
+            ax1.yaxis.set_minor_locator(yminorLocator)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
+            ax1.legend(loc = 0)
+
             plt.show()
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-    def _sort_phot(self):
-        """
-        resorts the photometry according to effective wavelength of the filter.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data") and hasattr(self, "data_filters"):
-            ## This looks fugly.
-            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
-
-            sorted_data = OrderedDict()
-            sorted_data_filters = OrderedDict()
-
-            for newkey in newkeys:
-                sorted_data[newkey] = self.data[newkey]
-                sorted_data_filters[newkey] = self.data_filters[newkey]
-
-            self.data = sorted_data
-            self.data_filters = sorted_data_filters
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-
-    def get_fit_splines(self):
-        """
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        if hasattr(self, "data"):
-            for i, filter_key in enumerate(self.data):
-                print(filter_key)
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-    def colour_from_model(self, filter_key1, filter_key2):
-
-        return phot_1 - phot_2
-
-
-class specfitClass(BaseSpectrumClass):
-    """
-    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
-    """
-
-    def __init__(self):
-        """
-
-        """
-
-        ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
-        # self._default_list_dir_path = self._default_data_dir_path
-
-        ## Initialise using class methods
-        self.set_recon_directory(self._get_recon_directory())
-
-        pass
-
-
-    def _get_recon_directory(self):
-        """
-        Get the default path to the recon directory.
-
-        Looks for the CoCo directory set as environment variable
-        $COCO_ROOT_DIR. if not found, returns default.
-
-        returns: Absolute path in environment variable $COCO_ROOT_DIR, or
-                 default datalocation: '../testdata/', with '/spec/' appended.
-        """
-
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
-
-
-    def set_recon_directory(self, recon_dir_path = '', verbose = False):
-        """
-        Set a new data directory path.
-
-        Enables the data directory to be changed by the user.
-
-        """
-        try:
-            if verbose: print(recon_dir_path, self._default_recon_dir_path)
-            if os.path.isdir(os.path.abspath(recon_dir_path)):
-                self.recon_directory = os.path.abspath(recon_dir_path)
-                pass
-            else:
-                warnings.warn(os.path.abspath(recon_dir_path) +
-                " is not a valid directory. Restoring default path: " +
-                self._default_recon_dir_path, UserWarning)
-                self.recon_directory = self._default_recon_dir_path
-
-                if not os.path.isdir(self.recon_directory):
-                    if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default data directory '" + self.recon_directory
-                     + "' doesn't exist. Or isn't a directory. Or can't be located.")
-                else:
-                    pass
-        except:
-            if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_recon_dir_path
-             + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
-             + " you messed with _default_recon_dir_path?")
             pass
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def set_orig_specpath(self, orig_specpath, verbose = False):
+    def resample_response(self, new_wavelength):
         """
+        Bit dodgy - spline has weird results for poorly sampled filters
+
         Parameters
         ----------
+
         Returns
         -------
         """
 
-        self.orig_specpath = orig_specpath
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+            self._wavelength_orig = self.wavelength
+            self._throughput_orig = self.throughput
+
+            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
+            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
+
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
+            self.throughput = interp_func(new_wavelength)
+            self.wavelength = new_wavelength
+
+            self.throughput[np.where(self.throughput < 0.0)] = 0.0
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def calculate_plot_colour(self, colourmap = colourmap, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, 'lambda_effective'):
+
+            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
+            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+
+            if verbose: print("relative_lambda = ", relative_lambda)
+
+            self._plot_colour = colourmap(relative_lambda)
+
+        else:
+            warnings.warn("No self.lambda_effective set.")
+
+
+    def set_plot_colour(self, colour = False, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if colour:
+            self._plot_colour = colour
+
+        else:
+            if verbose: print(hex[self.filter_name])
+            try:
+                self._plot_colour = hex[self.filter_name]
+            except:
+                if verbose: print("Nope")
+                self.calculate_plot_colour(verbose = verbose)
 
         pass
+
 
 ##------------------------------------##
-##                                    ##
+##  Functions                         ##
 ##------------------------------------##
 
 def load_filter(path, cmap = False, verbose = False):
@@ -2519,6 +2504,46 @@ def find_phot(path = _default_data_dir_path, snname = False,
     return phot_list
 
 
+def find_recon_spec(dir_path, snname, verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    file_type = ".spec"
+    StringWarning(dir_path)
+    if not check_dir_path(dir_path):
+        return False
+
+    try:
+        ls = np.array(os.listdir(dir_path))
+
+        wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+        spec_list = ls[wspec]
+
+        ## The last 18 chars are for the MJD and file_type
+        wsn = np.where([i[:-18] == snname for i in spec_list])
+        snmatch_list = spec_list[wsn]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False
+
+
 def check_url_status(url):
     """
     Snippet from http://stackoverflow.com/questions/6471275 .
@@ -2748,7 +2773,7 @@ def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/Besse
 
 
 ##------------------------------------##
-## CoCo                               ##
+## CoCo Functions                     ##
 ##------------------------------------##
 
 
