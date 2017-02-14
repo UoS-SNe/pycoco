@@ -8,6 +8,11 @@ Cohen et al. (2003).
 
 from __future__ import print_function
 
+from numpy import log10
+from scipy.integrate import simps
+
+import pycoco
+
 __all__ = ['offset', 'convert_AB_to_Vega', 'convert_Vega_to_AB']
 
 ## offset is calculated as m_AB - m_vega
@@ -52,3 +57,52 @@ def convert_AB_to_Vega():
     """
 
     return phot_table
+
+
+def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr/data/alpha_lyr_stis_002.dat"):
+    vega = pycoco.SpectrumClass()
+    vega.load(path)
+
+    return vega
+
+
+def load_AB(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr/data/AB_pseudospectrum.dat"):
+    vega = pycoco.SpectrumClass()
+    vega.load(path)
+
+    return vega
+
+
+def calc_AB_flux(filter_name):
+
+    AB = load_AB()
+
+    filter_object = pycoco.load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object.resample_response(new_wavelength = AB.wavelength)
+
+    transmitted_spec = filter_object.throughput * AB.flux
+
+    integrated_flux = simps(transmitted_spec, AB.wavelength)
+
+    return integrated_flux
+
+
+def calc_vega_flux(filter_name):
+
+    vega = load_vega()
+
+    filter_object = pycoco.load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object.resample_response(new_wavelength = vega.wavelength)
+
+    transmitted_spec = filter_object.throughput * vega.flux
+
+    integrated_flux = simps(transmitted_spec, vega.wavelength)
+
+    return integrated_flux
+
+
+def calc_vega_zp(filter_name):
+
+    integrated_flux = calc_vega_flux(filter_name)
+
+    return -2.5 * log10(integrated_flux)

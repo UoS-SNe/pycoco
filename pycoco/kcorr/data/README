@@ -4,3 +4,6 @@ but not always.
 
 alpha_lyr_stis_002.fits is the STIS spectrum
  from Bohlin & Gilliland, 2004, AJ, 127, 3508
+
+AB_pseudospectrum.dat is f_nu = 3.63078e-20 erg s^-1 cm^-2 Hz^-1 converted to
+f_lambda units erg s^-1 cm^-2 AA^-1
