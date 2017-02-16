@@ -12,7 +12,7 @@ from __future__ import print_function ## Force python3-like printing
 if __name__ is not '__main__':
 
     __name__ = 'pycoco'
-    __version__ = 0.5.1
+    __version__ = "0.5.1"
 
 try:
     __file__
