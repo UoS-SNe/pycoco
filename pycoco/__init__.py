@@ -24,7 +24,7 @@ except NameError:
 import os
 import warnings
 import unittest
-import httplib
+# import httplib ## use http.client on python3 - not using at the mo
 import re
 from urlparse import urlparse
 from collections import OrderedDict
@@ -63,7 +63,7 @@ class CustomValueError(ValueError):
 
 
     def __init__(self, *args, **kwargs):
-    ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args, **kwargs)
 
 
 class DummyClass():
@@ -165,7 +165,7 @@ class CustomValueError(ValueError):
     Raise when....
     """
     def __init__(self, *args, **kwargs):
-    ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args, **kwargs)
 
 
 class PathError(StandardError):
@@ -173,7 +173,7 @@ class PathError(StandardError):
     Raise when a path is found to be invalid
     """
     def __init__(self, *args, **kwargs):
-    StandardError.__init__(self, *args, **kwargs)
+        StandardError.__init__(self, *args, **kwargs)
 
 
 class FilterMismatchError(ValueError):
@@ -181,7 +181,7 @@ class FilterMismatchError(ValueError):
     Raise when a Filter from filename doesn't match the one in the photfile
     """
     def __init__(self, *args, **kwargs):
-    ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args, **kwargs)
 
 
 class TableReadError(ValueError):
@@ -189,7 +189,7 @@ class TableReadError(ValueError):
     Raise when something goes wrong with the table I/O
     """
     def __init__(self, *args, **kwargs):
-    ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args, **kwargs)
 
 
 def StringWarning(path):
@@ -2547,27 +2547,27 @@ def find_recon_spec(dir_path, snname, verbose = False):
         return False
 
 
-def check_url_status(url):
-    """
-    Snippet from http://stackoverflow.com/questions/6471275 .
-
-    Checks the status of a website - a status flag of < 400 means the site
-    is up.
-
-    """
-    p = urlparse(url)
-    conn = httplib.HTTPConnection(p.netloc)
-    conn.request('HEAD', p.path)
-    resp = conn.getresponse()
-
-    return resp.status
-
-
-def check_url(url):
-    """
-    Wrapper for check_url_status - considers the status, True if < 400.
-    """
-    return check_url_status(url) < 400
+# def check_url_status(url):
+#     """
+#     Snippet from http://stackoverflow.com/questions/6471275 .
+#
+#     Checks the status of a website - a status flag of < 400 means the site
+#     is up.
+#
+#     """
+#     p = urlparse(url)
+#     conn = httplib.HTTPConnection(p.netloc)
+#     conn.request('HEAD', p.path)
+#     resp = conn.getresponse()
+#
+#     return resp.status
+#
+#
+# def check_url(url):
+#     """
+#     Wrapper for check_url_status - considers the status, True if < 400.
+#     """
+#     return check_url_status(url) < 400
 
 
 def setup_plot_defaults():
