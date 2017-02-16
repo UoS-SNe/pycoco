@@ -57,13 +57,13 @@ warnings.resetwarnings()
 ##------------------------------------##
 
 class CustomValueError(ValueError):
-	"""
-	Raise when....
-	"""
+    """
+    Raise when....
+    """
 
 
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+    ValueError.__init__(self, *args, **kwargs)
 
 
 class DummyClass():
@@ -161,27 +161,27 @@ _colour_lower_lambda_limit = 3500 * u.angstrom
 
 
 class CustomValueError(ValueError):
-	"""
-	Raise when....
-	"""
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    """
+    Raise when....
+    """
+    def __init__(self, *args, **kwargs):
+    ValueError.__init__(self, *args, **kwargs)
 
 
 class PathError(StandardError):
-	"""
-	Raise when a path is found to be invalid
-	"""
-	def __init__(self, *args, **kwargs):
-		StandardError.__init__(self, *args, **kwargs)
+    """
+    Raise when a path is found to be invalid
+    """
+    def __init__(self, *args, **kwargs):
+    StandardError.__init__(self, *args, **kwargs)
 
 
 class FilterMismatchError(ValueError):
-	"""
-	Raise when a Filter from filename doesn't match the one in the photfile
-	"""
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    """
+    Raise when a Filter from filename doesn't match the one in the photfile
+    """
+    def __init__(self, *args, **kwargs):
+    ValueError.__init__(self, *args, **kwargs)
 
 
 class TableReadError(ValueError):
@@ -189,7 +189,7 @@ class TableReadError(ValueError):
     Raise when something goes wrong with the table I/O
     """
     def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    ValueError.__init__(self, *args, **kwargs)
 
 
 def StringWarning(path):
