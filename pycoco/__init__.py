@@ -25,8 +25,8 @@ import os
 import warnings
 import unittest
 # import httplib ## use http.client on python3 - not using at the mo
+# from urlparse import urlparse
 import re
-from urlparse import urlparse
 from collections import OrderedDict
 
 import astropy as ap
@@ -168,12 +168,12 @@ class CustomValueError(ValueError):
         ValueError.__init__(self, *args, **kwargs)
 
 
-class PathError(StandardError):
+class PathError(Exception):
     """
     Raise when a path is found to be invalid
     """
     def __init__(self, *args, **kwargs):
-        StandardError.__init__(self, *args, **kwargs)
+        Exception.__init__(self, *args, **kwargs)
 
 
 class FilterMismatchError(ValueError):
@@ -196,7 +196,7 @@ def StringWarning(path):
     """
 
     """
-    if type(path) is not str and type(path) is not unicode and type(path) is not np.string_:
+    if type(path) is not str and type(path) is not np.string_:
         warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
                       stacklevel = 2)
 

@@ -7,6 +7,14 @@ import unittest
 
 # from pycoco import *
 import pycoco as pcc
+try:
+    reload  # Python 2.7
+except NameError:
+    try:
+        from importlib import reload  # Python 3.4+
+    except ImportError:
+        from imp import reload  # Python 3.0 - 3.3
+
 reload(pcc)
 ##------------------------------------##
 ##  TESTING                           ##
@@ -28,7 +36,7 @@ class TestClass(unittest.TestCase):
         directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
         phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
         phot_filename = phot_path.split('/')[-1]
-        self.assertEqual(phot_filename, u'SN2005bf_B.dat')
+        self.assertEqual(phot_filename, 'SN2005bf_B.dat')
 
     def test_find_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
