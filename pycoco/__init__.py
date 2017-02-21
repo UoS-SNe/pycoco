@@ -2040,6 +2040,10 @@ class SNClass():
 
             try:
                 self.simplespecphot = LCfitClass()
+                self.phot = 
+                for i, spectrum in enumerate(self.spec):
+                    print(i, self.spec[spectrum].mjd_obs)
+
 
 
             except:
