@@ -1799,11 +1799,6 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-
-
-
-
-
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -2058,6 +2053,21 @@ class SNClass():
 
         pass
 
+
+    def check_overlaps(self, verbose = True):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self.phot, "data") and hasattr(self, 'spec'):
+            for i, spectrum in enumerate(self.spec):
+
+        else:
+            warnings.warn("SNClass.check_overlaps - something went wrong... no data?)
+        pass
 
 class FilterClass():
     """Docstring for FilterClass"""
