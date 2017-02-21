@@ -1330,7 +1330,6 @@ class LCfitClass(BaseLightCurveClass):
         pass
 
 
-
     def get_fit_splines(self):
         """
 
@@ -1996,6 +1995,7 @@ class SNClass():
         self.lcfit.load_formatted_phot(path)
         self.lcfit.unpack()
         self.lcfit._sort_phot()
+        self.lcfit.get_fit_splines()
         pass
 
 
@@ -2024,6 +2024,37 @@ class SNClass():
         else:
             warnings.warn("This SNClass object has no name")
             if verbose: print("This SNClass object has no name")
+
+        pass
+
+
+    def get_simplespecphot(self, verbose = True):
+        """
+        When the SNClass has both lcfits and spec, sample the lcfits at the
+        obsdate of the relevant (i.e. overlapping) spectra. Initially to
+        recreate Fig 2 of Paper.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, 'lcfit') and hasattr(self, 'spec'):
+            if verbose: print("Foo")
+
+            try:
+                self.simplespecphot = LCfitClass()
+                self.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'))
+
+                for i, spectrum in enumerate(self.spec):
+                    print(i, self.spec[spectrum].mjd_obs)
+
+
+
+            except:
+                warnings.warn("simplespecphot failed")
 
         pass
 
