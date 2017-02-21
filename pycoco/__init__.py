@@ -1110,6 +1110,7 @@ class PhotometryClass(BaseLightCurveClass):
 class SpectrumClass(BaseSpectrumClass):
     """
     Class for handling Spectra.
+    Inherits from BaseSpectrumClass.
     """
 
     def __init__(self):
@@ -1362,7 +1363,9 @@ class LCfitClass(BaseLightCurveClass):
 
 class specfitClass(BaseSpectrumClass):
     """
-    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    Small class to hold the output from CoCo spec.
+    Inherits from BaseSpectrumClass.
+
     """
 
     def __init__(self):
