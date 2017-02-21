@@ -2121,7 +2121,7 @@ class FilterClass():
         pass
 
 
-    def calculate_edges(self, verbose = False):
+    def calculate_edges_zero(self, verbose = False):
         """
         calculates the first and last wavelength that has non-zero and steps one
          away
@@ -2155,8 +2155,28 @@ class FilterClass():
         self._lower_edge = self.wavelength[w_low]
 
 
+    def calculate_edges(self, pc = 3., verbose = True):
+        """
+        calculates edges by defining the region that contains (100 - pc)% of the
+        flux.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self._cumulative_throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+        self._cumulative_throughput_spline = interp1d(self._cumulative_throughput, self.wavelength)
+
+        self._upper_edge = self._cumulative_throughput_spline(1.0 - 0.5*(0.01*pc))
+        self._lower_edge = self._cumulative_throughput_spline(0.0 + 0.5*(0.01*pc))
+
+        pass
+
+
     def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False,
+             show_lims = False, small = False, cumulative = False,
              *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
@@ -2173,9 +2193,8 @@ class FilterClass():
 
             setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
+            plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
 
             yminorLocator = MultipleLocator(yminorticks)
             xminorLocator = MultipleLocator(xminorticks)
@@ -2191,11 +2210,20 @@ class FilterClass():
 
             ax1 = fig.add_subplot(111)
 
+            if cumulative:
+                throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+                yaxis_label_string = r'$\textnormal{Cumulative Throughput}$'
+
+            else:
+                throughput = self.throughput
+                yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
+
             if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                ax1.plot(self.wavelength, throughput, color = self._plot_colour,
                          lw = 2, label = plot_label_string)
             else:
-                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
+                ax1.plot(self.wavelength, throughput, lw = 2, label = plot_label_string)
 
             if show_lims:
                 try:
