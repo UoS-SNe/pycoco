@@ -12,7 +12,7 @@ from __future__ import print_function ## Force python3-like printing
 if __name__ is not '__main__':
 
     __name__ = 'pycoco'
-    __version__ = 0.2
+    __version__ = "0.5.1"
 
 try:
     __file__
@@ -24,9 +24,9 @@ except NameError:
 import os
 import warnings
 import unittest
-import httplib
+# import httplib ## use http.client on python3 - not using at the mo
+# from urlparse import urlparse
 import re
-from urlparse import urlparse
 from collections import OrderedDict
 
 import astropy as ap
@@ -57,13 +57,13 @@ warnings.resetwarnings()
 ##------------------------------------##
 
 class CustomValueError(ValueError):
-	"""
-	Raise when....
-	"""
+    """
+    Raise when....
+    """
 
 
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
 
 
 class DummyClass():
@@ -161,27 +161,27 @@ _colour_lower_lambda_limit = 3500 * u.angstrom
 
 
 class CustomValueError(ValueError):
-	"""
-	Raise when....
-	"""
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    """
+    Raise when....
+    """
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
 
 
-class PathError(StandardError):
-	"""
-	Raise when a path is found to be invalid
-	"""
-	def __init__(self, *args, **kwargs):
-		StandardError.__init__(self, *args, **kwargs)
+class PathError(Exception):
+    """
+    Raise when a path is found to be invalid
+    """
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
 
 
 class FilterMismatchError(ValueError):
-	"""
-	Raise when a Filter from filename doesn't match the one in the photfile
-	"""
-	def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+    """
+    Raise when a Filter from filename doesn't match the one in the photfile
+    """
+    def __init__(self, *args, **kwargs):
+        ValueError.__init__(self, *args, **kwargs)
 
 
 class TableReadError(ValueError):
@@ -189,14 +189,14 @@ class TableReadError(ValueError):
     Raise when something goes wrong with the table I/O
     """
     def __init__(self, *args, **kwargs):
-		ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args, **kwargs)
 
 
 def StringWarning(path):
     """
 
     """
-    if type(path) is not str and type(path) is not unicode and type(path) is not np.string_:
+    if type(path) is not str and type(path) is not np.string_:
         warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
                       stacklevel = 2)
 
@@ -1110,6 +1110,7 @@ class PhotometryClass(BaseLightCurveClass):
 class SpectrumClass(BaseSpectrumClass):
     """
     Class for handling Spectra.
+    Inherits from BaseSpectrumClass.
     """
 
     def __init__(self):
@@ -1362,7 +1363,9 @@ class LCfitClass(BaseLightCurveClass):
 
 class specfitClass(BaseSpectrumClass):
     """
-    Small class to hold the output from CoCo spec. Inherits from SpectrumClass.
+    Small class to hold the output from CoCo spec.
+    Inherits from BaseSpectrumClass.
+
     """
 
     def __init__(self):
@@ -2089,7 +2092,7 @@ class FilterClass():
         pass
 
 
-    def calculate_edges(self, verbose = False):
+    def calculate_edges_zero(self, verbose = False):
         """
         calculates the first and last wavelength that has non-zero and steps one
          away
@@ -2123,8 +2126,28 @@ class FilterClass():
         self._lower_edge = self.wavelength[w_low]
 
 
+    def calculate_edges(self, pc = 3., verbose = True):
+        """
+        calculates edges by defining the region that contains (100 - pc)% of the
+        flux.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self._cumulative_throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+        self._cumulative_throughput_spline = interp1d(self._cumulative_throughput, self.wavelength)
+
+        self._upper_edge = self._cumulative_throughput_spline(1.0 - 0.5*(0.01*pc))
+        self._lower_edge = self._cumulative_throughput_spline(0.0 + 0.5*(0.01*pc))
+
+        pass
+
+
     def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False,
+             show_lims = False, small = False, cumulative = False,
              *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
@@ -2141,9 +2164,8 @@ class FilterClass():
 
             setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
+            plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
 
             yminorLocator = MultipleLocator(yminorticks)
             xminorLocator = MultipleLocator(xminorticks)
@@ -2159,11 +2181,20 @@ class FilterClass():
 
             ax1 = fig.add_subplot(111)
 
+            if cumulative:
+                throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+                yaxis_label_string = r'$\textnormal{Cumulative Throughput}$'
+
+            else:
+                throughput = self.throughput
+                yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
+
             if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                ax1.plot(self.wavelength, throughput, color = self._plot_colour,
                          lw = 2, label = plot_label_string)
             else:
-                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
+                ax1.plot(self.wavelength, throughput, lw = 2, label = plot_label_string)
 
             if show_lims:
                 try:
@@ -2190,9 +2221,11 @@ class FilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def resample_response(self, new_wavelength):
+    def resample_response(self, new_wavelength = False, k = 1,
+                          *args, **kwargs):
         """
-        Bit dodgy - spline has weird results for poorly sampled filters
+        Bit dodgy - spline has weird results for poorly sampled filters.
+        Now the order is by default 1, seems to be less likely to introduce artifacts
 
         Parameters
         ----------
@@ -2208,7 +2241,8 @@ class FilterClass():
             self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
             self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
 
-            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput)
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput, k = k,
+                                                       *args, **kwargs)
             self.throughput = interp_func(new_wavelength)
             self.wavelength = new_wavelength
 
@@ -2550,27 +2584,27 @@ def find_recon_spec(dir_path, snname, verbose = False):
         return False
 
 
-def check_url_status(url):
-    """
-    Snippet from http://stackoverflow.com/questions/6471275 .
-
-    Checks the status of a website - a status flag of < 400 means the site
-    is up.
-
-    """
-    p = urlparse(url)
-    conn = httplib.HTTPConnection(p.netloc)
-    conn.request('HEAD', p.path)
-    resp = conn.getresponse()
-
-    return resp.status
-
-
-def check_url(url):
-    """
-    Wrapper for check_url_status - considers the status, True if < 400.
-    """
-    return check_url_status(url) < 400
+# def check_url_status(url):
+#     """
+#     Snippet from http://stackoverflow.com/questions/6471275 .
+#
+#     Checks the status of a website - a status flag of < 400 means the site
+#     is up.
+#
+#     """
+#     p = urlparse(url)
+#     conn = httplib.HTTPConnection(p.netloc)
+#     conn.request('HEAD', p.path)
+#     resp = conn.getresponse()
+#
+#     return resp.status
+#
+#
+# def check_url(url):
+#     """
+#     Wrapper for check_url_status - considers the status, True if < 400.
+#     """
+#     return check_url_status(url) < 400
 
 
 def setup_plot_defaults():
