@@ -2040,7 +2040,8 @@ class SNClass():
 
             try:
                 self.simplespecphot = LCfitClass()
-                self.phot = 
+                self.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'))
+                
                 for i, spectrum in enumerate(self.spec):
                     print(i, self.spec[spectrum].mjd_obs)
 
