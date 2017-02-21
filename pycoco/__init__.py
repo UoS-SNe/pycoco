@@ -1680,6 +1680,8 @@ class SNClass():
 
             if not filters:
                 filters = self.phot.data_filters
+            if type(filters) == str:
+                filters = [filters]
 
             setup_plot_defaults()
             if not multiplot:
