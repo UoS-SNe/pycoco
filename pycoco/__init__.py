@@ -1962,6 +1962,10 @@ class SNClass():
                 else:
                     warning.warn("Doesn't look like you have loaded a filter into the object")
 
+            default_xlims = ax1.get_xlim()
+            ax1.plot(default_xlims, [0,0], color = hex["black"], ls = ":")
+            ax1.set_xlim(default_xlims)
+
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
 
