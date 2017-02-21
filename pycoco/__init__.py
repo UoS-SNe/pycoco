@@ -2121,7 +2121,7 @@ class FilterClass():
 
 
     def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False,
+             show_lims = False, small = False, cumulative = False,
              *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
@@ -2138,9 +2138,8 @@ class FilterClass():
 
             setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-            yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
-            plot_label_string = r'$\textnormal{' + self.filter_name + '}$'
+            plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
 
             yminorLocator = MultipleLocator(yminorticks)
             xminorLocator = MultipleLocator(xminorticks)
@@ -2156,11 +2155,20 @@ class FilterClass():
 
             ax1 = fig.add_subplot(111)
 
+            if cumulative:
+                throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+                yaxis_label_string = r'$\textnormal{Cumulative Throughput}$'
+
+            else:
+                throughput = self.throughput
+                yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
+
             if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, self.throughput, color = self._plot_colour,
+                ax1.plot(self.wavelength, throughput, color = self._plot_colour,
                          lw = 2, label = plot_label_string)
             else:
-                ax1.plot(self.wavelength, self.throughput, lw = 2, label = plot_label_string)
+                ax1.plot(self.wavelength, throughput, lw = 2, label = plot_label_string)
 
             if show_lims:
                 try:
