@@ -532,6 +532,15 @@ class BaseSpectrumClass():
         pass
 
 
+    def _add_to_overlapping_filters(self, filter_name):
+        if hasattr(self, "_overlapping_filter_list"):
+            self._overlapping_filter_list = np.append(self._overlapping_filter_list, filter_name)
+        else:
+            self._overlapping_filter_list = np.array(filter_name)
+        pass
+
+
+
 class BaseLightCurveClass():
     """
     Base class for handling Lightcurves.
@@ -2041,7 +2050,7 @@ class SNClass():
 
             try:
                 self.simplespecphot = LCfitClass()
-                self.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'))
+                self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'))
 
                 for i, spectrum in enumerate(self.spec):
                     print(i, self.spec[spectrum].mjd_obs)
@@ -2054,7 +2063,7 @@ class SNClass():
         pass
 
 
-    def check_overlaps(self, verbose = True):
+    def check_overlaps(self, verbose = False):
         """
         Parameters
         ----------
@@ -2064,9 +2073,15 @@ class SNClass():
         """
         if hasattr(self.phot, "data") and hasattr(self, 'spec'):
             for i, spectrum in enumerate(self.spec):
-
+                if verbose:print(i, spectrum)
+                for j, filtername in enumerate(self.phot.data_filters):
+                    if verbose:print(j, filtername)
+                    within = filter_within_spec(self.phot.data_filters[filtername], self.spec[spectrum])
+                    if verbose:print(within)
+                    if within:
+                        self.spec[spectrum]._add_to_overlapping_filters(filtername)
         else:
-            warnings.warn("SNClass.check_overlaps - something went wrong... no data?)
+            warnings.warn("SNClass.check_overlaps - something went wrong... no data?")
         pass
 
 class FilterClass():
@@ -2852,6 +2867,31 @@ def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/Besse
     print(stat.keys())
     return modes
 
+
+def filter_within_spec(filter_obj, spec_obj):
+    """
+    returns true if filter_edges are within spectrum, False otherwise
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    try:
+        if hasattr(filter_obj, "_lower_edge") and hasattr(filter_obj, "_upper_edge") and hasattr(spec_obj, "data"):
+            blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
+            red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+
+            if blue_bool and red_bool:
+                return True
+            else:
+                return False
+        else:
+            warnings.warn("Filter object has no edges or spectrum object has no data")
+            return False
+    except:
+        raise StandardError
 
 ##------------------------------------##
 ## CoCo Functions                     ##
