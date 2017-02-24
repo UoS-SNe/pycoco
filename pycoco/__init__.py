@@ -2046,17 +2046,28 @@ class SNClass():
         """
 
         if hasattr(self, 'lcfit') and hasattr(self, 'spec'):
-            if verbose: print("Foo")
+            # if verbose: print("Foo")
 
             try:
-                self.simplespecphot = LCfitClass()
-                self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'))
+                # self.simplespecphot = LCfitClass()
+                self.simplespecphot = PhotometryClass()
+
+                lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()]) ## object dtype is slow
+                self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'),
+                                                 dtype = [float, float, float, '|S'+str(lenstring)])
 
                 for i, spectrum in enumerate(self.spec):
-                    print(i, self.spec[spectrum].mjd_obs)
 
+                    for filter_name in self.spec[spectrum]._overlapping_filter_list:
+                        if verbose: print(i, spectrum, filter_name)
 
+                        mjd = self.spec[spectrum].mjd_obs
+                        flux = self.lcfit.spline[filter_name](mjd)
+                        flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
+                        newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter':filter_name}
+                        self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
 
+                self.simplespecphot.unpack()
             except:
                 warnings.warn("simplespecphot failed")
 
