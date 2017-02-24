@@ -2095,6 +2095,7 @@ class SNClass():
             warnings.warn("SNClass.check_overlaps - something went wrong... no data?")
         pass
 
+
 class FilterClass():
     """Docstring for FilterClass"""
 
@@ -2903,6 +2904,7 @@ def filter_within_spec(filter_obj, spec_obj):
             return False
     except:
         raise StandardError
+
 
 ##------------------------------------##
 ## CoCo Functions                     ##
