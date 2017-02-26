@@ -7,6 +7,8 @@ import unittest
 
 # from pycoco import *
 import pycoco as pcc
+import astropy.units as u
+
 try:
     reload  # Python 2.7
 except NameError:
@@ -33,14 +35,13 @@ class TestClass(unittest.TestCase):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
     def test_find_phot_finds_SN2005bf_B(self):
-        # directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
         phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, 'SN2005bf_B.dat')
 
     def test_find_phot_finds_no_SN2011fe_data(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
+        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
         self.assertEqual(len(pcc.find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
     def test_find_phot_throws_path_error_for_None(self):
@@ -80,7 +81,8 @@ class TestClass(unittest.TestCase):
 
     def test_BaseSpectrumClass_get_list_dir_returns_default(self):
         x = pcc.BaseSpectrumClass()
-        self.assertEqual(os.path.abspath(x.list_directory), os.path.abspath('/Users/berto/Code/CoCo/lists/'))
+        listpath = os.path.abspath(os.path.join(pcc._default_coco_dir_path, "lists"))
+        self.assertEqual(os.path.abspath(x.list_directory), listpath)
 
     # SpectrumClass
 
@@ -95,6 +97,42 @@ class TestClass(unittest.TestCase):
     # specfitClass
 
     # def test_specfitClass
+
+    ## FilterClass tests
+
+    def test_filter_name_parsed_OK(self):
+        filter_filename = "BessellB.dat"
+        path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), filter_filename)
+        B = pcc.load_filter(path_to_filter)
+        self.assertEqual(B.filter_name, "BessellB")
+
+    def test_filter_default_colour(self):
+        filter_filename = "BessellB.dat"
+        path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), filter_filename)
+        B = pcc.load_filter(path_to_filter)
+        self.assertEqual(B._plot_colour, "#0000ff")
+
+    def test_filter_default_wavelength_units(self):
+        filter_filename = "BessellV.dat"
+        path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), filter_filename)
+        V = pcc.load_filter(path_to_filter)
+        self.assertEqual(V._wavelength_units, u.Angstrom)
+
+    def test_filter_default_frequency_units(self):
+        filter_filename = "BessellV.dat"
+        path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), filter_filename)
+        V = pcc.load_filter(path_to_filter)
+        self.assertEqual(V._frequency_units, u.Hertz)
+
+    def test_filter_edge_calc(self):
+        filter_filename = "BessellB.dat"
+        path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), filter_filename)
+        B = pcc.load_filter(path_to_filter)
+        self.assertEqual(round(float(B._upper_edge), 2), 5203.28)
+        self.assertEqual(round(float(B._lower_edge), 2), 3784.99)
+
+    ##
+
 
 if __name__ is '__main__':
 
