@@ -33,7 +33,8 @@ class TestClass(unittest.TestCase):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
     def test_find_phot_finds_SN2005bf_B(self):
-        directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
+        # directory_path_to_search = "/Users/berto/Code/verbose-enigma/testdata/lc/"
+        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
         phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, 'SN2005bf_B.dat')
