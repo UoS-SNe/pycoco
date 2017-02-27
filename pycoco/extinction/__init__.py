@@ -77,7 +77,8 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = Fa
     else:
         wav_inv = angstrom_to_inv_micron(wave)
 
-    EBV = EBV_MW + EBV_host
+    EBV = EBV_MW + EBV_host ## THIS IS WRONG. HOST EXTINCTION DONE AT REST FRAME
+                            ## THEN MW DONE IN OBSERVER FRAME
 
     A_V = r_v*EBV
     vals = coeffs(wav_inv)
