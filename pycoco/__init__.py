@@ -2032,7 +2032,7 @@ class SNClass():
         pass
 
 
-    def get_simplespecphot(self, verbose = True):
+    def get_simplespecphot(self, verbose = False):
         """
         When the SNClass has both lcfits and spec, sample the lcfits at the
         obsdate of the relevant (i.e. overlapping) spectra. Initially to
