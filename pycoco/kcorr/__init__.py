@@ -87,9 +87,9 @@ def calc_AB_flux(filter_name):
     return integrated_flux
 
 
-def calc_AB_zp(filter_name):
+def calc_AB_zp():
 
-    integrated_flux = calc_AB_flux(filter_name)
+    integrated_flux = calc_AB_flux("BessellV")
 
     return -2.5 * log10(integrated_flux)
 
@@ -108,12 +108,14 @@ def calc_vega_flux(filter_name):
     return integrated_flux
 
 
-def calc_vega_zp(filter_name):
+def calc_vega_zp():
 
-    integrated_flux = calc_vega_flux(filter_name)
+    integrated_flux = calc_vega_flux("BessellV")
 
     return -2.5 * log10(integrated_flux)
 
 
+def calc_ve
+
 def calc_offset_AB_minus_Vega(filter_name):
-    return calc_AB_zp(filter_name) - calc_vega_zp(filter_name)
+    return

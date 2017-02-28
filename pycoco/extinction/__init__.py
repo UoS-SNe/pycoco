@@ -67,8 +67,13 @@ def angstrom_to_inv_micron(wavl):
 def inv_micron_to_angstrom(x):
     return 10000./x
 
-def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False):
+def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
     """
+
+    Parameters
+    ----------
+    Returns
+    -------
 
     """
 
@@ -77,7 +82,8 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = Fa
     else:
         wav_inv = angstrom_to_inv_micron(wave)
 
-    EBV = EBV_MW + EBV_host
+    # EBV = EBV_MW + EBV_host ## THIS IS WRONG. HOST EXTINCTION DONE AT REST FRAME
+    #                         ## THEN MW DONE IN OBSERVER FRAME
 
     A_V = r_v*EBV
     vals = coeffs(wav_inv)
@@ -97,14 +103,37 @@ def ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, ret
     else:
         wav_inv = angstrom_to_inv_micron(wave)
 
-    EBV = EBV_MW + EBV_host
+    # EBV = EBV_MW + EBV_host ## THIS IS WRONG. HOST EXTINCTION DONE AT REST FRAME
+    #                         ## THEN MW DONE IN OBSERVER FRAME
 
     A_V = r_v*EBV
     vals = coeffs(wav_inv)
 
     A_lambda = A_V*(vals['a'] + vals['b']/r_v)
     A_lambda_A_v =  (vals['a'] + vals['b']/r_v)
+
     if return_frac:
         return A_lambda_A_v, inv_micron_to_angstrom(vals['x'])
     else:
         return A_lambda
+
+
+def deredden(wave, flux, z, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False):
+    """
+
+    For dereddining spectra for the effect of dust
+
+    Parameters
+    ----------
+    Returns
+    -------
+
+    """
+    ## do MW correction in observer frame
+    funred = unred(wave, flux, wav_in_m = wav_in_m, r_v = r_v, EBV = EBV_MW)
+
+    ## do Host correction in rest-frame
+    funred = unred(wave*(1. + z), funred, wav_in_m = wav_in_m, r_v = r_v, EBV = EBV_host)
+
+
+    return funred
