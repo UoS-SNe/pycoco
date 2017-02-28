@@ -70,6 +70,11 @@ def inv_micron_to_angstrom(x):
 def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False):
     """
 
+    Parameters
+    ----------
+    Returns
+    -------
+
     """
 
     if wav_in_m:
@@ -77,8 +82,8 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = Fa
     else:
         wav_inv = angstrom_to_inv_micron(wave)
 
-    EBV = EBV_MW + EBV_host ## THIS IS WRONG. HOST EXTINCTION DONE AT REST FRAME
-                            ## THEN MW DONE IN OBSERVER FRAME
+    # EBV = EBV_MW + EBV_host ## THIS IS WRONG. HOST EXTINCTION DONE AT REST FRAME
+    #                         ## THEN MW DONE IN OBSERVER FRAME
 
     A_V = r_v*EBV
     vals = coeffs(wav_inv)
@@ -105,6 +110,7 @@ def ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, ret
 
     A_lambda = A_V*(vals['a'] + vals['b']/r_v)
     A_lambda_A_v =  (vals['a'] + vals['b']/r_v)
+
     if return_frac:
         return A_lambda_A_v, inv_micron_to_angstrom(vals['x'])
     else:
