@@ -43,6 +43,7 @@ from scipy.interpolate import interp1d as interp1d
 
 from .extinction import *
 from .colours import *
+from .utils import *
 # from .offsets
 
 warnings.resetwarnings()
@@ -2963,6 +2964,8 @@ def run_LCfit(path):
     -------
     """
     check_file_path(path)
+    relist() ## Check filter file is up to date
+    
     if verbose: print("Running CoCo lcfit on " + path)
     subprocess.call(["./lcfit", path])
 
@@ -3023,6 +3026,8 @@ def run_specfit(path):
     -------
     """
     check_file_path(path)
+    relist() ## Check filter file is up to date
+
     if verbose: print("Running CoCo specfit on " + path)
     subprocess.call(["./specfit", path])
 

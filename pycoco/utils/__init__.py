@@ -12,7 +12,7 @@ import os
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
 
-__all__ = ["_get_filters", "_check_filters"]
+__all__ = ["relist"]
 
 
 def _get_filters():
