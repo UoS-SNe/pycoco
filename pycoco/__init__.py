@@ -2410,7 +2410,7 @@ def get_filter_from_filename(path, snname, file_type):
     return filter_string
 
 
-def _get_filter_directory(self):
+def _get_filter_directory():
     """
     Get the defaul path to the filter directory.
 
@@ -2421,7 +2421,7 @@ def _get_filter_directory(self):
              default datalocation: '../testdata/'.
     """
 
-    return os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path)
+    return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
 
 
 def check_dir_path(path, verbose = False):
