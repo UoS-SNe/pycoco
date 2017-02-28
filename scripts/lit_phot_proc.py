@@ -128,7 +128,9 @@ def load_CfA_phot_table(verbose = False):
     return data
 
 def SN2009jf():
-    get_EBV("2009jf")
+    data = load_CfA_phot_table()
+
+    snjf = data[np.where(data['SN'] == '2009jf')]
     pass
 
 if __name__ == "__main__":
