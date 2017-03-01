@@ -14,6 +14,7 @@ from astropy.constants import c
 from collections import OrderedDict
 
 import pycoco as pcc
+import pycoco.kcorr as kcorr
 
 class LitLightCurveClass(pcc.BaseLightCurveClass):
     pass
@@ -206,9 +207,10 @@ def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filt
 
     snjf = LitLightCurveClass()
 
+    ## Vega Landolt
     sn2009jf_UBVRI = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_UBVRI.dat")
     sn2009jf_UBVRI["mjd"] = Time(sn2009jf_UBVRI["JD"], format = "jd").mjd
-    zp =
+
     filter_names = ["U", "B", "V", "R", "I"]
 
     sn2009jf_ugriz = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_ugriz.dat")
