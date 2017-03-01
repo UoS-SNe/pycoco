@@ -8,11 +8,34 @@ from matplotlib import pyplot as plt
 
 import os
 from astropy.io import ascii
+from astropy.time import Time
 from astropy.table import Table, Column
 from astropy.constants import c
 from collections import OrderedDict
 
 import pycoco as pcc
+
+class LitLightCurveClass(pcc.BaseLightCurveClass):
+    pass
+
+
+def JD_to_MJD():
+    """
+    """
+
+    return mjd
+
+def write_dict(out_dir, sn_dict):
+    """
+    Each dict entry should be an astropy table. Taking this intermediate step in
+    order to make it easier to get the formatting correct
+    """
+    for key in sn_dict:
+        # print(key)
+        out_path = os.path.join(out_dir, key + ".dat")
+        print(out_path)
+        sn_dict[key].write(out_path, format = "ascii.fast_commented_header")
+    pass
 
 
 def load_bianco_phot_table(verbose = False):
@@ -127,11 +150,71 @@ def load_CfA_phot_table(verbose = False):
     data = ascii.read(fname)
     return data
 
-def SN2009jf():
-    data = load_CfA_phot_table()
 
-    snjf = data[np.where(data['SN'] == '2009jf')]
-    pass
+def SN2009jf_read_lit():
+    """
+    Reads the tables I have collected for SN2009jf
+    """
+
+    sn2009jf_dict = OrderedDict()
+
+    ## Get the Phot from Bianco et al.
+    data = load_CfA_phot_table()
+    sn2009jf_dict['sn2009jf_CfA'] = data[np.where(data['SN'] == '2009jf')]
+
+    ## Get Valenti et al. 2001
+    freadme = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/ReadMe"
+
+    fnamec1 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec1.dat"
+    fnamec2 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec2.dat"
+    """
+    These next few break due to the 'limits' flags in the table. Instead I have downloaded the tables
+    in tab-separated-variable VO tables.
+    One caveat to this is the the format and the dashed header row get read in too, even with
+    data_start set.
+    """
+    # fnamec3 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec3.dat"
+    # fnamec4 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec4.dat"
+    # fnamec5 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec5.dat"
+    # fnamec6 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/J_MNRAS_416_3138/tablec6.dat"
+
+    fnamec3 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/tablec3.tsv"
+    fnamec4 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/tablec4.tsv"
+    fnamec5 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/tablec5.tsv"
+    fnamec6 = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/tablec6.tsv"
+
+    sn2009jf_dict['standards_UBVRI'] = ascii.read(fnamec1, readme = freadme)
+    sn2009jf_dict['standards_ugriz'] = ascii.read(fnamec2, readme = freadme)
+
+    sn2009jf_dict['sn2009jf_UBVRI'] = ascii.read(fnamec3)
+    sn2009jf_dict['sn2009jf_UBVRI'].remove_rows([0,1])
+    sn2009jf_dict['sn2009jf_ugriz'] = ascii.read(fnamec4)
+    sn2009jf_dict['sn2009jf_ugriz'].remove_rows([0,1])
+    sn2009jf_dict['sn2009jf_JHK'] = ascii.read(fnamec5)
+    sn2009jf_dict['sn2009jf_JHK'].remove_rows([0,1])
+    sn2009jf_dict['sn2009jf_swift'] = ascii.read(fnamec6)
+    sn2009jf_dict['sn2009jf_swift'].remove_rows([0,1])
+
+    return sn2009jf_dict
+
+def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filter')):
+    """
+    Reads the output from write_dict(SN2009jf_read_lit) in order to unpack and
+    correct the photometry
+    """
+
+    snjf = LitLightCurveClass()
+
+    sn2009jf_UBVRI = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_UBVRI.dat")
+    sn2009jf_UBVRI["mjd"] = Time(sn2009jf_UBVRI["JD"], format = "jd").mjd
+    sn2009jf_ugriz = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_ugriz.dat")
+    sn2009jf_ugriz["mjd"] = Time(sn2009jf_ugriz["JD"], format = "jd").mjd
+    sn2009jf_JHK = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_JHK.dat")
+    sn2009jf_JHK["mjd"] = Time(sn2009jf_JHK["JD"], format = "jd").mjd
+    sn2009jf_swift = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_swift.dat")
+    sn2009jf_swift["mjd"] = Time(sn2009jf_swift["JD"], format = "jd").mjd
+
+
 
 if __name__ == "__main__":
     # print("Foo")
