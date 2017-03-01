@@ -115,7 +115,7 @@ def calc_vega_zp():
     return -2.5 * log10(integrated_flux)
 
 
-def calc_ve
+# def calc_ve
 
 def calc_offset_AB_minus_Vega(filter_name):
     return
