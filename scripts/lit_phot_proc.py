@@ -197,6 +197,7 @@ def SN2009jf_read_lit():
 
     return sn2009jf_dict
 
+
 def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filter')):
     """
     Reads the output from write_dict(SN2009jf_read_lit) in order to unpack and
@@ -207,6 +208,9 @@ def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filt
 
     sn2009jf_UBVRI = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_UBVRI.dat")
     sn2009jf_UBVRI["mjd"] = Time(sn2009jf_UBVRI["JD"], format = "jd").mjd
+    zp =
+    filter_names = ["U", "B", "V", "R", "I"]
+
     sn2009jf_ugriz = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_ugriz.dat")
     sn2009jf_ugriz["mjd"] = Time(sn2009jf_ugriz["JD"], format = "jd").mjd
     sn2009jf_JHK = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_JHK.dat")
