@@ -115,6 +115,7 @@ def calc_vega_zp(filter_name, vega_Vmag = 0.03):
 
     return -2.5 * log10(integrated_flux) - vega_Vmag
 
+
 def calc_vega_mag(filter_name):
 
     zp = calc_vega_zp()

@@ -206,12 +206,31 @@ def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filt
     """
 
     snjf = LitLightCurveClass()
+    AB_zp = 48.60
 
     ## Vega Landolt
     sn2009jf_UBVRI = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_UBVRI.dat")
     sn2009jf_UBVRI["mjd"] = Time(sn2009jf_UBVRI["JD"], format = "jd").mjd
 
     filter_names = ["U", "B", "V", "R", "I"]
+    for filter_name in filter_names:
+        print(filter_name + "mag")
+
+        if filter_name in translation_dict:
+            full_filter_name = translation_dict[filter_name]
+
+        vega_mag = sn2009jf_UBVRI[filter_name + "mag"]
+
+        magmask = np.logical_not(sn2009jf_UBVRI[filter_name + "mag"].mask)
+        AB_offset = kcorr.calc_offset_AB_minus_Vega(full_filter_name)## This is AB - Vega
+
+        AB_mag = vega_mag + AB_offset
+        phot_table = Table
+
+        # print(vega_mag[magmask], AB_mag[magmask])
+        # print(AB_mag + AB_zp)
+        # f_nu = np.power(10., (AB_mag + AB_zp)/-2.5)
+        # print(f_nu)
 
     sn2009jf_ugriz = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_ugriz.dat")
     sn2009jf_ugriz["mjd"] = Time(sn2009jf_ugriz["JD"], format = "jd").mjd
