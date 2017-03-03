@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 import os
 from astropy.io import ascii
 from astropy.time import Time
-from astropy.table import Table, Column
+from astropy.table import Table, Column, vstack, MaskedColumn
 from astropy.constants import c
 from collections import OrderedDict
 
@@ -19,12 +19,36 @@ import pycoco.kcorr as kcorr
 class LitLightCurveClass(pcc.BaseLightCurveClass):
     pass
 
+translation_dict = OrderedDict()
 
-def JD_to_MJD():
-    """
-    """
+translation_dict = {
+                    "U" : "BessellU",
+                    "B" : "BessellB",
+                    "V" : "BessellV",
+                    "R" : "BessellR",
+                    "I" : "BessellI",
+                    "u'": "SDSS_u",
+                    "g'": "SDSS_g",
+                    "r'": "SDSS_r",
+                    "i'": "SDSS_i",
+                    "z'": "SDSS_z",
+                    "u": "SDSS_u",
+                    "g": "SDSS_g",
+                    "r": "SDSS_r",
+                    "i": "SDSS_i",
+                    "z": "SDSS_z",
+                    "J" : "2MASS_J",
+                    "H" : "2MASS_H",
+                    "Ks": "2MASS_Ks"
+                    }
 
-    return mjd
+def JD_to_MJD(JD_column):
+    """
+    convert astropy column object of JD floats into MJD's
+    """
+    MJD_col = Column(Time(JD_column, format = "jd").mjd, name = "MJD")
+    return MJD_col
+
 
 def write_dict(out_dir, sn_dict):
     """
@@ -99,6 +123,11 @@ def translate_filter_names(data, verbose = False):
     "r'": "SDSS_r",
     "i'": "SDSS_i",
     "z'": "SDSS_z",
+    "u": "SDSS_u",
+    "g": "SDSS_g",
+    "r": "SDSS_r",
+    "i": "SDSS_i",
+    "z": "SDSS_z",
     "J" : "2MASS_J",
     "H" : "2MASS_H",
     "Ks": "2MASS_Ks"
@@ -208,36 +237,112 @@ def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filt
     snjf = LitLightCurveClass()
     AB_zp = 48.60
 
+    jfdict = OrderedDict()
+
     ## Vega Landolt
     sn2009jf_UBVRI = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_UBVRI.dat")
+    ## MJDs being calculated twice :@:@
     sn2009jf_UBVRI["mjd"] = Time(sn2009jf_UBVRI["JD"], format = "jd").mjd
-
+    ## Unclear if limits are 3sigma or 5sigma - mask
     filter_names = ["U", "B", "V", "R", "I"]
+
     for filter_name in filter_names:
         print(filter_name + "mag")
 
         if filter_name in translation_dict:
             full_filter_name = translation_dict[filter_name]
 
+        magmask = np.logical_not(sn2009jf_UBVRI[filter_name + "mag"].mask)
         vega_mag = sn2009jf_UBVRI[filter_name + "mag"]
 
-        magmask = np.logical_not(sn2009jf_UBVRI[filter_name + "mag"].mask)
+        if "l_" + filter_name + "mag" in sn2009jf_UBVRI.keys():
+            ulim_flag = sn2009jf_UBVRI["l_" + filter_name + "mag"]
+            ## See above sigmas comment!!
+            magmask = np.logical_and(ulim_flag.mask, magmask)
+
         AB_offset = kcorr.calc_offset_AB_minus_Vega(full_filter_name)## This is AB - Vega
 
-        AB_mag = vega_mag + AB_offset
-        phot_table = Table
+        mjd_col = JD_to_MJD(sn2009jf_UBVRI["JD"])
 
+        AB_mag = MaskedColumn(vega_mag + AB_offset, name = "mag")
+        # e_AB_mag = Column(vega_mag, name = "e_" + AB_mag.name)
+        e_AB_mag = MaskedColumn(sn2009jf_UBVRI["e_" + filter_name + "mag"], name = "emag")
         # print(vega_mag[magmask], AB_mag[magmask])
         # print(AB_mag + AB_zp)
-        # f_nu = np.power(10., (AB_mag + AB_zp)/-2.5)
+        f_nu = MaskedColumn(np.power(10., (AB_mag + AB_zp)/-2.5), name = "f_nu")
+        ef_nu = MaskedColumn(f_nu/(1.086/e_AB_mag), name = "ef_nu")
         # print(f_nu)
+
+        filter_column = Column(np.array([full_filter_name for i in mjd_col]), name = "filter")
+
+        phot_table = Table([mjd_col[magmask], AB_mag[magmask], e_AB_mag[magmask], f_nu[magmask], ef_nu[magmask], filter_column[magmask]])
+
+        jfdict[full_filter_name] = phot_table
+
+
 
     sn2009jf_ugriz = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_ugriz.dat")
     sn2009jf_ugriz["mjd"] = Time(sn2009jf_ugriz["JD"], format = "jd").mjd
-    sn2009jf_JHK = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_JHK.dat")
-    sn2009jf_JHK["mjd"] = Time(sn2009jf_JHK["JD"], format = "jd").mjd
-    sn2009jf_swift = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_swift.dat")
-    sn2009jf_swift["mjd"] = Time(sn2009jf_swift["JD"], format = "jd").mjd
+    filter_names = ["u", "g", "r", "r", "i"]
+
+    for filter_name in filter_names:
+        print(filter_name + "mag")
+
+        if filter_name in translation_dict:
+            full_filter_name = translation_dict[filter_name]
+
+        ## No ulims for ugriz phot
+    #     ulim_flag = sn2009jf_ugriz["l_" + filter_name + "mag"]
+
+        magmask = np.logical_not(sn2009jf_ugriz[filter_name + "mag"].mask)
+        mjd_col = JD_to_MJD(sn2009jf_ugriz["JD"])
+
+        AB_mag = MaskedColumn(sn2009jf_ugriz[filter_name + "mag"], name = "mag")
+        e_AB_mag = MaskedColumn(sn2009jf_ugriz["e_" + filter_name + "mag"], name = "emag")
+
+        f_nu = MaskedColumn(np.power(10., (AB_mag + AB_zp)/-2.5), name = "f_nu")
+        ef_nu = MaskedColumn(f_nu/(1.086/e_AB_mag), name = "ef_nu")
+
+        filter_column = Column(np.array([full_filter_name for i in mjd_col]), name = "filter")
+        print(len(mjd_col), len(AB_mag), len(e_AB_mag), len(filter_column))
+        phot_table = Table([mjd_col[magmask], AB_mag[magmask], e_AB_mag[magmask], f_nu[magmask], ef_nu[magmask], filter_column[magmask]])
+        jfdict[full_filter_name] = phot_table
+
+    # sn2009jf_JHK = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_JHK.dat")
+    # sn2009jf_JHK["mjd"] = Time(sn2009jf_JHK["JD"], format = "jd").mjd
+    # sn2009jf_swift = ascii.read("/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/astropy_tables/sn2009jf_swift.dat")
+    # sn2009jf_swift["mjd"] = Time(sn2009jf_swift["JD"], format = "jd").mjd
+
+    filter_dir = '/Users/berto/Code/CoCo/data/filters/'
+
+
+    # return jfdict
+    for i, phot_filter in enumerate(jfdict.keys()):
+        filter_path = os.path.join(filter_dir, phot_filter + ".dat")
+        FilterObj = pcc.load_filter(filter_path)
+        FilterObj.calculate_frequency()
+        FilterObj.calculate_effective_frequency()
+
+        ## REMEBER lambda*f_lambda = nu*f_nu
+        f_lambda = MaskedColumn((jfdict[phot_filter]["f_nu"]*FilterObj.nu_effective)/FilterObj.lambda_effective, name = "flux")
+        ef_lambda = MaskedColumn((jfdict[phot_filter]["ef_nu"]*FilterObj.nu_effective)/FilterObj.lambda_effective, name = "flux_err")
+
+        jfdict[phot_filter].add_column(f_lambda)
+        jfdict[phot_filter].add_column(ef_lambda)
+
+        if i == 0:
+            full_phot = jfdict[phot_filter]
+        else:
+            full_phot = vstack([full_phot, jfdict[phot_filter]])
+
+    # flux = np.power(10., (full_phot["mag"] + AB_zp)/-2.5)
+    # return full_phot
+    # return jfdict
+    ## Write Combined Table
+    final_phot_table = Table([full_phot["MJD"].filled(), full_phot["flux"].filled(), full_phot["flux_err"].filled(), full_phot["filter"].filled()], masked = False)
+    outpath = "/Users/berto/data/CoreCollapse/phot/rf/SN2009jf/final/SN2009jf.dat"
+    final_phot_table.write(outpath, format = "ascii.fast_commented_header")
+    pass
 
 
 

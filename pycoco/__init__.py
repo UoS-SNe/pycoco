@@ -540,7 +540,6 @@ class BaseSpectrumClass():
         pass
 
 
-
 class BaseLightCurveClass():
     """
     Base class for handling Lightcurves.
@@ -671,6 +670,61 @@ class BaseLightCurveClass():
 
         pass
 
+
+    # def load_table(self, phot_table, verbose = True):
+    #     """
+    #     Loads a single photometry table.
+    #
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #     StringWarning(path)
+    #     try:
+    #         self.phot = phot_table
+    #         self.unpack()
+    #
+    #         ## Sort the OrderedDict
+    #         self._sort_phot()
+    #     except:
+    #         raise StandardError
+
+    def load_phot_dict(self, data_dict):
+        """
+
+        """
+        self.data = data_dict
+        pass
+
+    def _combine_phot(self, verbose = True):
+        """
+
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print(self.data.keys())
+
+            for i, phot_filter in enumerate(self.data.keys()):
+
+                if verbose: print(i, phot_filter)
+
+                if i == 0:
+
+                    full_phot = self.data[phot_filter]
+
+                else:
+
+                    full_phot = vstack([full_phot, self.data[phot_filter]])
+
+                    pass
+
+            self.data['full'] = full_phot
+
+        else:
+            warnings.warn("Cant find self.data")
+
+        pass
 
 ##------------------------------------##
 ##  Inheriting Classes                ##
@@ -2103,6 +2157,8 @@ class FilterClass():
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
         self._frequency_units = u.Hertz
+        # self.calculate_frequency()
+        # self.calculate_effective_frequency()
         pass
 
 
@@ -2152,7 +2208,7 @@ class FilterClass():
 
         """
 
-        if hasattr(self, "wavelength"):
+        if hasattr(self, "frequency"):
             spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
             nu_eff = spline_rev(0.5)
 
