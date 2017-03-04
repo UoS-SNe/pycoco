@@ -108,14 +108,36 @@ def calc_vega_flux(filter_name):
     return integrated_flux
 
 
-def calc_vega_zp():
+def calc_vega_zp(filter_name, vega_Vmag = 0.03):
 
-    integrated_flux = calc_vega_flux("BessellV")
+    integrated_V_flux = calc_vega_flux("BessellV")
+    integrated_V_flux = calc_vega_flux("BessellV")
 
-    return -2.5 * log10(integrated_flux)
+    return -2.5 * log10(integrated_flux) - vega_Vmag
 
 
-def calc_ve
+def calc_vega_mag(filter_name):
 
-def calc_offset_AB_minus_Vega(filter_name):
-    return
+    zp = calc_vega_zp()
+    flux = calc_vega_flux(filter_name)
+
+    mag = -2.5 * log10(flux) - zp
+    return mag
+
+# def calc_ve
+
+def calc_offset_AB_minus_Vega(filter_name, vega_Vmag = 0.03):
+    """
+
+    """
+
+    integrated_Vega_flux = calc_vega_flux(filter_name)
+    integrated_AB_flux = calc_AB_flux(filter_name)
+
+    AB  = -2.5*log10(integrated_AB_flux)
+    Vega = -2.5*log10(integrated_Vega_flux) - vega_Vmag
+
+    return AB - Vega
+
+def convert_f_nu_to_f_lambda():
+    pass

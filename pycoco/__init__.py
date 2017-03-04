@@ -541,7 +541,6 @@ class BaseSpectrumClass():
         pass
 
 
-
 class BaseLightCurveClass():
     """
     Base class for handling Lightcurves.
@@ -672,6 +671,61 @@ class BaseLightCurveClass():
 
         pass
 
+
+    # def load_table(self, phot_table, verbose = True):
+    #     """
+    #     Loads a single photometry table.
+    #
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #     StringWarning(path)
+    #     try:
+    #         self.phot = phot_table
+    #         self.unpack()
+    #
+    #         ## Sort the OrderedDict
+    #         self._sort_phot()
+    #     except:
+    #         raise StandardError
+
+    def load_phot_dict(self, data_dict):
+        """
+
+        """
+        self.data = data_dict
+        pass
+
+    def _combine_phot(self, verbose = True):
+        """
+
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print(self.data.keys())
+
+            for i, phot_filter in enumerate(self.data.keys()):
+
+                if verbose: print(i, phot_filter)
+
+                if i == 0:
+
+                    full_phot = self.data[phot_filter]
+
+                else:
+
+                    full_phot = vstack([full_phot, self.data[phot_filter]])
+
+                    pass
+
+            self.data['full'] = full_phot
+
+        else:
+            warnings.warn("Cant find self.data")
+
+        pass
 
 ##------------------------------------##
 ##  Inheriting Classes                ##
@@ -997,7 +1051,7 @@ class PhotometryClass(BaseLightCurveClass):
         return save_table
 
 
-    def plot(self, legend = True, xminorticks = 5, enforce_zero = True,
+    def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
              verbose = False, *args, **kwargs):
         """
         Plots phot.
@@ -1011,6 +1065,10 @@ class PhotometryClass(BaseLightCurveClass):
 
         if hasattr(self, "data"):
 
+            if not filters:
+                filters = self.data_filters
+            if type(filters) == str:
+                filters = [filters]
             setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
@@ -1019,7 +1077,7 @@ class PhotometryClass(BaseLightCurveClass):
 
             ax1 = fig.add_subplot(111)
 
-            for i, filter_key in enumerate(self.data_filters):
+            for i, filter_key in enumerate(filters):
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
                 if filter_key in hex.keys():
@@ -1028,7 +1086,7 @@ class PhotometryClass(BaseLightCurveClass):
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o', color = self.data_filters[filter_key]._plot_colour,
-                             label = plot_label_string, ecolor = hex['batman'],
+                             label = plot_label_string, ecolor = hex['batman'], mec = hex["batman"],
                              *args, **kwargs)
 
             if legend:
@@ -1678,6 +1736,7 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
+                simplespecphot = False, fade = False,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
                 verbose = False, *args, **kwargs):
@@ -1689,7 +1748,10 @@ class SNClass():
         -------
         """
         if hasattr(self.phot, "data"):
-
+            if not fade:
+                alpha = 1.0
+            else:
+                alpha = 0.2
             if not filters:
                 filters = self.phot.data_filters
             if type(filters) == str:
@@ -1727,7 +1789,8 @@ class SNClass():
                     ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                                  yerr = self.phot.data[filter_key]['flux_err'],
                                  capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
-                                 label = plot_label_string, ecolor = hex['batman'],
+                                 label = plot_label_string, ecolor = hex['batman'], mec = hex["batman"],
+                                 alpha = alpha,
                                  *args, **kwargs)
 
                     if fit and hasattr(self, 'lcfit'):
@@ -1735,6 +1798,13 @@ class SNClass():
                                          color = self.phot.data_filters[filter_key]._plot_colour,
                                          alpha = 0.8, zorder = 0,
                                          *args, **kwargs)
+
+                    if simplespecphot and hasattr (self, "simplespecphot"):
+                        ax1.errorbar(self.simplespecphot.data[filter_key]['MJD'], self.simplespecphot.data[filter_key]['flux'],
+                                     yerr = self.simplespecphot.data[filter_key]['flux_err'],
+                                     capsize = 0, fmt = 'o', color = hex["batman"],
+                                     ecolor = hex['batman'], mec = hex["batman"], label = r"Specphot",
+                                     *args, **kwargs)
 
                     if legend and multiplot:
                         plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
@@ -2104,6 +2174,8 @@ class FilterClass():
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
         self._frequency_units = u.Hertz
+        # self.calculate_frequency()
+        # self.calculate_effective_frequency()
         pass
 
 
@@ -2153,7 +2225,7 @@ class FilterClass():
 
         """
 
-        if hasattr(self, "wavelength"):
+        if hasattr(self, "frequency"):
             spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
             nu_eff = spline_rev(0.5)
 
