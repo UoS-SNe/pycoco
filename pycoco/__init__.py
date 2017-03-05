@@ -1735,7 +1735,7 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                simplespecphot = False, fade = False,
+                simplespecphot = False, fade = False, xlims = False, 
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
                 verbose = False, *args, **kwargs):
@@ -1751,6 +1751,7 @@ class SNClass():
                 alpha = 1.0
             else:
                 alpha = 0.2
+
             if not filters:
                 filters = self.phot.data_filters
             if type(filters) == str:
@@ -1802,7 +1803,7 @@ class SNClass():
                         ax1.errorbar(self.simplespecphot.data[filter_key]['MJD'], self.simplespecphot.data[filter_key]['flux'],
                                      yerr = self.simplespecphot.data[filter_key]['flux_err'],
                                      capsize = 0, fmt = 'o', color = hex["batman"],
-                                     ecolor = hex['batman'], mec = hex["batman"], label = r"Specphot",
+                                     ecolor = hex['batman'], mec = hex["batman"], label = r"$\textnormal{SpecPhot}$",
                                      *args, **kwargs)
 
                     if legend and multiplot:
@@ -1860,6 +1861,12 @@ class SNClass():
                             ax1.set_xlim(np.nanmin(self.phot.phot["MJD"])-10,np.nanmin(self.phot.phot["MJD"]) + xextent)
                     else:
                         pass
+
+                    if xlims:
+                        ax1.set_xlim(xlims)
+                    if verbose:
+                        print("xrange = ", ax1.get_xlim())
+                        print("yrange = ", ax1.get_ylim())
 
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
