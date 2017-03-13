@@ -1735,9 +1735,10 @@ class SNClass():
 
 
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
-                simplespecphot = False, fade = False,
+                simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
+                savepng = False, savepdf = False, outpath = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1751,6 +1752,7 @@ class SNClass():
                 alpha = 1.0
             else:
                 alpha = 0.2
+
             if not filters:
                 filters = self.phot.data_filters
             if type(filters) == str:
@@ -1802,17 +1804,14 @@ class SNClass():
                         ax1.errorbar(self.simplespecphot.data[filter_key]['MJD'], self.simplespecphot.data[filter_key]['flux'],
                                      yerr = self.simplespecphot.data[filter_key]['flux_err'],
                                      capsize = 0, fmt = 'o', color = hex["batman"],
-                                     ecolor = hex['batman'], mec = hex["batman"], label = r"Specphot",
+                                     ecolor = hex['batman'], mec = hex["batman"], label = r"$\textnormal{SpecPhot}$",
                                      *args, **kwargs)
 
-                    if legend and multiplot:
-                        plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
+                    if legend:
+                        if multiplot or insidelegend:
+                            plot_legend = ax1.legend(loc = 'upper right', scatterpoints = 1, markerfirst = False,
                                               numpoints = 1, frameon = False, bbox_to_anchor=(1., 1.),
                                               fontsize = 12.)
-
-                        # bbox_props = dict(boxstyle="square,pad=0.0", fc=hex["silver"], lw = 0)
-                        # ax1.text(1., 1., plot_label_string, bbox=bbox_props, transform=ax1.transAxes,
-                        #          va = 'top', ha = 'right')
 
                     if i == len(axes_list)-1:
 
@@ -1861,6 +1860,12 @@ class SNClass():
                     else:
                         pass
 
+                    if xlims:
+                        ax1.set_xlim(xlims)
+                    if verbose:
+                        print("xrange = ", ax1.get_xlim())
+                        print("yrange = ", ax1.get_ylim())
+
                 else:
                     if verbose: print("Filter '" + filter_key + "' not found")
                     warnings.warn("Filter '" + filter_key + "' not found")
@@ -1871,13 +1876,18 @@ class SNClass():
 
                 ax1.set_ylabel(yaxis_label_string)
 
-                if legend:
+                if legend and not insidelegend:
 
                     plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                           numpoints = 1, frameon = False, fontsize = 12)
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
+
+            if savepdf and outpath:
+                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+            if savepng and outpath:
+                fig.savefig(outpath + ".png", format = 'png', dpi=500)
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -1886,6 +1896,7 @@ class SNClass():
 
     def plot_spec(self, xminorticks = 250, legend = True,
                   wmin = 3500,
+                  savepng = False, savepdf = False, outpath = False,
                   verbose = False, add_mjd = True,
                   *args, **kwargs):
         """
@@ -1934,7 +1945,8 @@ class SNClass():
                     w = np.where(self.spec[spec_key].data['wavelength'] <=  minspecxdata + 200)
                     yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
                     if verbose: print(yatminspecxdata)
-                    if i == 0:
+                    # if i == 0:
+                    if j == 0:
                         maxplotydata = np.nanmax(flux_norm - 0.5*j)
                         # minplotydata = np.nanmin(flux_norm - 0.5*j)
                         minplotydata = 0. - 0.5*j ## Assumes always positive flux
@@ -1980,6 +1992,11 @@ class SNClass():
 
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
+            
+            if savepdf and outpath:
+                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+            if savepng and outpath:
+                fig.savefig(outpath + ".png", format = 'png', dpi=500)
 
             plt.show()
         else:
