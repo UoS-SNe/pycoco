@@ -3117,6 +3117,8 @@ def test_specfit(snname, coco_dir = False,
 
 def run_specfit(path):
     """
+    runs CoCo specfit on the listfile supplied in path
+
     Parameters
     ----------
     Returns
@@ -3131,6 +3133,26 @@ def run_specfit(path):
     pass
 
 
+def specfit_sn(snname):
+    """
+    runs CoCo specfit on the listfile supplied in path.
+
+    Parameters
+    ----------
+    Returns
+    -------
+
+    """
+
+    ## Need to look for the recon lc files for snname
+
+    ## Need to make new recon lc files for mangling - no overlaps
+
+    ## Need to change the listfile to one that has snname matches the new lc file
+
+    ## Need to call run_specfit with path of new list file
+
+    pass
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
