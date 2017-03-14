@@ -698,6 +698,7 @@ class BaseLightCurveClass():
         self.data = data_dict
         pass
 
+
     def _combine_phot(self, verbose = True):
         """
 
@@ -725,6 +726,69 @@ class BaseLightCurveClass():
         else:
             warnings.warn("Cant find self.data")
 
+        pass
+
+    def _phot_format_for_save(self, filters = False):
+        """
+        This is hacky - clear it up!
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if not filters:
+            ## if none specified, use all filters
+            filters = self.phot.data.keys()
+
+        w = np.array([])
+        for i, f in enumerate(Filters):
+            w = np.append(w, np.where(phottable["filter"] == f))
+        if verbose: print(w)
+
+        save_table = self.phot[w.astype(int)]
+        save_table['MJD'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+        save_table['flux_err'].format = "5.5e"
+
+        return save_table
+
+    def save(self, filename, filters = False, path = False,
+             squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the photometry loaded into the SNClass via self.load_phot* into a format
+        and location recognised by CoCo.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "data"):
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
+                path = self._default_data_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+            else:
+                    print("Writing " + outpath)
+                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 ##------------------------------------##
@@ -993,62 +1057,6 @@ class PhotometryClass(BaseLightCurveClass):
             warnings.warn("Cant find self.data")
 
         pass
-
-
-    def save(self, filename, path = False,
-             squash = False, verbose = True, *args, **kwargs):
-        """
-        Output the photometry loaded into the SNClass via self.load_phot* into a format
-        and location recognised by CoCo.
-
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-
-        if hasattr(self, "data"):
-            if verbose: print("has data")
-            if not path:
-                if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
-                path = self._default_data_dir_path
-            else:
-                StringWarning(path)
-
-            outpath = os.path.join(path, filename)
-
-            check_dir_path(path)
-
-            if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
-                if squash:
-                    print("Overwriting " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-            else:
-                    print("Writing " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-
-        else:
-            warnings.warn("Doesn't seem to be any data here (empty self.data)")
-        pass
-
-
-    def _phot_format_for_save(self):
-        """
-        This is hacky - clear it up!
-
-        Parameters
-        ----------
-        Returns
-        -------
-        """
-
-        save_table = self.phot
-        save_table['MJD'].format = "5.5f"
-        save_table['flux'].format = "5.5e"
-        save_table['flux_err'].format = "5.5e"
-
-        return save_table
 
 
     def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
