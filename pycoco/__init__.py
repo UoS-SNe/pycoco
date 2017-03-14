@@ -613,7 +613,7 @@ class BaseLightCurveClass():
         """
         if hasattr(self, "data") and hasattr(self, "data_filters"):
             ## This looks fugly.
-            newkeys = np.array(self.data_filters.keys())[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
+            newkeys = np.array([i for i in self.data_filters.keys()])[np.argsort([self.data_filters[i].lambda_effective.value for i in self.data_filters])]
 
             sorted_data = OrderedDict()
             sorted_data_filters = OrderedDict()
@@ -3145,7 +3145,14 @@ def specfit_sn(snname):
     """
 
     ## Need to look for the recon lc files for snname
+    # sn = SNClass(snname)
+    lcfit = LCfitClass()
 
+    path = os.path.join(lcfit.recon_directory, snname+".dat")
+    lcfit.load_formatted_phot(path)
+    lcfit.unpack()
+    lcfit._sort_phot()
+    lcfit.get_fit_splines()
     ## Need to make new recon lc files for mangling - no overlaps
 
     ## Need to change the listfile to one that has snname matches the new lc file
