@@ -1,7 +1,7 @@
 # verbose-enigma
 ___
 
-#v0.5.1#
+#v0.5.2#
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -23,7 +23,9 @@ ___
 
  * Mangling now stable
 
- * Adding tools for calculating magnitudeb offsets to make it easier to import new data
+ * Adding tools for calculating magnitude offsets to make it easier to import new data
+
+ * regeneration of filter list file now possible
 ___
 
 Ideally set the following environment variables:

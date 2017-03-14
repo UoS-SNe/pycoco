@@ -12,7 +12,7 @@ from __future__ import print_function ## Force python3-like printing
 if __name__ is not '__main__':
 
     __name__ = 'pycoco'
-    __version__ = "0.5.1"
+    __version__ = "0.5.2"
 
 try:
     __file__
@@ -1993,7 +1993,7 @@ class SNClass():
 
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
-            
+
             if savepdf and outpath:
                 fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
             if savepng and outpath:
@@ -3054,7 +3054,7 @@ def run_LCfit(path):
     """
     check_file_path(path)
     relist() ## Check filter file is up to date
-    
+
     if verbose: print("Running CoCo lcfit on " + path)
     subprocess.call(["./lcfit", path])
 
