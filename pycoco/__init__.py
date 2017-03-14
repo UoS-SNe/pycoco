@@ -3188,7 +3188,13 @@ def specfit_sn(snname):
     origlist.rename_column('snname', 'snname_nomangle')
     origlist["snname"] = [j+"_m" for j in origlist["snname_nomangle"]]
 
+    newlistpath = os.path.join(_default_coco_dir_path, "lists", snname + "_m.list")
+    newlist = origlist["spec_path", "snname", "mjd_obs", "z"]
+    newlist.write(newlistpath, format = "ascii.fast_commented_header", overwrite = True)
+
     ## Need to call run_specfit with path of new list file
+
+
 
     pass
 ##----------------------------------------------------------------------------##
