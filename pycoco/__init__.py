@@ -138,10 +138,12 @@ __all__ = ["_default_data_dir_path",
 
 ## Important variables
 
+COCO_ROOT_DIR = os.environ["COCO_ROOT_DIR"]
+
 _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
-_default_filter_dir_path = os.path.abspath("/Users/berto/Code/CoCo/data/filters/")
-_default_coco_dir_path = os.path.abspath("/Users/berto/Code/CoCo/")
-_default_recon_dir_path = os.path.abspath("/Users/berto/Code/CoCo/recon/")
+_default_filter_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/filters/"))
+_default_coco_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR))
+_default_recon_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "recon/"))
 
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
@@ -666,6 +668,9 @@ class BaseLightCurveClass():
 
                 self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
                 self.data[filter_name] = sorted_phot_table
+
+            self.filter_names = filter_names
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
 
@@ -728,7 +733,7 @@ class BaseLightCurveClass():
 
         pass
 
-    def _phot_format_for_save(self, filters = False):
+    def _phot_format_for_save(self, filters = False, verbose = False):
         """
         This is hacky - clear it up!
 
@@ -740,14 +745,14 @@ class BaseLightCurveClass():
 
         if not filters:
             ## if none specified, use all filters
-            filters = self.phot.data.keys()
+            filters = self.data.keys()
 
         w = np.array([])
-        for i, f in enumerate(Filters):
-            w = np.append(w, np.where(phottable["filter"] == f))
+        for i, f in enumerate(filters):
+            w = np.append(w, np.where(self.phot["filter"] == f))
         if verbose: print(w)
 
-        save_table = self.phot[w.astype(int)]
+        save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
         save_table['MJD'].format = "5.5f"
         save_table['flux'].format = "5.5e"
         save_table['flux_err'].format = "5.5e"
@@ -774,18 +779,23 @@ class BaseLightCurveClass():
             else:
                 StringWarning(path)
 
-            outpath = os.path.join(path, filename)
-
             check_dir_path(path)
 
+            outpath = os.path.join(path, filename)
+
+            if verbose: print(outpath)
+            if not filters:
+                ## if none specified, use all filters
+                filters = self.data.keys()
+
             if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                warnings.warn("Found existing file matching " + outpath + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", overwrite = True)
             else:
                     print("Writing " + outpath)
-                    self._phot_format_for_save().write(outpath, format = "ascii.fast_commented_header")
+                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header")
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -1335,7 +1345,7 @@ class LCfitClass(BaseLightCurveClass):
             self.phot['flux_lower'] = phot_table['flux'] - phot_table['flux_err']
 
         except:
-            raise StandardError
+            raise Exception
 
         pass
 
@@ -1406,7 +1416,7 @@ class LCfitClass(BaseLightCurveClass):
         pass
 
 
-    def get_fit_splines(self):
+    def get_fit_splines(self, verbose = False):
         """
 
         Parameters
@@ -1421,7 +1431,7 @@ class LCfitClass(BaseLightCurveClass):
 
             for i, filter_key in enumerate(self.data):
                 try:
-                    print(filter_key)
+                    if verbose: print(filter_key)
                     self.spline[filter_key] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux"])
                     self.spline[filter_key+"_err"] = InterpolatedUnivariateSpline(self.data[filter_key]["MJD"], self.data[filter_key]["flux_err"])
                 except:
@@ -3153,9 +3163,30 @@ def specfit_sn(snname):
     lcfit.unpack()
     lcfit._sort_phot()
     lcfit.get_fit_splines()
-    ## Need to make new recon lc files for mangling - no overlaps
 
+    ## Need to make new recon lc files for mangling - no overlaps
+    # lcfit.
+    manglefilters = [i for i in lcfit.filter_names]
+
+    if "BessellR" and "SDSS_r" in manglefilters:
+        ## Only use SDSS_r - less hassle
+        manglefilters.remove("BessellR")
+    if "BessellI" and "SDSS_i" in manglefilters:
+        ## Only use SDSS_r - less hassle
+        manglefilters.remove("BessellI")
+
+    filename = snname + "_m.dat"
+    outpath = lcfit.recon_directory
+
+    lcfit.save(filename, path = outpath, filters = manglefilters, squash = True)
+
+    # lcfit.
     ## Need to change the listfile to one that has snname matches the new lc file
+    listpath = os.path.join(_default_coco_dir_path, "lists", snname + ".list")
+
+    origlist = read_list_file(listpath)
+    origlist.rename_column('snname', 'snname_nomangle')
+    origlist["snname"] = [j+"_m" for j in origlist["snname_nomangle"]]
 
     ## Need to call run_specfit with path of new list file
 
