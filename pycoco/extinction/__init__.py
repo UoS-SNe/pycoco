@@ -14,6 +14,7 @@ def extinction_law(a, b, Rv = 3.1):
 
     return a_lam_aV
 
+
 def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
     """ x = 1 / lambda """
 
@@ -58,14 +59,17 @@ def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
 
     return {'a': a, 'b': b, 'x': pass_x}
 
+
 def angstrom_to_inv_micron(wavl):
     wavl_m = wavl*1e-10
     wavl_mu = wavl_m/1e-6
     inv_micron = 1./wavl_mu
     return inv_micron
 
+
 def inv_micron_to_angstrom(x):
     return 10000./x
+
 
 def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
     """
@@ -92,6 +96,7 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
     funred = flux * np.power(10.,(0.4 * A_lambda))
 
     return funred
+
 
 def ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, return_frac = True):
     """
