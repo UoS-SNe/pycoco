@@ -24,6 +24,7 @@ except NameError:
 import os
 import warnings
 import unittest
+import subprocess
 # import httplib ## use http.client on python3 - not using at the mo
 # from urlparse import urlparse
 import re
@@ -144,6 +145,9 @@ _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pa
 _default_filter_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/filters/"))
 _default_coco_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR))
 _default_recon_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "recon/"))
+_default_specphase_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "spectra/"))
+_default_sn_dist_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sndist.list"))
+_default_lcsim_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sim/"))
 
 # _colormap_name = 'jet'
 _colourmap_name = 'rainbow'
@@ -732,6 +736,7 @@ class BaseLightCurveClass():
             warnings.warn("Cant find self.data")
 
         pass
+
 
     def _phot_format_for_save(self, filters = False, verbose = False):
         """
@@ -1612,6 +1617,7 @@ class SNClass():
         """
         ## Initialise
         self.spec = OrderedDict()
+        self.mangledspec = OrderedDict()
         # self.spec = SpectrumClass()
         self.phot = PhotometryClass()
 
@@ -1753,11 +1759,58 @@ class SNClass():
         pass
 
 
+    def load_mangledspec(self, snname = False, spec_dir_path = False, verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if not snname:
+            snname = self.name
+
+        self._mangledspeclist = find_recon_spec(snname)
+        self.mangledspec = OrderedDict()
+
+        if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
+            for i, spec_filename in enumerate(self._mangledspeclist):
+
+                self.mangledspec[spec_filename] = SpectrumClass()
+
+                self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
+                                              verbose = verbose)
+
+                orig_specpath = self.mangledspec[spec_filename].data.meta['comments']
+                orig_specname = orig_specpath
+                w = np.where(self.list["spec_path"] == orig_specpath)
+
+                self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
+                self.mangledspec[spec_filename].data.add_index('wavelength')
+        #
+        else:
+            warnings.warn("no coco or no listfile")
+        pass
+
+
+    def load_sndist(self):
+
+        if hasattr(self, "name"):
+            sndist = load_sndist(self.name)
+            self.z = sndist["z"].data[0]
+            self.distmod = sndist["mu"].data[0]
+        else:
+            if verbose: print("self.name not defined.")
+
+        pass
+
+
     def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
-                savepng = False, savepdf = False, outpath = False,
+                savepng = False, savepdf = False, outpath = False, plotsnname = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -1902,7 +1955,8 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-
+            if plotsnname:
+                if verbose: print(self.snname)
             if savepdf and outpath:
                 fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
             if savepng and outpath:
@@ -1988,6 +2042,118 @@ class SNClass():
                         txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                                        horizontalalignment = 'right', verticalalignment = 'center')
                         # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
+                    j = j + 1
+                else:
+                    if verbose: print("Not enough data to normalise")
+            if legend:
+
+                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                                      numpoints = 1, frameon = False, fontsize = 12)
+
+            ax1.set_ylim(minplotydata - 0.5, maxplotydata + 0.5)
+            ax1.set_xlim(1250, maxplotxdata*1.02)
+
+            if verbose: print(minplotydata, maxplotydata)
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Flux, Arbitrary}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.set_yticklabels('')
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            if savepdf and outpath:
+                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+            if savepng and outpath:
+                fig.savefig(outpath + ".png", format = 'png', dpi=500)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def plot_mangledspec(self, xminorticks = 250, legend = True,
+                  wmin = 3500,
+                  savepng = False, savepdf = False, outpath = False,
+                  verbose = False, add_mjd = True,
+                  *args, **kwargs):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self, "mangledspec"):
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 10])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            cmap_indices = np.linspace(0,1, len(self.spec))
+
+            j = 0
+            for i, spec_key in enumerate(self.mangledspec):
+                # if verbose: print(self.spec[spec_key].data.__dict__)
+
+                plot_label_string = r'$\rm{' + self.mangledspec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
+
+                v_eff = 5436.87 ##Angstrom
+                w = np.logical_and(self.mangledspec[spec_key].data['wavelength'] > (v_eff-100.),self.mangledspec[spec_key].data['wavelength'] < v_eff+100.)
+
+                if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.mangledspec[spec_key].data['wavelength']), len(self.mangledspec[spec_key].data['flux']), len(self.mangledspec[spec_key].flux))
+                if len(w[np.where(w == True)]) > 0:
+
+                    if verbose: print(len(w), 'Foo')
+
+                    flux_norm = self.mangledspec[spec_key].flux / np.nanmean(self.mangledspec[spec_key].flux[w])
+
+                    ax1.plot(self.mangledspec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
+                                 label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                                 *args, **kwargs)
+
+                    maxspecxdata = np.nanmax(self.mangledspec[spec_key].data['wavelength'])
+                    minspecxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
+
+                    w = np.where(self.mangledspec[spec_key].data['wavelength'] >=  maxspecxdata - 200)
+                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                    w = np.where(self.mangledspec[spec_key].data['wavelength'] <=  minspecxdata + 200)
+                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                    if verbose: print(yatminspecxdata)
+                    # if i == 0:
+                    if j == 0:
+                        maxplotydata = np.nanmax(flux_norm - 0.5*j)
+                        # minplotydata = np.nanmin(flux_norm - 0.5*j)
+                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
+
+
+                        maxplotxdata = maxspecxdata
+                        minplotxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
+                    else:
+                        maxplotydata = np.nanmax(np.append(maxplotydata, np.append(yatminspecxdata, yatminspecxdata)))
+                        # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
+                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
+                        maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.mangledspec[spec_key].data['wavelength'])))
+                        minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.mangledspec[spec_key].data['wavelength'])))
+                    if add_mjd:
+                        # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
+                        # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
+                        #                horizontalalignment = 'right', verticalalignment = 'center')
+                        txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
+                                       horizontalalignment = 'right', verticalalignment = 'center')
+                        # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
                     j = j + 1
                 else:
                     if verbose: print("Not enough data to normalise")
@@ -2720,7 +2886,7 @@ def find_phot(path = _default_data_dir_path, snname = False,
     return phot_list
 
 
-def find_recon_spec(dir_path, snname, verbose = False):
+def find_recon_spec(snname, dir_path = _default_recon_dir_path, verbose = False):
     """
 
     Parameters
@@ -2743,6 +2909,47 @@ def find_recon_spec(dir_path, snname, verbose = False):
         ## The last 18 chars are for the MJD and file_type
         wsn = np.where([i[:-18] == snname for i in spec_list])
         snmatch_list = spec_list[wsn]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False
+
+
+def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
+    StringWarning(dir_path)
+    if not check_dir_path(dir_path):
+        return False
+
+    try:
+        ls = np.array(os.listdir(dir_path))
+
+        # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+        # spec_list = ls[wspec]
+        speclist = [i for i in ls if i[-5:] == ".spec"]
+        ## The last 18 chars are for the MJD and file_type
+        # wsn = np.where([i[:-18] == snname for i in spec_list])
+        # snmatch_list = spec_list[wsn]
+        snmatch_list = [i for i in speclist if i[:len(snname)] == snname ]
 
         if verbose:
             print("Found: ")
@@ -2890,102 +3097,102 @@ def compare_spec(orig_spec, specfit,
         pass
 
 
-def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/BessellB-stats.dat'):
-    verbose = False
-    fitparams = None
-    j = None
-    stat = None
-    modenumber = 0
-    modes = OrderedDict()
-
-    del j
-    del stat
-    del fitparams
-
-    # stats_path = '/Users/berto/Code/CoCo/chains/SN2006aj/B-stats.dat'
-
-
-    stat =  OrderedDict()
-    nparams = 8
-
-    key_string = 'Params'
-
-    ifile = open(stats_path, 'r')
-
-    for i, line in enumerate(ifile):
-        if line != '\n':
-            if verbose: print(i, line)
-            if line[:17] == "Total Modes Found":
-                nmodes = int(line.split()[-1])
-
-            if line[:4] == "Mode":
-                modenumber = modenumber + 1
-                fitparams = OrderedDict()
-            if line[:8] == 'Strictly':
-                try:
-                    stat["SLLE"] = np.float64(line.split()[3])
-                    stat["SLLE_err"] = np.float64(line.split()[5])
-                except:
-                    if verbose: print("NOPE1")
-                if verbose: print("BAR")
-            if line[:9] == "Local Log":
-                try:
-                    stat["LLE"] = np.float64(line.split()[2])
-                    stat["LLE_err"] = np.float64(line.split()[4])
-                except:
-                    if verbose: print("NOPE2")
-                if verbose: print("SPAM")
-
-            if line[:3] == "MAP":
-                key_string = key_string + "-MAP"
-                fitparams = OrderedDict()
-
-            if line[:7] == "Maximum":
-                key_string = key_string + "-ML"
-                fitparams = OrderedDict()
-
-            if line[:7] == 'Dim No.':
-                j = i + nparams+1
-                if verbose: print("FOO")
-                try:
-                    fitparams["Dim No."] = np.array([])
-                    fitparams["Mean"] = np.array([])
-                    if len(line.split()) > 2:
-                        fitparams["Sigma"] = np.array([])
-                except:
-                    if verbose: print("NOPE3")
-            try:
-                if verbose: print(i, j)
-                if i<j and line[:7] != 'Dim No.' :
-
-                    if verbose: print("READ")
-                    if verbose: print(len(line.split()) ,line.split())
-                    fitparams["Dim No."] = np.append(fitparams["Dim No."], int(line.split()[0]))
-                    fitparams["Mean"] = np.append(fitparams["Mean"], np.float64(line.split()[1]))
-                    if len(line.split()) > 2:
-                        if verbose: print("GT 2")
-                        if verbose: print(np.float64(line.split()[2]))
-                        fitparams["Sigma"] = np.append(fitparams["Sigma"], np.float64(line.split()[2]))
-                        if verbose: print("fitparams sigma", fitparams["Sigma"])
-                if i > j:
-    #                 print("SAVE")
-                    if verbose: print("SAVE")
-                    if verbose: print(key_string)
-                    stat[key_string] = fitparams
-
-                    if key_string[-3:] ==  "MAP":
-                        modes["Mode"+str(modenumber)] = stat
-                    key_string = 'Params'
-
-            except:
-                if verbose: print("NOPE4")
-                pass
-    #         if line
-
-    ifile.close()
-    print(nmodes)
-    print(stat.keys())
-    return modes
+# def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/BessellB-stats.dat'):
+#     verbose = False
+#     fitparams = None
+#     j = None
+#     stat = None
+#     modenumber = 0
+#     modes = OrderedDict()
+#
+#     del j
+#     del stat
+#     del fitparams
+#
+#     # stats_path = '/Users/berto/Code/CoCo/chains/SN2006aj/B-stats.dat'
+#
+#
+#     stat =  OrderedDict()
+#     nparams = 8
+#
+#     key_string = 'Params'
+#
+#     ifile = open(stats_path, 'r')
+#
+#     for i, line in enumerate(ifile):
+#         if line != '\n':
+#             if verbose: print(i, line)
+#             if line[:17] == "Total Modes Found":
+#                 nmodes = int(line.split()[-1])
+#
+#             if line[:4] == "Mode":
+#                 modenumber = modenumber + 1
+#                 fitparams = OrderedDict()
+#             if line[:8] == 'Strictly':
+#                 try:
+#                     stat["SLLE"] = np.float64(line.split()[3])
+#                     stat["SLLE_err"] = np.float64(line.split()[5])
+#                 except:
+#                     if verbose: print("NOPE1")
+#                 if verbose: print("BAR")
+#             if line[:9] == "Local Log":
+#                 try:
+#                     stat["LLE"] = np.float64(line.split()[2])
+#                     stat["LLE_err"] = np.float64(line.split()[4])
+#                 except:
+#                     if verbose: print("NOPE2")
+#                 if verbose: print("SPAM")
+#
+#             if line[:3] == "MAP":
+#                 key_string = key_string + "-MAP"
+#                 fitparams = OrderedDict()
+#
+#             if line[:7] == "Maximum":
+#                 key_string = key_string + "-ML"
+#                 fitparams = OrderedDict()
+#
+#             if line[:7] == 'Dim No.':
+#                 j = i + nparams+1
+#                 if verbose: print("FOO")
+#                 try:
+#                     fitparams["Dim No."] = np.array([])
+#                     fitparams["Mean"] = np.array([])
+#                     if len(line.split()) > 2:
+#                         fitparams["Sigma"] = np.array([])
+#                 except:
+#                     if verbose: print("NOPE3")
+#             try:
+#                 if verbose: print(i, j)
+#                 if i<j and line[:7] != 'Dim No.' :
+#
+#                     if verbose: print("READ")
+#                     if verbose: print(len(line.split()) ,line.split())
+#                     fitparams["Dim No."] = np.append(fitparams["Dim No."], int(line.split()[0]))
+#                     fitparams["Mean"] = np.append(fitparams["Mean"], np.float64(line.split()[1]))
+#                     if len(line.split()) > 2:
+#                         if verbose: print("GT 2")
+#                         if verbose: print(np.float64(line.split()[2]))
+#                         fitparams["Sigma"] = np.append(fitparams["Sigma"], np.float64(line.split()[2]))
+#                         if verbose: print("fitparams sigma", fitparams["Sigma"])
+#                 if i > j:
+#     #                 print("SAVE")
+#                     if verbose: print("SAVE")
+#                     if verbose: print(key_string)
+#                     stat[key_string] = fitparams
+#
+#                     if key_string[-3:] ==  "MAP":
+#                         modes["Mode"+str(modenumber)] = stat
+#                     key_string = 'Params'
+#
+#             except:
+#                 if verbose: print("NOPE4")
+#                 pass
+#     #         if line
+#
+#     ifile.close()
+#     print(nmodes)
+#     print(stat.keys())
+#     return modes
 
 
 def filter_within_spec(filter_obj, spec_obj):
@@ -3013,6 +3220,66 @@ def filter_within_spec(filter_obj, spec_obj):
     except:
         raise StandardError
 
+
+def list_lcfits(verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    fits_in_recon = [i for i in os.listdir(_default_recon_dir_path) if i[-4:] == ".dat"]
+    if verbose: print(fits_in_recon)
+    return fits_in_recon
+
+
+def list_lcs(verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    lcs_in_data_dir = [i for i in os.listdir(os.path.join(_default_data_dir_path, "lc")) if i[-4:] == ".dat"]
+    if verbose: print(lcs_in_data_dir)
+    return lcs_in_data_dir
+
+
+def read_sndist_file(path = _default_sn_dist_path, format = "ascii"):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    check_file_path(path)
+    table = Table.read(path, format = format)
+    return table
+
+
+def load_sndist(snname, *args, **kwargs):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    sndistlist = read_sndist_file(*args, **kwargs)
+
+    try:
+        w = np.where(sndistlist["snname"] == snname)
+        row = sndistlist[w]
+    except:
+        warnings.warn("Failed to find distance info for " + snname + ". is it in the list?")
+    return row
 
 ##------------------------------------##
 ## CoCo Functions                     ##
@@ -3125,7 +3392,7 @@ def test_specfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_specfit(path):
+def run_specfit(path, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path
 
@@ -3143,12 +3410,15 @@ def run_specfit(path):
     pass
 
 
-def specfit_sn(snname):
+def specfit_sn(snname, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path.
 
     Parameters
     ----------
+
+    snname -
+
     Returns
     -------
 
@@ -3190,13 +3460,16 @@ def specfit_sn(snname):
 
     newlistpath = os.path.join(_default_coco_dir_path, "lists", snname + "_m.list")
     newlist = origlist["spec_path", "snname", "mjd_obs", "z"]
-    newlist.write(newlistpath, format = "ascii.fast_commented_header", overwrite = True)
+    # newlist.write(newlistpath, format = "ascii.fast_commented_header", overwrite = True)
+    newlist.write(newlistpath, format = "ascii.fast_commented_header")
+
 
     ## Need to call run_specfit with path of new list file
 
-
+    run_specfit(newlistpath)
 
     pass
+
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##

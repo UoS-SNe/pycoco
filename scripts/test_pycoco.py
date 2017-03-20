@@ -27,6 +27,9 @@ class TestClass(unittest.TestCase):
     Class for testing pycoco
     """
 
+    def test_environment_variables_exist:
+        os.environ["COCO_ROOT_DIR"]
+
     # def test_SNClass_get_data_dir_returns_default(self):
     #     x = pcc.SNClass()
     #     self.assertEqual(x._get_data_directory(), pcc._default_data_dir_path)

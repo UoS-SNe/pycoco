@@ -1,5 +1,9 @@
 """
-Based on Blanton et al. 2007: 2007AJ....133..734B
+
+author: Rob Firth, Southampton
+date: 01-2017
+
+'offset' Based on Blanton et al. 2007: 2007AJ....133..734B
 The UBRVI filters are those of Bessell (1990). The ugriz filters are those
 determined by M. Doi, D. Eisenstein, and J. Gunn and are available on the
 SDSS DR4 Web site ( http://www.sdss.org/dr4/ ). The JHKs filters are those from
