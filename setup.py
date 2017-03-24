@@ -8,6 +8,8 @@ packageDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           packageName)
 versionFile = os.path.join(packageDir, 'version.py')
 
+
+
 with open(versionFile, 'r') as f:
       s = f.read()
 
@@ -22,8 +24,13 @@ setup(# package information
       description='Python tools for the CoCo templates',
       long_description=''' ''',
       # What code to include as packages
-      packages=[packageName],
+      packages=[packageName,
+                packageName+".extinction",
+                packageName+".kcorr",
+                packageName+".sims",
+                packageName+".utils",
+                ],
       package_dir={packageName:'pycoco'}
-      
+
       # What data to include as packages
       )
