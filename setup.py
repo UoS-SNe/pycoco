@@ -1,4 +1,8 @@
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
 import sys
 import os
 import re
@@ -19,19 +23,19 @@ versionRegExp = re.compile("__version__ = \"(.*?)\"")
 # Assign to __version__
 __version__ =  versionRegExp.findall(s)[0]
 
-## Compile list of data files to be moved to .local
-data_files = [("lc", [ os.path.join(packageDir, "data/lc", i) for i in os.listdir(os.path.join(packageDir, "data/lc"))] ),
-              ("filters", [ os.path.join(packageDir, "data/filters", i) for i in os.listdir(os.path.join(packageDir, "data/filters"))] )
-             ]
-
-for i in os.listdir(os.path.join(packageDir, "data/spec")):
-    path = os.path.join("spec/", i)
-    datalist = []
-    for j in os.listdir(os.path.join(packageDir, "data/", path)):
-        datalist.append(os.path.join(packageDir, "data", path, j))
-
-    datatuple = (path, datalist)
-    data_files.append(datatuple)
+## Compile list of data files to be installed
+# data_files = [("lc", [ os.path.join(packageDir, "data/lc", i) for i in os.listdir(os.path.join(packageDir, "data/lc"))] ),
+#               ("filters", [ os.path.join(packageDir, "data/filters", i) for i in os.listdir(os.path.join(packageDir, "data/filters"))] )
+#              ]
+#
+# for i in os.listdir(os.path.join(packageDir, "data/spec")):
+#     path = os.path.join("spec/", i)
+#     datalist = []
+#     for j in os.listdir(os.path.join(packageDir, "data/", path)):
+#         datalist.append(os.path.join(packageDir, "data", path, j))
+#
+#     datatuple = (path, datalist)
+#     data_files.append(datatuple)
 
 
 setup(# package information
@@ -46,7 +50,7 @@ setup(# package information
                 packageName+".sims",
                 packageName+".utils",
                 ],
-      package_dir={packageName:'pycoco'},
-
-      data_files = data_files
+      package_dir={packageName:'pycoco'}#,
+    #   include_package_data = True,
+    #   data_files = data_files
       )
