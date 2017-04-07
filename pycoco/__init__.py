@@ -905,7 +905,7 @@ class PhotometryClass(BaseLightCurveClass):
             ## Sort the OrderedDict
             self._sort_phot()
         except:
-            raise StandardError
+            raise Exception
 
 
     def _load_formatted_phot(self, path, format = "ascii", names = False,
@@ -1129,6 +1129,8 @@ class PhotometryClass(BaseLightCurveClass):
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
+
+            ax1.spines['top'].set_visible(True)
 
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
@@ -1771,7 +1773,8 @@ class SNClass():
         if not snname:
             snname = self.name
 
-        self._mangledspeclist = find_recon_spec(snname)
+        # self._mangledspeclist = find_recon_spec(snname)
+        self._mangledspeclist = find_specphase_spec(self.name)
         self.mangledspec = OrderedDict()
 
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
@@ -1893,7 +1896,10 @@ class SNClass():
 
                         ax1.set_xticklabels('')
 
+                    ax1.spines['top'].set_visible(True)
+
                     xminorLocator = MultipleLocator(xminorticks)
+
                     ax1.xaxis.set_minor_locator(xminorLocator)
 
                     if mark_spectra:
@@ -2548,6 +2554,8 @@ class FilterClass():
                              color = hex['batman'], zorder = 0, )
                 except:
                     print("Failed")
+
+            ax1.spines['top'].set_visible(True)
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
@@ -3280,6 +3288,7 @@ def load_sndist(snname, *args, **kwargs):
     except:
         warnings.warn("Failed to find distance info for " + snname + ". is it in the list?")
     return row
+
 
 ##------------------------------------##
 ## CoCo Functions                     ##
