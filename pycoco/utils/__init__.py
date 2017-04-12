@@ -11,8 +11,9 @@ from __future__ import print_function
 import os
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
+from astropy.table import Table
 
-__all__ = ["relist"]
+__all__ = ["relist", "load_coords"]
 
 
 def _get_filters():
@@ -35,6 +36,7 @@ def _get_filters():
             file_list.remove(filter_file)
 
     return array(file_list)
+
 
 def _check_filters():
     """
@@ -68,6 +70,7 @@ def make_list_dot_txt():
     savetxt(outpath, new_list, fmt = "%s")
     pass
 
+
 def relist(force = False):
     """
     Parameters
@@ -81,3 +84,12 @@ def relist(force = False):
     else:
         print("current list.txt is up to date. re run with force = True to force.")
     pass
+
+
+def load_coords(filename = "sncoordinates.list"):
+    """
+
+    """
+    path = os.path.abspath(os.path.join(pcc.__file__, os.path.pardir, filename))
+    coordtable = Table.read(path, format = 'ascii.commented_header')
+    return coordtable
