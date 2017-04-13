@@ -89,6 +89,13 @@ hex['BessellR'] = hex['r']
 hex['BessellI'] = hex['i']
 hex['BessellZ'] = hex['z']
 
+hex['LSST_u'] = '#3498db'
+hex['LSST_g'] = '#00ff00'
+hex['LSST_r'] = '#ff0000'
+hex['LSST_i'] = '#fd00ff'
+hex['LSST_z'] = '#660066'
+hex['LSST_y'] = '#000000'
+
 ## Random Others
 hex['white'] = '#FFFFFF'
 
