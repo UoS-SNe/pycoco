@@ -1,7 +1,7 @@
 # verbose-enigma
 ___
 
-#v0.5.3#
+## v0.6.0
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -26,6 +26,31 @@ ___
  * Adding tools for calculating magnitude offsets to make it easier to import new data
 
  * regeneration of filter list file now possible
+
+ * added colours and bandpasses for LSST filters
+
+ * Less dependence on environment variables
+
+ * installation through `setup.py` now possible
+
+ * better handing of CoCo sim outputs
+
+___
+
+
+To install, run:
+
+```
+git clone https://github.com/RobFirth/verbose-enigma.git```
+
+then:
+
+```
+cd verbose-enigma
+python setup.py install --user
+```
+
+_NOTE: make sure that the python used to install is the one that you will use with pycoco_
 ___
 
 Ideally set the following environment variables:
@@ -36,11 +61,22 @@ Ideally set the following environment variables:
 
 also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
 
- `setenv PATH /Users/berto/Code/pycoco/:$PATH`
- `setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH`
+ ```
+ setenv PATH /Users/berto/Code/pycoco/:$PATH
+ setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH
+ ```
 
 ___
 
-for `sfdmap`, the environment variable `SFD_DIR` needs to point at the path to the parent directory of the appropriate dust map files. See the installation instructions here: https://github.com/kbarbary/sfdmap
+# Requirements
 
+* matplotlib
+* numpy
+* scipy
+* astropy
+* sfdmap (https://github.com/kbarbary/sfdmap)
+___
+
+
+for `sfdmap`, the environment variable `SFD_DIR` needs to point at the path to the parent directory of the appropriate dust map files. See the installation instructions here: https://github.com/kbarbary/sfdmap
 ___  
