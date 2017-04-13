@@ -681,24 +681,25 @@ class BaseLightCurveClass():
         pass
 
 
-    # def load_table(self, phot_table, verbose = True):
-    #     """
-    #     Loads a single photometry table.
-    #
-    #     Parameters
-    #     ----------
-    #     Returns
-    #     -------
-    #     """
-    #     StringWarning(path)
-    #     try:
-    #         self.phot = phot_table
-    #         self.unpack()
-    #
-    #         ## Sort the OrderedDict
-    #         self._sort_phot()
-    #     except:
-    #         raise StandardError
+    def load_table(self, phot_table, verbose = True):
+        """
+        Loads a single photometry table.
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        # StringWarning(path)
+        try:
+            self.phot = phot_table
+            self.unpack()
+
+            ## Sort the OrderedDict
+            self._sort_phot()
+        except:
+            raise StandardError
+
 
     def load_phot_dict(self, data_dict):
         """
