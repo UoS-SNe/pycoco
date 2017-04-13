@@ -40,3 +40,7 @@ also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
  `setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH`
 
 ___
+
+for `sfdmap`, the environment variable `SFD_DIR` needs to point at the path to the parent directory of the appropriate dust map files. See the installation instructions here: https://github.com/kbarbary/sfdmap
+
+___  
