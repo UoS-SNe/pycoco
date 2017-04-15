@@ -980,7 +980,7 @@ class PhotometryClass(BaseLightCurveClass):
             if not path:
                 path = self._default_data_dir_path
             ## Find matching photometry
-            phot_list = find_phot(path = path, snname = snname, prefix = prefix,
+            phot_list = find_filter_phot(path = path, snname = snname, prefix = prefix,
                               file_type = file_type, verbose = verbose)
 
             full_phot_table = Table()
@@ -2819,7 +2819,7 @@ def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = Tru
     #         " is not a valid directory. Returning 'False'.")
     # except:
     #     raise PathError("The data directory '" + path + "' doesn't exist.")
-    phot_list = find_phot(path = path)
+    phot_list = find_filter_phot(path = path)
 
     if len(phot_list) > 0:
         # phot_table = Table()

@@ -37,21 +37,36 @@ class TestClass(unittest.TestCase):
     def test_load_all_phot_returns_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
-    def test_find_phot_finds_SN2005bf(self):
+    def test_find_filter_phot_finds_5_SN2005bf(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
-        phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")[0]
+        phot_path = pcc.find_filter_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")
+        # phot_filename = phot_path.split('/')[-1]
+        # self.assertEqual(phot_filename, 'SN2005bf.dat')
+        self.assertEqual(len(phot_path), 5)
+
+    def test_find_formatted_phot_finds_SN2005bf(self):
+        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
+        phot_path = pcc.find_formatted_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, 'SN2005bf.dat')
 
-    def test_find_phot_finds_no_SN2011fe_data(self):
+    def test_find_filter_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
-        self.assertEqual(len(pcc.find_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
+        self.assertEqual(len(pcc.find_filter_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
-    def test_find_phot_throws_path_error_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.find_phot, None)
+
+    def test_find_formatted_phot_finds_no_SN2011fe_data(self):
+        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
+        self.assertEqual(len(pcc.find_formatted_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
+
+    def test_find_formatted_phot_throws_path_error_for_None(self):
+        self.assertRaises(pcc.PathError, pcc.find_formatted_phot, None)
+
+    def test_find_formatted_phot_throws_path_error_for_None(self):
+        self.assertRaises(pcc.PathError, pcc.find_formatted_phot, None)
 
     def test_find_phot_returns_False_for_zoidberg(self):
-        self.assertEqual(pcc.find_phot('Zoidberg!'), False)
+        self.assertEqual(pcc.find_filter_phot('Zoidberg!'), False)
 
     def test_check_dir_path_finds_pycoco_dir(self):
         self.assertEqual(pcc.check_dir_path(pcc._default_data_dir_path), True)
