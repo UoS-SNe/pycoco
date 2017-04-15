@@ -27,8 +27,8 @@ class TestClass(unittest.TestCase):
     Class for testing pycoco
     """
 
-    def test_environment_variables_exist:
-        os.environ["COCO_ROOT_DIR"]
+    def test_environment_variables_exist(self):
+        self.assertTrue("COCO_ROOT_DIR" in os.environ)
 
     # def test_SNClass_get_data_dir_returns_default(self):
     #     x = pcc.SNClass()
@@ -37,11 +37,11 @@ class TestClass(unittest.TestCase):
     def test_load_all_phot_returns_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
-    def test_find_phot_finds_SN2005bf_B(self):
+    def test_find_phot_finds_SN2005bf(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
-        phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False)[0]
+        phot_path = pcc.find_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")[0]
         phot_filename = phot_path.split('/')[-1]
-        self.assertEqual(phot_filename, 'SN2005bf_B.dat')
+        self.assertEqual(phot_filename, 'SN2005bf.dat')
 
     def test_find_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
@@ -62,8 +62,8 @@ class TestClass(unittest.TestCase):
     def test_check_dir_path_returns_False_for_file(self):
         self.assertEqual(pcc.check_dir_path(__file__), False)
 
-    def test_check_file_path_finds_SN2005bf_B(self):
-        self.assertEqual(pcc.check_file_path(os.path.join(pcc._default_data_dir_path, 'lc/SN2005bf_B.dat')), True)
+    def test_check_file_path_finds_SN2005bf(self):
+        self.assertEqual(pcc.check_file_path(os.path.join(pcc._default_data_dir_path, 'lc/SN2005bf.dat')), True)
 
     def test_check_file_path_raises_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.check_file_path, None)

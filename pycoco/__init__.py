@@ -2834,7 +2834,7 @@ def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = Tru
         warning.warn("Couldn't find any photometry")
 
 
-def find_phot(path = _default_data_dir_path, snname = False,
+def find_filter_phot(path = _default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
@@ -2886,6 +2886,7 @@ def find_phot(path = _default_data_dir_path, snname = False,
         warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
 
     if verbose:
+        print("searching for", match_string)
         print("Found: ")
         print(ls)
         print("Matched:")
@@ -2894,6 +2895,69 @@ def find_phot(path = _default_data_dir_path, snname = False,
         warnings.warn("No matches found.")
     return phot_list
 
+def find_formatted_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
+    """
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SNname.
+
+    Originally did something else - this is a bit hacky.
+    Parameters
+    ----------
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    -------
+
+    phot_list :
+
+    """
+    # regex = re.compile("^SN.*.dat")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        return False
+
+    try:
+        if snname:
+            match_string = str(snname) + file_type
+        else:
+            warnings.warn("No SN name given")
+            return 0
+    except:
+        raise TypeError
+    #
+    # regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+    if verbose: print(ls)
+    # phot_list = [os.path.abspath(os.path.join(path, match.group(0))) for file_name in ls for match in [regex.search(file_name)] if match]
+    phot_list = [os.path.abspath(os.path.join(path, file_name)) for file_name in ls if file_name == match_string]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        # phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
+
+    if verbose:
+        print("searching for", match_string)
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+    return phot_list
 
 def find_recon_spec(snname, dir_path = _default_recon_dir_path, verbose = False):
     """
