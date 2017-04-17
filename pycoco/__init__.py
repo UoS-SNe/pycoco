@@ -45,6 +45,7 @@ from scipy.interpolate import interp1d as interp1d
 from .extinction import *
 from .colours import *
 from .utils import *
+from .errors import *
 # from .offsets
 
 warnings.resetwarnings()
@@ -161,56 +162,6 @@ spec_colourmap = plt.get_cmap(_spec_colourmap_name)
 
 _colour_upper_lambda_limit = 11000 * u.angstrom
 _colour_lower_lambda_limit = 3500 * u.angstrom
-
-##------------------------------------##
-##  ERROR DEFS                        ##
-##------------------------------------##
-
-
-class CustomValueError(ValueError):
-    """
-    Raise when....
-    """
-    def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
-
-
-class PathError(Exception):
-    """
-    Raise when a path is found to be invalid
-    """
-    def __init__(self, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
-
-
-class FilterMismatchError(ValueError):
-    """
-    Raise when a Filter from filename doesn't match the one in the photfile
-    """
-    def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
-
-
-class TableReadError(ValueError):
-    """
-    Raise when something goes wrong with the table I/O
-    """
-    def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
-
-
-def StringWarning(path):
-    """
-
-    """
-    if type(path) is not str and type(path) is not np.string_:
-        warnings.warn("WARNING: You passed something that was " + str(type(path)) + "This might go wrong.",
-                      stacklevel = 2)
-
-    else:
-        pass
-
-
 
 ##----------------------------------------------------------------------------##
 ##  Classes                                                                   ##

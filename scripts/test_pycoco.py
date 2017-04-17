@@ -54,7 +54,6 @@ class TestClass(unittest.TestCase):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
         self.assertEqual(len(pcc.find_filter_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
-
     def test_find_formatted_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
         self.assertEqual(len(pcc.find_formatted_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
@@ -93,7 +92,6 @@ class TestClass(unittest.TestCase):
     def test_PhotometryClass_get_data_dir_returns_default(self):
         x = pcc.PhotometryClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc._default_data_dir_path))
-
 
     # BaseSpectrumClass
 
