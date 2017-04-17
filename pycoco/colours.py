@@ -2,6 +2,11 @@
 Module Docstring
 """
 import collections
+
+__all__ = ["_colourmap_name", "rgb", "rgb255", "triplet", "hex"]
+
+_colourmap_name = 'plasma'
+
 hex = collections.OrderedDict()
 ## from flatuicolors.com
 hex['midnightblue'] =       '#2c3e50'

@@ -2,6 +2,8 @@
 
 """
 
+__all__ = ["test_LCfit", "run_LCfit", "test_specfit", "run_specfit", "specfit_sn"]
+
 ##------------------------------------##
 ## CoCo Functions                     ##
 ##------------------------------------##
