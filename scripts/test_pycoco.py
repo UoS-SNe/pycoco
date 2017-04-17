@@ -64,8 +64,9 @@ class TestClass(unittest.TestCase):
     def test_find_formatted_phot_throws_path_error_for_None(self):
         self.assertRaises(pcc.PathError, pcc.find_formatted_phot, None)
 
-    def test_find_phot_returns_False_for_zoidberg(self):
-        self.assertEqual(pcc.find_filter_phot('Zoidberg!'), False)
+    def test_find_phot_returns_PathError_for_zoidberg(self):
+        # self.assertEqual(pcc.find_filter_phot('Zoidberg!'), False)
+        self.assertRaises(pcc.PathError, pcc.find_filter_phot, "Zoidberg!")
 
     def test_check_dir_path_finds_pycoco_dir(self):
         self.assertEqual(pcc.check_dir_path(pcc._default_data_dir_path), True)
@@ -73,8 +74,9 @@ class TestClass(unittest.TestCase):
     def test_check_dir_path_raises_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.check_dir_path, None)
 
-    def test_check_dir_path_returns_False_for_file(self):
-        self.assertEqual(pcc.check_dir_path(__file__), False)
+    def test_check_dir_path_returns_PathError_for_file(self):
+        # self.assertEqual(pcc.check_dir_path(__file__), False)
+        self.assertRaises(pcc.PathError, pcc.check_dir_path, __file__)
 
     def test_check_file_path_finds_SN2005bf(self):
         self.assertEqual(pcc.check_file_path(os.path.join(pcc._default_data_dir_path, 'lc/SN2005bf.dat')), True)
@@ -83,7 +85,8 @@ class TestClass(unittest.TestCase):
         self.assertRaises(pcc.PathError, pcc.check_file_path, None)
 
     def test_check_file_path_returns_False_for_dir(self):
-        self.assertEqual(pcc.check_file_path(pcc._default_data_dir_path), False)
+        # self.assertEqual(pcc.check_file_path(pcc._default_data_dir_path), False)
+        self.assertRaises(pcc.PathError, pcc.check_file_path, pcc._default_data_dir_path)
 
     ## CLASS TESTS ##
 

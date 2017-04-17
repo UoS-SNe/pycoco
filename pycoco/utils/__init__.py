@@ -12,8 +12,11 @@ import os
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
 from astropy.table import Table
+from ..defaults import *
+from ..utils import *
+from ..errors import *
 
-__all__ = ["relist", "load_coords"]
+__all__ = ["relist", "load_coords", "check_dir_path", "check_file_path"]
 
 
 def _get_filters():
@@ -24,7 +27,7 @@ def _get_filters():
     Returns
     -------
     """
-    filter_dir = pcc._get_filter_directory()
+    filter_dir = _get_filter_directory()
     file_list = os.listdir(filter_dir)
 
     for filter_file in file_list:
@@ -46,7 +49,7 @@ def _check_filters():
     Returns
     -------
     """
-    filter_dir = pcc._get_filter_directory()
+    filter_dir = _get_filter_directory()
     path = os.path.join(filter_dir, "list.txt")
 
     current_arr = loadtxt(path, dtype = str)
@@ -64,7 +67,7 @@ def make_list_dot_txt():
     Returns
     -------
     """
-    filter_dir = pcc._get_filter_directory()
+    filter_dir = _get_filter_directory()
     outpath = os.path.join(filter_dir, "list.txt")
     new_list = _get_filters()
     savetxt(outpath, new_list, fmt = "%s")
@@ -90,6 +93,44 @@ def load_coords(filename = "sncoordinates.list"):
     """
 
     """
-    path = os.path.abspath(os.path.join(pcc.__file__, os.path.pardir, filename))
+    path = os.path.abspath(os.path.join(__file__, os.path.pardir, filename))
     coordtable = Table.read(path, format = 'ascii.commented_header')
     return coordtable
+
+
+def check_dir_path(path, verbose = False):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    try:
+        if os.path.isdir(os.path.abspath(path)):
+            if verbose: print("foo")
+            return True
+        else:
+        #     if verbose: print("bar")
+            warnings.warn(os.path.abspath(path) +
+            " is not a valid directory. Returning 'False'.")
+            return False
+    except:
+        raise PathError("The path '" + str(path) + "'is not a directory or doesn't exist.")
+        return False
+
+
+def check_file_path(path, verbose = False):
+    """
+
+    """
+    try:
+        if os.path.isfile(os.path.abspath(str(path))):
+            if verbose: print("bar")
+            return True
+        else:
+            warnings.warn(os.path.abspath(path) +
+            " is not a valid file. Returning 'False'.")
+            return False
+    except:
+        raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+        return False
