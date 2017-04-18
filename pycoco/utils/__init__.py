@@ -12,8 +12,9 @@ import os
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
 from astropy.table import Table
+
 from ..defaults import *
-from ..utils import *
+# from ..functions import *
 from ..errors import *
 
 __all__ = ["relist", "load_coords", "check_dir_path", "check_file_path"]

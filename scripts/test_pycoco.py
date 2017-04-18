@@ -74,7 +74,7 @@ class TestClass(unittest.TestCase):
     def test_check_dir_path_raises_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.check_dir_path, None)
 
-    def test_check_dir_path_returns_PathError_for_file(self):
+    def test_check_dir_path_raises_PathError_for_file(self):
         # self.assertEqual(pcc.check_dir_path(__file__), False)
         self.assertRaises(pcc.PathError, pcc.check_dir_path, __file__)
 
@@ -84,7 +84,7 @@ class TestClass(unittest.TestCase):
     def test_check_file_path_raises_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.check_file_path, None)
 
-    def test_check_file_path_returns_False_for_dir(self):
+    def test_check_file_path_raises_PathError_for_dir(self):
         # self.assertEqual(pcc.check_file_path(pcc._default_data_dir_path), False)
         self.assertRaises(pcc.PathError, pcc.check_file_path, pcc._default_data_dir_path)
 
@@ -149,6 +149,25 @@ class TestClass(unittest.TestCase):
         B = pcc.load_filter(path_to_filter)
         self.assertEqual(round(float(B._upper_edge), 2), 5203.28)
         self.assertEqual(round(float(B._lower_edge), 2), 3784.99)
+
+    def test_filter_LSST_filters_load(self):
+        LSST_filter_list = ["LSST_u",
+                            "LSST_g",
+                            "LSST_r",
+                            "LSST_i",
+                            "LSST_z",
+                            "LSST_y"]
+        success = []
+
+        for LSST_filter_name in LSST_filter_list:
+            path_to_filter = os.path.join(os.path.abspath(pcc._default_filter_dir_path), LSST_filter_name + ".dat")
+            try:
+                F = pcc.load_filter(path_to_filter)
+                success.append(1)
+            except:
+                success.append(0)
+
+        self.assertEqual(sum(success), 6)
 
     ##
 
