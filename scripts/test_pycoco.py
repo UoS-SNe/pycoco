@@ -96,6 +96,8 @@ class TestClass(unittest.TestCase):
         x = pcc.PhotometryClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc._default_data_dir_path))
 
+    # def LOAD FROM FILE
+
     # BaseSpectrumClass
 
     def test_BaseSpectrumClass_get_list_dir_returns_default(self):

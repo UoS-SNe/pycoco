@@ -6,6 +6,11 @@ import os
 import warnings
 import re
 
+from matplotlib import pyplot as plt
+from astropy.table import Table
+from astropy.time import Time
+from astropy import units as u
+
 from .defaults import *
 from .errors import *
 from .filters import FilterClass
@@ -56,18 +61,18 @@ def get_filter_from_filename(path, snname, file_type):
     return filter_string
 
 
-def _get_filter_directory():
-    """
-    Get the defaul path to the filter directory.
-
-    Looks for the filter directory set as environment variable
-    $PYCOCO_FILTER_DIR. if not found, returns default.
-
-    returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-             default datalocation: '../testdata/'.
-    """
-
-    return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
+# def _get_filter_directory():
+#     """
+#     Get the default path to the filter directory.
+#
+#     Looks for the filter directory set as environment variable
+#     $PYCOCO_FILTER_DIR. if not found, returns default.
+#
+#     returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+#              default datalocation: '../testdata/'.
+#     """
+#
+#     return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
 
 
 def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),

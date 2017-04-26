@@ -20,6 +20,19 @@ from ..errors import *
 __all__ = ["relist", "load_coords", "check_dir_path", "check_file_path"]
 
 
+def _get_filter_directory():
+    """
+    Get the default path to the filter directory.
+
+    Looks for the filter directory set as environment variable
+    $PYCOCO_FILTER_DIR. if not found, returns default.
+
+    returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
+             default datalocation: '../testdata/'.
+    """
+
+    return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
+    
 def _get_filters():
     """
     Parameters

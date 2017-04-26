@@ -577,6 +577,8 @@ class BaseLightCurveClass():
             for filter_name in filter_names:
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
+                if verbose: print(filter_filename)
+
                 phot_table.meta = {"filter_filename": filter_filename}
 
                 if verbose: print(phot_table)
@@ -618,7 +620,7 @@ class BaseLightCurveClass():
             ## Sort the OrderedDict
             self._sort_phot()
         except:
-            raise StandardError
+            raise Exception
 
 
     def load_phot_dict(self, data_dict):
@@ -684,6 +686,7 @@ class BaseLightCurveClass():
         save_table['flux_err'].format = "5.5e"
 
         return save_table
+
 
     def save(self, filename, filters = False, path = False,
              squash = False, verbose = True, *args, **kwargs):
@@ -859,7 +862,7 @@ class PhotometryClass(BaseLightCurveClass):
     def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
                   format = 'ascii', verbose = True):
         """
-
+        For single filter data
         """
         StringWarning(path)
         try:
@@ -869,7 +872,7 @@ class PhotometryClass(BaseLightCurveClass):
             ## Sort the OrderedDict
             self._sort_phot()
         except:
-            raise StandardError
+            raise Exception
 
         pass
 
