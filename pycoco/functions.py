@@ -350,7 +350,7 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
 
         # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
         # spec_list = ls[wspec]
-        speclist = [i for i in ls if i[-5:] == ".spec"]
+        spec_list = [i for i in ls if i[-5:] == ".spec"]
         ## The last 18 chars are for the MJD and file_type
         # wsn = np.where([i[:-18] == snname for i in spec_list])
         # snmatch_list = spec_list[wsn]

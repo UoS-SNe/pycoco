@@ -172,7 +172,8 @@ class TestClass(unittest.TestCase):
         self.assertEqual(sum(success), 6)
 
     ##
-
+    ## TEST FIND SPECPHASE SPEC
+    ###
 
 if __name__ is '__main__':
 

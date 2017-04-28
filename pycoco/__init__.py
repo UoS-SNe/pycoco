@@ -1019,8 +1019,8 @@ class PhotometryClass(BaseLightCurveClass):
             setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.93,
+                                right = 0.96, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
 
@@ -1038,9 +1038,10 @@ class PhotometryClass(BaseLightCurveClass):
 
             if legend:
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                #                       numpoints = 1, frameon = False, fontsize = 12)
+                plot_legend = ax1.legend(loc = 1, scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
-
             ## Use ap table groups instead? - can't; no support for mixin columns.
             if enforce_zero:
                 ax1.set_ylim(0., np.nanmax(self.phot['flux']))
@@ -2584,6 +2585,16 @@ class info():
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
         self.distmod = self.table["mu"]
+        self.ra = self.table["RA"]
+        self.dec = self.table["Dec"]
+
+    def get_sn_info(self, snname):
+        try:
+            w = np.where(self.snname == snname)
+        except:
+            print("foo")
+
+        return self.table[w]
 
 
 

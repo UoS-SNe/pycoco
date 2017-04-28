@@ -8,6 +8,7 @@ date: 28-02-2016
 
 from __future__ import print_function
 
+import sys
 import os
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
@@ -32,6 +33,7 @@ def _get_filter_directory():
     """
 
     return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
+
 
 def _get_filters():
     """
@@ -148,6 +150,11 @@ def check_file_path(path, verbose = False):
     except:
         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
         return False
+
+
+def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
+                             names = ('MJD', 'flux', 'flux_err', 'filter')):
+    return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
 if sys.version_info < (3,):
     def b(x):
