@@ -1733,7 +1733,7 @@ class SNClass():
         pass
 
 
-    def plot_lc(self, filters = False, legend = True, xminorticks = 5, mark_spectra = True,
+    def plot_lc(self, filters = False, legend = True, xminorticks = 10, mark_spectra = True,
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
@@ -1763,8 +1763,8 @@ class SNClass():
             else:
                 fig = plt.figure(figsize=[8, len(filters)*1.5])
 
-            fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+            fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.93,
+                                right = 0.91, hspace=0, wspace = 0)
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
             yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
@@ -1783,6 +1783,7 @@ class SNClass():
                 if filter_key in self.phot.data:
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
                     plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
+
                     if filter_key in hex.keys():
                         self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
 
@@ -1813,17 +1814,15 @@ class SNClass():
                                               fontsize = 12.)
 
                     if i == len(axes_list)-1:
-
                         ax1.set_xlabel(xaxis_label_string)
 
                     else:
+                        if multiplot:
+                            ax1.set_xticklabels('')
 
-                        ax1.set_xticklabels('')
-
-                    ax1.spines['top'].set_visible(True)
 
                     xminorLocator = MultipleLocator(xminorticks)
-
+                    ax1.spines['top'].set_visible(True)
                     ax1.xaxis.set_minor_locator(xminorLocator)
 
                     if mark_spectra:
@@ -2574,6 +2573,19 @@ class FilterClass():
                 self.calculate_plot_colour(verbose = verbose)
 
         pass
+
+
+class info():
+    def __init__(self):
+        pass
+
+    def load(self, path = "/Users/berto/Code/verbose-enigma/testdata/info/info.dat"):
+        self.table = Table.read(tablepath, format = "ascii.commented_header")
+        self.snname = self.table["snname"]
+        self.z_obs = self.table["z_obs"]
+        self.distmod = self.table["mu"]
+
+
 
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
