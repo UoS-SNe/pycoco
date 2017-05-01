@@ -19,7 +19,8 @@ __all__ = ["_default_data_dir_path",
            "_spec_colourmap_name",
            "spec_colourmap",
            "_colour_upper_lambda_limit",
-           "_colour_lower_lambda_limit"]
+           "_colour_lower_lambda_limit",
+           "_default_info_path"]
 
 ## Important variables
 
@@ -32,6 +33,7 @@ _default_recon_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "recon/"))
 _default_specphase_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "spectra/"))
 _default_sn_dist_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sndist.list"))
 _default_lcsim_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sim/"))
+_default_info_path = os.path.abspath(os.path.join(_default_data_dir_path, "info/info.dat"))
 
 # _colormap_name = 'jet'
 # _colourmap_name = 'rainbow'

@@ -96,6 +96,15 @@ class TestClass(unittest.TestCase):
     def test_find_specphase_spec_returns_16_for_SN2006aj(self):
         self.assertTrue(len(pcc.find_specphase_spec("SN2006aj")) == 18)
 
+    def test_load_info_finds_and_loads_default(self):
+        i = pcc.load_info()
+        self.assertTrue(i.table.meta["success"])
+
+    def test_load_info_finds_default(self):
+        i = pcc.load_info()
+        self.assertEqual(len(i.table), 28)
+
+
     ## CLASS TESTS ##
     # PhotometryClass
 

@@ -16,6 +16,7 @@ from .defaults import *
 from .errors import *
 from .filters import FilterClass
 from .utils import *
+from .classes import *
 
 # from .filters import FilterClass
 # from .
@@ -693,3 +694,14 @@ def load_sndist(snname, *args, **kwargs):
     except:
         warnings.warn("Failed to find distance info for " + snname + ". is it in the list?")
     return row
+
+
+def load_info(path = _default_info_path, verbose = True):
+    """
+
+    """
+    if verbose: print(path)
+    i = InfoClass()
+    i.load(path)
+
+    return i
