@@ -10,6 +10,7 @@ from __future__ import print_function
 
 import sys
 import os
+import warnings
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
 from astropy.table import Table
@@ -125,6 +126,9 @@ def check_dir_path(path, verbose = False):
         if os.path.isdir(os.path.abspath(path)):
             if verbose: print("foo")
             return True
+        elif os.path.isfile(os.path.abspath(path)):
+            if verbose: print("is file")
+            raise PathError
         else:
         #     if verbose: print("bar")
             warnings.warn(os.path.abspath(path) +
@@ -143,6 +147,10 @@ def check_file_path(path, verbose = False):
         if os.path.isfile(os.path.abspath(str(path))):
             if verbose: print("bar")
             return True
+
+        elif os.path.isdir(os.path.abspath(path)):
+            if verbose: print("is dir")
+            raise PathError
         else:
             warnings.warn(os.path.abspath(path) +
             " is not a valid file. Returning 'False'.")

@@ -5,6 +5,7 @@
 import os
 import warnings
 import re
+import numpy as np
 
 from matplotlib import pyplot as plt
 from astropy.table import Table
@@ -195,7 +196,9 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
 
     StringWarning(path)
     if not check_dir_path(path):
-        return False
+        # return False
+        raise PathError
+
 
     try:
         if snname:
@@ -340,9 +343,14 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
     Returns
     -------
     """
-
+    if verbose: print(dir_path)
     StringWarning(dir_path)
+    StringWarning(snname)
+    if type(snname) is not str and type(snname) is not np.string_:
+        raise(PathError)
+
     if not check_dir_path(dir_path):
+        print("check_dir_path failed")
         return False
 
     try:
@@ -354,7 +362,7 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
         ## The last 18 chars are for the MJD and file_type
         # wsn = np.where([i[:-18] == snname for i in spec_list])
         # snmatch_list = spec_list[wsn]
-        snmatch_list = [i for i in speclist if i[:len(snname)] == snname ]
+        snmatch_list = [i for i in spec_list if i[:len(snname)] == snname ]
 
         if verbose:
             print("Found: ")

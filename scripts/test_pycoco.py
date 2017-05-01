@@ -85,11 +85,18 @@ class TestClass(unittest.TestCase):
         self.assertRaises(pcc.PathError, pcc.check_file_path, None)
 
     def test_check_file_path_raises_PathError_for_dir(self):
-        # self.assertEqual(pcc.check_file_path(pcc._default_data_dir_path), False)
         self.assertRaises(pcc.PathError, pcc.check_file_path, pcc._default_data_dir_path)
 
-    ## CLASS TESTS ##
+    def test_find_specphase_spec_raises_PathError_for_None(self):
+        self.assertRaises(pcc.PathError, pcc.find_specphase_spec, None)
 
+    def test_find_specphase_spec_returns_empty_array_for_zoidberg(self):
+        self.assertEqual(pcc.find_specphase_spec("Zoidberg"), [])
+
+    def test_find_specphase_spec_returns_16_for_SN2006aj(self):
+        self.assertTrue(len(pcc.find_specphase_spec("SN2006aj")) == 18)
+
+    ## CLASS TESTS ##
     # PhotometryClass
 
     def test_PhotometryClass_get_data_dir_returns_default(self):
@@ -171,8 +178,6 @@ class TestClass(unittest.TestCase):
 
         self.assertEqual(sum(success), 6)
 
-    ##
-    ## TEST FIND SPECPHASE SPEC
     ###
 
 if __name__ is '__main__':

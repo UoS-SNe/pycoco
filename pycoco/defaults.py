@@ -14,8 +14,10 @@ __all__ = ["_default_data_dir_path",
            "_default_recon_dir_path",
            "_default_specphase_dir_path",
            "_default_sn_dist_path",
+           "_default_lcsim_path",
            "_colourmap_name",
            "_spec_colourmap_name",
+           "spec_colourmap",
            "_colour_upper_lambda_limit",
            "_colour_lower_lambda_limit"]
 
