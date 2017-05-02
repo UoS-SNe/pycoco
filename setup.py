@@ -45,10 +45,15 @@ setup(# package information
       long_description=''' ''',
       # What code to include as packages
       packages=[packageName,
+                packageName+".classes",
+                packageName+".colours",
+                packageName+".defaults",
                 packageName+".extinction",
+                packageName+".errors",
+                packageName+".functions",
                 packageName+".kcorr",
                 packageName+".sims",
-                packageName+".utils",
+                packageName+".utils"
                 ],
       package_dir={packageName:'pycoco'}#,
     #   include_package_data = True,
