@@ -14,12 +14,9 @@ from astropy import units as u
 
 from .defaults import *
 from .errors import *
-from .filters import FilterClass
 from .utils import *
 from .classes import *
 
-# from .filters import FilterClass
-# from .
 ##------------------------------------##
 ##  Functions                         ##
 ##------------------------------------##
