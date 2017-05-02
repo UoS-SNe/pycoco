@@ -12,7 +12,6 @@ from __future__ import print_function ## Force python3-like printing
 if __name__ is not '__main__':
 
     __name__ = 'pycoco'
-    # __version__ = "0.5.2"
 
 try:
     __file__
@@ -47,10 +46,11 @@ from .colours import *
 from .utils import *
 from .errors import *
 from .coco_calls import *
-# from .filters import *
+from .kcorr import *
 from .functions import *
 from .defaults import *
 from .classes import *
+
 
 if __name__ == "__main__":
     pass
