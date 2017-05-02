@@ -50,6 +50,8 @@ cd verbose-enigma
 python setup.py install --user
 ```
 
+(The --user argument only installs current user only, omitting flag will install for all users on the system if there are appropriate permissions) 
+
 _NOTE: make sure that the python used to install is the one that you will use with pycoco_
 ___
 

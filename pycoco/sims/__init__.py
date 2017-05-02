@@ -28,6 +28,7 @@ class SimClass(object):
         self.z = sim_z
         pass
 
+
     def sim_mjd_max(self, mjd_max):
         """
 
@@ -35,12 +36,14 @@ class SimClass(object):
         self.mjd_max = mjd_max
         pass
 
+
     def sim_epochs(self, mjd_to_sim):
         """
 
         """
         self.epochs = mjd_to_sim
         pass
+
 
     def sim_filters(self, filters_to_sim):
         """
