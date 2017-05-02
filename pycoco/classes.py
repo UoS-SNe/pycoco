@@ -30,7 +30,6 @@ from .colours import *
 from .utils import *
 from .errors import *
 from .coco_calls import *
-# from .filters import *
 from .functions import *
 from .defaults import *
 

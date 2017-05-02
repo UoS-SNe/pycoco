@@ -15,7 +15,8 @@ from __future__ import print_function
 from numpy import log10
 from scipy.integrate import simps
 
-import pycoco
+from ..classes import *
+from ..functions import *
 
 __all__ = ['offset', 'convert_AB_to_Vega', 'convert_Vega_to_AB']
 
@@ -64,14 +65,14 @@ def convert_AB_to_Vega():
 
 
 def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr/data/alpha_lyr_stis_002.dat"):
-    vega = pycoco.SpectrumClass()
+    vega = SpectrumClass()
     vega.load(path)
 
     return vega
 
 
 def load_AB(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr/data/AB_pseudospectrum.dat"):
-    vega = pycoco.SpectrumClass()
+    vega = SpectrumClass()
     vega.load(path)
 
     return vega
@@ -81,7 +82,7 @@ def calc_AB_flux(filter_name):
 
     AB = load_AB()
 
-    filter_object = pycoco.load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
     filter_object.resample_response(new_wavelength = AB.wavelength)
 
     transmitted_spec = filter_object.throughput * AB.flux
@@ -102,7 +103,7 @@ def calc_vega_flux(filter_name):
 
     vega = load_vega()
 
-    filter_object = pycoco.load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
     filter_object.resample_response(new_wavelength = vega.wavelength)
 
     transmitted_spec = filter_object.throughput * vega.flux
@@ -113,16 +114,22 @@ def calc_vega_flux(filter_name):
 
 
 def calc_vega_zp(filter_name, vega_Vmag = 0.03):
+    """
 
+    WHAT?!?
+
+    """
     integrated_V_flux = calc_vega_flux("BessellV")
     integrated_V_flux = calc_vega_flux("BessellV")
 
-    return -2.5 * log10(integrated_flux) - vega_Vmag
+    return -2.5 * log10(integrated_V_flux) - vega_Vmag
 
 
 def calc_vega_mag(filter_name):
-
-    zp = calc_vega_zp()
+    """
+    HUH?
+    """
+    zp = calc_vega_zp(filter_name)
     flux = calc_vega_flux(filter_name)
 
     mag = -2.5 * log10(flux) - zp
