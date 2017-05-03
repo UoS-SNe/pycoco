@@ -57,6 +57,23 @@ def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
             # a_i = 1. + 0.17699 - 0.50447 - 0.02427 + 0.72085 + 0.01979 - 0.77530 + 0.32999
             pass_x= np.append(pass_x, i[1])
 
+        ## Near-UV
+        if i[1] > 3.3 and i[1] <= 8.0:
+            if verbose: print('Near-UV')
+
+            if i[1] >= 5.9:
+                y = i[1] - 5.9
+                F_a_coefficients = np.array([0., 0., -0.04473, -0.009779])
+                # pass
+            # a_coefficients = [1.752, -0.0316, ]
+            a_x = 1.752 - 0.316*i[1] - 0.104/((i[1]-4.7)*(i[1]-4.7) + 0.341)
+            b_x = -3.090 + 1.825*i[1] + 1.206/((i[1] - 4.62)*(i[1] - 4.62) + 0.263)
+
+            a = np.append(a, a_x)
+            b = np.append(b, b_x)
+
+            pass_x= np.append(pass_x, i[1])
+
     return {'a': a, 'b': b, 'x': pass_x}
 
 
@@ -98,7 +115,7 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
     return funred
 
 
-def ccm(wave, wav_in_m = False, r_v = 3.1, EBV_MW = False, EBV_host = False, return_frac = True):
+def ccm(wave, wav_in_m = False, r_v = 3.1, EBV=0, return_frac = True):
     """
 
     """
