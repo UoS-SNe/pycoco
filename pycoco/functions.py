@@ -14,8 +14,8 @@ from astropy import units as u
 
 from .defaults import *
 from .errors import *
-from .utils import *
 from .classes import *
+from .utils import *
 
 
 ##

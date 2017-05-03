@@ -30,7 +30,7 @@ from .colours import *
 from .utils import *
 from .errors import *
 from .coco_calls import *
-from .functions import *
+# from .functions import *
 from .defaults import *
 
 warnings.resetwarnings()
@@ -858,7 +858,15 @@ class PhotometryClass(BaseLightCurveClass):
         """
         StringWarning(path)
         try:
-            phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+            # phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+                # phot_table = ap.table.Table.read(path, format = format, names = names)
+            phot_table = Table.read(path, format = format, names = names)
+
+            phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+
+            phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+            phot_table["flux_err"].unit =  phot_table["flux"].unit
+
             self.data[np.unique(phot_table["filter"])[0]] = phot_table
 
             ## Sort the OrderedDict
@@ -2579,7 +2587,7 @@ class InfoClass():
     def load(self, path = False):
         if not path:
             path = _default_info_path
-            
+
         self.table = Table.read(path, format = "ascii.commented_header")
         self.table.meta["success"] = True
         self.snname = self.table["snname"]
