@@ -30,8 +30,8 @@ from .colours import *
 from .utils import *
 from .errors import *
 from .coco_calls import *
-# from .functions import *
 from .defaults import *
+# from .functions import *
 
 warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
@@ -584,7 +584,17 @@ class BaseLightCurveClass():
                     raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
-                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
+                # def load_filter(path, cmap = False, verbose = False):
+                #
+                if check_file_path(os.path.abspath(path_to_filter)):
+                    filter_object = FilterClass()
+                    filter_object.read_filter_file(os.path.abspath(path_to_filter), verbose = verbose)
+
+                else:
+                    warnings.warn("Couldn't load the filter")
+
+                self.data_filters[filter_key] = filter_object
+
                 self.data[filter_name] = sorted_phot_table
 
             self.filter_names = filter_names

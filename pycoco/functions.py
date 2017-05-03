@@ -32,8 +32,8 @@ __all__ = ["load_filter",
            "find_formatted_phot",
            "find_recon_spec",
            "find_specphase_spec",
-           "setup_plot_defaults",
-           "read_list_file",
+        #    "setup_plot_defaults",
+        #    "read_list_file",
            "load_specfit",
            "compare_spec",
            "filter_within_spec",
@@ -427,37 +427,37 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
 #     return check_url_status(url) < 400
 
 
-def setup_plot_defaults():
-    """
+# def setup_plot_defaults():
+#     """
+#
+#     """
+#
+#     plt.rcParams['ps.useafm'] = True
+#     plt.rcParams['pdf.use14corefonts'] = True
+#     plt.rcParams['text.usetex'] = True
+#     plt.rcParams['font.size'] = 14
+#     plt.rcParams['figure.subplot.hspace'] = 0.1
+#     plt.rc('font', family='sans-serif')
+#     plt.rc('font', serif='Helvetica')
+#     pass
 
-    """
 
-    plt.rcParams['ps.useafm'] = True
-    plt.rcParams['pdf.use14corefonts'] = True
-    plt.rcParams['text.usetex'] = True
-    plt.rcParams['font.size'] = 14
-    plt.rcParams['figure.subplot.hspace'] = 0.1
-    plt.rc('font', family='sans-serif')
-    plt.rc('font', serif='Helvetica')
-    pass
-
-
-def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
-    """
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-    check_file_path(path)
-    #
-    # ifile = open(path, 'r')
-    #
-    # for line in ifile:
-    #     if verbose: print(line.strip('\n'))
-    # ifile.close()
-    data = Table.read(path, names = names, format = 'ascii')
-    return data
+# def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#     check_file_path(path)
+#     #
+#     # ifile = open(path, 'r')
+#     #
+#     # for line in ifile:
+#     #     if verbose: print(line.strip('\n'))
+#     # ifile.close()
+#     data = Table.read(path, names = names, format = 'ascii')
+#     return data
 
 
 def load_specfit(path):
