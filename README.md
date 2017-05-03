@@ -1,7 +1,7 @@
 # verbose-enigma
 ___
 
-## v0.6.0
+## v0.6.2
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
