@@ -12,8 +12,6 @@ packageDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           packageName)
 versionFile = os.path.join(packageDir, 'version.py')
 
-
-
 with open(versionFile, 'r') as f:
       s = f.read()
 
