@@ -16,7 +16,7 @@ from .defaults import *
 from .errors import *
 from .utils import *
 from .classes import *
-from .classes import FilterClass ## Unsure why this is needed - TODO
+
 
 ##
 #
@@ -41,7 +41,7 @@ __all__ = ["load_filter",
            "list_lcs",
            "read_sndist_file",
            "load_sndist",
-           "load_info",]
+           "load_info"]
 
 ##------------------------------------##
 ##  Functions                         ##
