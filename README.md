@@ -1,7 +1,7 @@
-# verbose-enigma
+# pycoco
 ___
 
-## v0.6.0
+## v0.6.2
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -41,7 +41,8 @@ ___
 To install, run:
 
 ```
-git clone https://github.com/RobFirth/verbose-enigma.git```
+git clone https://github.com/RobFirth/verbose-enigma.git
+```
 
 then:
 
@@ -50,7 +51,7 @@ cd verbose-enigma
 python setup.py install --user
 ```
 
-(The --user argument only installs current user only, omitting flag will install for all users on the system if there are appropriate permissions) 
+(The --user argument only installs current user only, omitting flag will install for all users on the system if there are appropriate permissions)
 
 _NOTE: make sure that the python used to install is the one that you will use with pycoco_
 ___
@@ -65,6 +66,7 @@ also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
 
  ```
  setenv PATH /Users/berto/Code/pycoco/:$PATH
+
  setenv PYTHONPATH "/Users/berto/Code/pycoco/:$PYTHONPATH
  ```
 

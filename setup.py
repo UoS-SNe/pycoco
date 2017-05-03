@@ -35,24 +35,25 @@ __version__ =  versionRegExp.findall(s)[0]
 #     datatuple = (path, datalist)
 #     data_files.append(datatuple)
 
-
 setup(# package information
       name=packageName,
       version=__version__,
       description='Python tools for the CoCo templates',
       long_description=''' ''',
       # What code to include as packages
-      packages=[packageName,
-                packageName+".classes",
-                packageName+".colours",
-                packageName+".defaults",
-                packageName+".extinction",
-                packageName+".errors",
-                packageName+".functions",
-                packageName+".kcorr",
-                packageName+".sims",
-                packageName+".utils"
-                ],
+    #   packages=[packageName,
+    #             packageName+".classes",
+    #             packageName+".colours",
+    #             packageName+".defaults",
+    #             packageName+".extinction",
+    #             packageName+".errors",
+    #             packageName+".functions",
+    #             packageName+".kcorr",
+    #             packageName+".sims",
+    #             packageName+".utils"
+    #             ],
+          packages=[packageName,
+                    ],
       package_dir={packageName:'pycoco'}#,
     #   include_package_data = True,
     #   data_files = data_files

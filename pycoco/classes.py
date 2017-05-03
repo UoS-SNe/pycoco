@@ -2576,7 +2576,10 @@ class InfoClass():
     def __init__(self):
         pass
 
-    def load(self, path = "/Users/berto/Code/verbose-enigma/testdata/info/info.dat"):
+    def load(self, path = False):
+        if not path:
+            path = _default_info_path
+            
         self.table = Table.read(path, format = "ascii.commented_header")
         self.table.meta["success"] = True
         self.snname = self.table["snname"]
