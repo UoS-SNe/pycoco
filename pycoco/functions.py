@@ -16,7 +16,7 @@ from .defaults import *
 from .errors import *
 from .utils import *
 from .classes import *
-
+from .classes import FilterClass ## Unsure why this is needed - TODO
 
 ##
 #

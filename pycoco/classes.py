@@ -44,7 +44,7 @@ __all__ = ["BaseSpectrumClass",
            "specfitClass",
            "SNClass",
            "FilterClass",
-           "InfoClass"]
+           "InfoClass",]
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
