@@ -2592,7 +2592,7 @@ class FilterClass():
             self.zp_AB = calc_AB_zp(filter_name)
             self.zp_vega = calc_vega_zp(filter_name)
         else:
-            warnings.warn("No filter name - ")
+            warnings.warn("No filter name - have you loaded in a bandpass?")
 
 class InfoClass():
     """
