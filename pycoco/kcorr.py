@@ -19,8 +19,8 @@ from .classes import *
 from .functions import *
 
 __all__ = ["offset",
-            "convert_AB_to_Vega",
-            "convert_Vega_to_AB",
+            # "convert_AB_to_Vega",
+            # "convert_Vega_to_AB",
             "calc_AB_zp",
             "calc_vega_zp"]
 
@@ -128,7 +128,7 @@ def calc_vega_flux(filter_name, filter_object = False,):
 
     if not filter_object:
         filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
-    else if hasattr(filter_object, "wavelength"):
+    # else if hasattr(filter_object, "wavelength"):
 
     filter_object.resample_response(new_wavelength = vega.wavelength)
 
@@ -143,6 +143,10 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     """
+
+    if not filter_object:
+        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+
     integrated_flux = calc_vega_flux(filter_name)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
 
