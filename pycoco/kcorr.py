@@ -18,7 +18,11 @@ from scipy.integrate import simps
 from .classes import *
 from .functions import *
 
-__all__ = ['offset', 'convert_AB_to_Vega', 'convert_Vega_to_AB']
+__all__ = ["offset",
+            "convert_AB_to_Vega",
+            "convert_Vega_to_AB",
+            "calc_AB_zp",
+            "calc_vega_zp"]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
@@ -42,29 +46,32 @@ offset = {
     "0:1z" : 0.46,
 }
 
-def convert_Vega_to_AB(phot_table, filters = False):
-    """
-    Parameters
-    ----------
-    Returns
-    -------
-    """
+# def convert_Vega_to_AB(phot_table, filters = False):
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     return phot_table
+#
 
-    return phot_table
-
-
-def convert_AB_to_Vega():
-    """
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-
-    return phot_table
+# def convert_AB_to_Vega():
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     return phot_table
 
 
 def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/alpha_lyr_stis_002.dat"):
+    """
+    returns spectrum of Vega as a SpectrumClass instance
+    """
     vega = SpectrumClass()
     vega.load(path)
 
@@ -72,10 +79,19 @@ def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/alpha_l
 
 
 def load_AB(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/AB_pseudospectrum.dat"):
+    """
+    returns 'spectrum' as a SpectrumClass instance
+    """
     vega = SpectrumClass()
     vega.load(path)
 
     return vega
+
+
+def calc_filter_area(filter_name):
+    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_area = simps(filter_object.throughput, filter_object.wavelength)
+    return filter_area
 
 
 def calc_AB_flux(filter_name):
@@ -92,18 +108,28 @@ def calc_AB_flux(filter_name):
     return integrated_flux
 
 
-def calc_AB_zp():
+def calc_AB_zp(filter_name):
+    """
 
-    integrated_flux = calc_AB_flux("BessellV")
+    """
 
-    return -2.5 * log10(integrated_flux)
+    integrated_flux = calc_AB_flux(filter_name)
+    area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
+
+    return -2.5 * log10(area_corr_integrated_flux)
 
 
-def calc_vega_flux(filter_name):
+def calc_vega_flux(filter_name, filter_object = False,):
+    """
+
+    """
 
     vega = load_vega()
 
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    if not filter_object:
+        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    else if hasattr(filter_object, "wavelength"):
+
     filter_object.resample_response(new_wavelength = vega.wavelength)
 
     transmitted_spec = filter_object.throughput * vega.flux
@@ -113,42 +139,29 @@ def calc_vega_flux(filter_name):
     return integrated_flux
 
 
-def calc_vega_zp(filter_name, vega_Vmag = 0.03):
-    """
-
-    WHAT?!?
-
-    """
-    integrated_V_flux = calc_vega_flux("BessellV")
-    integrated_V_flux = calc_vega_flux("BessellV")
-
-    return -2.5 * log10(integrated_V_flux) - vega_Vmag
-
-
-def calc_vega_mag(filter_name):
-    """
-    HUH?
-    """
-    zp = calc_vega_zp(filter_name)
-    flux = calc_vega_flux(filter_name)
-
-    mag = -2.5 * log10(flux) - zp
-    return mag
-
-# def calc_ve
-
-def calc_offset_AB_minus_Vega(filter_name, vega_Vmag = 0.03):
+def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     """
+    integrated_flux = calc_vega_flux(filter_name)
+    area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
 
-    integrated_Vega_flux = calc_vega_flux(filter_name)
-    integrated_AB_flux = calc_AB_flux(filter_name)
+    # return -2.5 * log10(integrated_V_flux) - vega_Vmag
+    return -2.5 * log10(area_corr_integrated_flux)
 
-    AB  = -2.5*log10(integrated_AB_flux)
-    Vega = -2.5*log10(integrated_Vega_flux) - vega_Vmag
 
-    return AB - Vega
+# def calc_vega_mag(filter_name):
+#     """
+#
+#     """
+#     zp = calc_vega_zp(filter_name)
+#     flux = calc_vega_flux(filter_name)
+#
+#     mag = -2.5 * log10(flux) - zp
+#     return mag
+
+
+
 
 def convert_f_nu_to_f_lambda():
     pass

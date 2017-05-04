@@ -2,8 +2,9 @@ The files in this dir contain fluxes for Vega in f_lambda
 units.  The wavelengths are usually in Angstroms,
 but not always.
 
-alpha_lyr_stis_002.fits is the STIS spectrum
- from Bohlin & Gilliland, 2004, AJ, 127, 3508
+alpha_lyr_stis_002.fits is the STIS spectrum from Bohlin & Gilliland, 2004, AJ, 127, 3508
+(http://iopscience.iop.org/article/10.1086/420715/meta)
+claimed units ergs s^-1 cm^-2 AA^-1
 
 AB_pseudospectrum.dat is f_nu = 3.63078e-20 erg s^-1 cm^-2 Hz^-1 converted to
 f_lambda units erg s^-1 cm^-2 AA^-1

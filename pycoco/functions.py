@@ -25,7 +25,7 @@ from .utils import *
 __all__ = ["load_filter",
            "get_filter_from_filename",
            "load_phot",
-           "load_formatted_phot",
+        #    "load_formatted_phot",
            "load",
            "load_all_phot",
            "find_filter_phot",
@@ -124,32 +124,32 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
     return phot_table
 
-
-def load_formatted_phot(path, format = "ascii", names = False,
-                        verbose = True):
-    """
-    Loads a single photometry file.
-
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-
-    StringWarning(path)
-
-    if names:
-        phot_table = Table.read(path, format = format, names = names)
-    else:
-        phot_table = Table.read(path, format = format)
-
-    phot_table.meta = {"filename" : path}
-
-    phot_table["MJD"].unit = u.day
-    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
-    phot_table["flux_err"].unit =  phot_table["flux"].unit
-
-    return phot_table
+# 
+# def load_formatted_phot(path, format = "ascii", names = False,
+#                         verbose = True):
+#     """
+#     Loads a single photometry file.
+#
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     StringWarning(path)
+#
+#     if names:
+#         phot_table = Table.read(path, format = format, names = names)
+#     else:
+#         phot_table = Table.read(path, format = format)
+#
+#     phot_table.meta = {"filename" : path}
+#
+#     phot_table["MJD"].unit = u.day
+#     phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+#     phot_table["flux_err"].unit =  phot_table["flux"].unit
+#
+#     return phot_table
 
 
 def load(path, format = "ascii", verbose = True):

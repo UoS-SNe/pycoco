@@ -16,10 +16,9 @@ from numpy import loadtxt, savetxt, array, array_equal
 import matplotlib.pyplot as plt
 
 from astropy.table import Table
-
+from astropy import units as u
 
 from .defaults import *
-# from ..functions import *
 from .errors import *
 
 __all__ = ["setup_plot_defaults",
@@ -27,8 +26,8 @@ __all__ = ["setup_plot_defaults",
             "load_coords",
             "check_dir_path",
             "check_file_path",
-            "read_list_file"]
-
+            "read_list_file",
+            "load_formatted_phot"]
 
 
 def _get_filter_directory():
@@ -201,6 +200,32 @@ def setup_plot_defaults():
     plt.rc('font', serif='Helvetica')
     pass
 
+
+def load_formatted_phot(path, format = "ascii", names = False,
+                        verbose = True):
+    """
+    Loads a single photometry file.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    StringWarning(path)
+
+    if names:
+        phot_table = Table.read(path, format = format, names = names)
+    else:
+        phot_table = Table.read(path, format = format)
+
+    phot_table.meta = {"filename" : path}
+
+    phot_table["MJD"].unit = u.day
+    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+    phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+    return phot_table
 
 if sys.version_info < (3,):
     def b(x):

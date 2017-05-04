@@ -31,6 +31,7 @@ from .utils import *
 from .errors import *
 from .coco_calls import *
 from .defaults import *
+from .kcorr import *
 # from .functions import *
 
 warnings.resetwarnings()
@@ -2585,6 +2586,13 @@ class FilterClass():
 
         pass
 
+
+    def get_zeropoint(self):
+        if hasattr(self, "filter_name"):
+            self.zp_AB = calc_AB_zp(filter_name)
+            self.zp_vega = calc_vega_zp(filter_name)
+        else:
+            warnings.warn("No filter name - ")
 
 class InfoClass():
     """
