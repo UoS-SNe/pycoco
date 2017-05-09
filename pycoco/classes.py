@@ -112,7 +112,7 @@ def dummy_function(verbose = True, *args, **kwargs):
             warnings.warn( "You didn't pass any *args", RuntimeWarning)
 
         if kwargs:
-            for key, value in kwargs.iteritems():
+            for key, value in kwargs.items():
                 print('a **kwarg: ', repr(key), ' == ' , repr(value))
         else:
             warnings.warn( "You didn't pass any **kwargs", RuntimeWarning)
@@ -571,10 +571,11 @@ class BaseLightCurveClass():
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
-
-                phot_table.meta = {"filter_filename": filter_filename}
-
                 if verbose: print(phot_table)
+
+                # phot_table.meta = {"filter_filename": filter_filename}
+                phot_table.meta["filter_filename"] = filter_filename
+
                 indices = phot_table.argsort("MJD")
                 # for column_name in phot_table.colnames:
                 #     phot_table[column_name] = phot_table[column_name][indices]
@@ -1058,6 +1059,9 @@ class PhotometryClass(BaseLightCurveClass):
                 ax1.set_ylim(0., np.nanmax(self.phot['flux']))
             else:
                 ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+
+            if kwargs and "xlim" in kwargs:
+                ax1.set_xlim(xlim)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
