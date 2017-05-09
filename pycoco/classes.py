@@ -32,7 +32,7 @@ from .errors import *
 from .coco_calls import *
 from .defaults import *
 from .kcorr import *
-# from .functions import *
+from .functions import *
 
 warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
@@ -1011,7 +1011,7 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, *args, **kwargs):
+             verbose = False, xlim = False, *args, **kwargs):
         """
         Plots phot.
 
@@ -1060,7 +1060,7 @@ class PhotometryClass(BaseLightCurveClass):
             else:
                 ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
 
-            if kwargs and "xlim" in kwargs:
+            if xlim:
                 ax1.set_xlim(xlim)
 
             ## Label the axes
