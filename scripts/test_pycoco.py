@@ -207,6 +207,14 @@ class TestClass(unittest.TestCase):
 
     ## kcorr tests
 
+    def test_kcorr_load_AB_pseudospectrum(self):
+        ABspec = pcc.kcorr.load_AB()
+        self.assertEqual(ABspec.success, True)
+
+    def test_kcorr_load_vega_pseudospectrum(self):
+        Vegaspec = pcc.kcorr.load_vega()
+        self.assertEqual(Vegaspec.success, True)
+
     def test_kcorr_load_dark_sky_spectrum(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
         darksky = pcc.SpectrumClass()

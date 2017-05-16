@@ -17,6 +17,7 @@ from scipy.integrate import simps
 
 from .classes import *
 from .functions import *
+from .defaults import *
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -68,7 +69,7 @@ offset = {
 #     return phot_table
 
 
-def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/alpha_lyr_stis_002.dat"):
+def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.dat")):
     """
     returns spectrum of Vega as a SpectrumClass instance
     """
@@ -78,7 +79,7 @@ def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/alpha_l
     return vega
 
 
-def load_AB(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/AB_pseudospectrum.dat"):
+def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat")):
     """
     returns 'spectrum' as a SpectrumClass instance
     """
@@ -178,7 +179,7 @@ def load_dark_sky_spectrum():
     darksky = SpectrumClass()
     darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
                  wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
-                 
+
     darksky.success = True
 
     return darksky
