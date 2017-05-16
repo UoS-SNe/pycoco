@@ -45,7 +45,8 @@ __all__ = ["BaseSpectrumClass",
            "specfitClass",
            "SNClass",
            "FilterClass",
-           "InfoClass",]
+           "InfoClass",
+           "find_specphase_spec"]
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -227,6 +228,7 @@ class BaseSpectrumClass():
 
             path = os.path.abspath(os.path.join(directory, filename))
             if verbose: print(path)
+
         if os.path.isfile(path):
 
             ## Some might have three columns, deal with laters - this is untidy
@@ -246,6 +248,9 @@ class BaseSpectrumClass():
             spec_table.meta["filename"] = path.split("/")[-1]
 
             spec_table['wavelength'].unit = wavelength_u
+
+            if wavelength_u != u.Angstrom:
+                spec_table['wavelength'] = spec_table['wavelength'].to(u.Angstrom)
             spec_table['flux'].unit = flux_u
 
             if "flux_err" in spec_table.colnames:
@@ -261,6 +266,8 @@ class BaseSpectrumClass():
             self.wavelength = spec_table["wavelength"]
             self.flux = spec_table["flux"]
 
+            ## If you got this far...
+            self.success = True
         else:
             warnings.warn(path + " is not a valid file path")
             if verbose: print(path + ' not found')
@@ -2323,8 +2330,8 @@ class SNClass():
                 for j, filtername in enumerate(self.phot.data_filters):
                     if verbose:print(j, filtername)
 
-                    if hasattr(self.phot.data_filters[filtername], "_lower_edge") and
-                      hasattr(self.phot.data_filters[filtername], "_upper_edge") and
+                    if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
+                      hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
                       hasattr(self.spec[spectrum], "data"):
                        blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
                        red_bool = filter_obj._upper_edge < spec_obj.max_wavelength

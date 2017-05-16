@@ -178,6 +178,8 @@ def load_dark_sky_spectrum():
     darksky = SpectrumClass()
     darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
                  wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+                 
+    darksky.success = True
 
     return darksky
 
