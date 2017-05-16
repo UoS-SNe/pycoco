@@ -61,6 +61,9 @@ Ideally set the following environment variables:
 `COCO_ROOT_DIR` (my default is `~/Code/CoCo/`)
 `PYCOCO_FILTER_DIR`(my default is `~/Code/CoCo/data/filters/`)
 `PYCOCO_DATA_DIR` (my default is `~/Code/CoCo/data/`)
+`SFD_DIR` (my default is `~/data/Dust/sfddata-master/`; see below)
+`LSST_THROUGHPUTS` (my default is `${HOME}/projects/LSST/throughputs`)
+`LSST_THROUGHPUTS_BASELINE` (my default is `${LSST_THROUGHPUTS}/baseline`)
 
 also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
 
@@ -73,12 +76,17 @@ also `pycoco/` and `CoCo` need to be in your path and pythonpath, i.e.:
 ___
 
 # Requirements
+## python packages
 
 * matplotlib
 * numpy
 * scipy
 * astropy
 * sfdmap (https://github.com/kbarbary/sfdmap)
+
+# additionally
+
+* lsst throughputs (https://github.com/lsst/throughputs; `$LSST_THROUGHPUTS` points to this directory)
 ___
 
 
