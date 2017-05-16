@@ -27,6 +27,7 @@ class TestClass(unittest.TestCase):
     Class for testing pycoco
     """
 
+    ## Environment Variable Tests
     def test_environment_variables_exist(self):
         self.assertTrue("COCO_ROOT_DIR" in os.environ)
 

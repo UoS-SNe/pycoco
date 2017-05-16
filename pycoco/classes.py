@@ -32,7 +32,7 @@ from .errors import *
 from .coco_calls import *
 from .defaults import *
 from .kcorr import *
-from .functions import *
+# from .functions import *
 
 warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
@@ -198,7 +198,7 @@ class BaseSpectrumClass():
 
 
     def load(self, filename, directory = False, fmt = "ascii",
-             wmin = 3500, wmax = 11000,
+             wmin = 3500*u.angstrom, wmax = 11000*u.angstrom,
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = False):
         """
@@ -1737,12 +1737,27 @@ class SNClass():
         pass
 
 
-    def load_sndist(self):
+    def load_sndist(self, path = _default_sn_dist_path, format = "ascii"):
+        """
+        based on read_sndist_file and load_sndist
+        """
 
         if hasattr(self, "name"):
-            sndist = load_sndist(self.name)
-            self.z = sndist["z"].data[0]
-            self.distmod = sndist["mu"].data[0]
+            # sndist = load_sndist(self.name)
+            # self.z = sndist["z"].data[0]
+            # self.distmod = sndist["mu"].data[0]
+
+            check_file_path(path)
+            sndistlist = Table.read(path, format = format)
+
+            try:
+                w = np.where(sndistlist["snname"] == snname)
+                sndist = sndistlist[w]
+
+                self.z = sndist["z"].data[0]
+                self.distmod = sndist["mu"].data[0]
+            except:
+                warnings.warn("Failed to find distance info for " + snname + ". is it in the list?")
         else:
             if verbose: print("self.name not defined.")
 
@@ -2293,6 +2308,9 @@ class SNClass():
 
     def check_overlaps(self, verbose = False):
         """
+        Checks the filters that the spectrum overlaps with.
+        originally used filter_within_spec
+
         Parameters
         ----------
 
@@ -2304,7 +2322,18 @@ class SNClass():
                 if verbose:print(i, spectrum)
                 for j, filtername in enumerate(self.phot.data_filters):
                     if verbose:print(j, filtername)
-                    within = filter_within_spec(self.phot.data_filters[filtername], self.spec[spectrum])
+
+                    if hasattr(self.phot.data_filters[filtername], "_lower_edge") and
+                      hasattr(self.phot.data_filters[filtername], "_upper_edge") and
+                      hasattr(self.spec[spectrum], "data"):
+                       blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
+                       red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+
+                       if blue_bool and red_bool:
+                            within = True
+                       else:
+                            within = False
+
                     if verbose:print(within)
                     if within:
                         self.spec[spectrum]._add_to_overlapping_filters(filtername)
@@ -2598,6 +2627,7 @@ class FilterClass():
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+
 class InfoClass():
     """
 
@@ -2632,3 +2662,50 @@ class InfoClass():
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
+
+## FUNCTIONS THAT ITS A PAIN TO SHIFT
+
+def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    if verbose: print(dir_path)
+    StringWarning(dir_path)
+    StringWarning(snname)
+    if type(snname) is not str and type(snname) is not np.string_:
+        raise(PathError)
+
+    if not check_dir_path(dir_path):
+        print("check_dir_path failed")
+        return False
+
+    try:
+        ls = np.array(os.listdir(dir_path))
+
+        # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+        # spec_list = ls[wspec]
+        spec_list = [i for i in ls if i[-5:] == ".spec"]
+        ## The last 18 chars are for the MJD and file_type
+        # wsn = np.where([i[:-18] == snname for i in spec_list])
+        # snmatch_list = spec_list[wsn]
+        snmatch_list = [i for i in spec_list if i[:len(snname)] == snname ]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False

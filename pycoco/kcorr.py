@@ -165,7 +165,21 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
 #     return mag
 
 
+def load_dark_sky_spectrum():
+    """
+    requires https://github.com/lsst/throughputs/ and environment vars LSST_THROUGHPUTS
+    and LSST_THROUGHPUTS_BASELINE.
 
+    e.g.:
+    setenv LSST_THROUGHPUTS ${HOME}/projects/LSST/throughputs
+    setenv LSST_THROUGHPUTS_BASELINE ${LSST_THROUGHPUTS}/baseline
+    """
+    dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+    darksky = SpectrumClass()
+    darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
+                 wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+
+    return darksky
 
 def convert_f_nu_to_f_lambda():
     pass
