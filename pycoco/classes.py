@@ -16,6 +16,7 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.constants import c
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.table import Table, vstack
 
@@ -2652,9 +2653,10 @@ class InfoClass():
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
         self.distmod = self.table["mu"]
-        self.ra = self.table["RA"]
-        self.dec = self.table["Dec"]
-        self.table
+        self.RA = self.table["RA"]
+        self.Dec = self.table["Dec"]
+        self.table["SkyCoords"] = SkyCoord(self.table["RA"], self.table["Dec"], unit=(u.hourangle, u.deg))
+        self.coords = self.table["SkyCoords"]
 
     def get_sn_info(self, snname):
         try:
