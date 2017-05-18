@@ -719,7 +719,7 @@ def load_sndist(snname, *args, **kwargs):
     return row
 
 
-def load_info(path = _default_info_path, verbose = True):
+def load_info(path = _default_info_path, verbose = False):
     """
 
     """

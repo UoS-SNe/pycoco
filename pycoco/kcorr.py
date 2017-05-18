@@ -12,6 +12,9 @@ Cohen et al. (2003).
 
 from __future__ import print_function
 
+import os
+import sys
+
 from numpy import log10
 from scipy.integrate import simps
 
@@ -23,7 +26,8 @@ __all__ = ["offset",
             # "convert_AB_to_Vega",
             # "convert_Vega_to_AB",
             "calc_AB_zp",
-            "calc_vega_zp"]
+            "calc_vega_zp",
+            "load_dark_sky_spectrum"]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
