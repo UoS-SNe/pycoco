@@ -35,6 +35,7 @@ ___
 
  * better handing of CoCo sim outputs
 
+ * SN position and mu now stored in infofile `./testdata/info/info.dat`
 ___
 
 
