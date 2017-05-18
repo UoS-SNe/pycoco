@@ -764,6 +764,7 @@ class FitBaseClass():
     """
 
     """
+
     def __init__(self):
         pass
 
