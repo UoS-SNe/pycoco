@@ -27,8 +27,26 @@ class TestClass(unittest.TestCase):
     Class for testing pycoco
     """
 
-    def test_environment_variables_exist(self):
+    ## Environment Variable Tests
+    def test_COCO_ROOT_DIR_environment_variable_exisst(self):
         self.assertTrue("COCO_ROOT_DIR" in os.environ)
+
+    def test_PYCOCO_FILTER_DIR_environment_variable_exisst(self):
+        self.assertTrue("PYCOCO_FILTER_DIR" in os.environ)
+
+    def test_PYCOCO_DATA_DIR_environment_variable_exisst(self):
+        self.assertTrue("PYCOCO_DATA_DIR" in os.environ)
+
+    def test_SFD_DIR_environment_variable_exisst(self):
+        self.assertTrue("SFD_DIR" in os.environ)
+
+    def test_LSST_THROUGHPUTS_environment_variable_exisst(self):
+        self.assertTrue("LSST_THROUGHPUTS" in os.environ)
+
+    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exisst(self):
+        self.assertTrue("LSST_THROUGHPUTS_BASELINE" in os.environ)
+
+    ## Tests
 
     # def test_SNClass_get_data_dir_returns_default(self):
     #     x = pcc.SNClass()
@@ -187,6 +205,21 @@ class TestClass(unittest.TestCase):
 
         self.assertEqual(sum(success), 6)
 
+    ## kcorr tests
+
+    def test_kcorr_load_AB_pseudospectrum(self):
+        ABspec = pcc.kcorr.load_AB()
+        self.assertEqual(ABspec.success, True)
+
+    def test_kcorr_load_vega_pseudospectrum(self):
+        Vegaspec = pcc.kcorr.load_vega()
+        self.assertEqual(Vegaspec.success, True)
+
+    def test_kcorr_load_dark_sky_spectrum(self):
+        dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+        darksky = pcc.SpectrumClass()
+        darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
+        self.assertEqual(darksky.success, True)
     ###
 
 if __name__ is '__main__':

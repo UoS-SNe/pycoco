@@ -1,8 +1,6 @@
 from __future__ import print_function ## Force python3-like printing
 
 import numpy as np
-import rfutils as rfu
-import rfcolours as rfc
 
 from matplotlib import pyplot as plt
 

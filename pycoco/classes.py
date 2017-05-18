@@ -16,6 +16,7 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.constants import c
+from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.table import Table, vstack
 
@@ -30,8 +31,9 @@ from .colours import *
 from .utils import *
 from .errors import *
 from .coco_calls import *
-from .functions import *
 from .defaults import *
+from .kcorr import *
+# from .functions import *
 
 warnings.resetwarnings()
 # warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
@@ -44,7 +46,8 @@ __all__ = ["BaseSpectrumClass",
            "specfitClass",
            "SNClass",
            "FilterClass",
-           "InfoClass",]
+           "InfoClass",
+           "find_specphase_spec"]
 
 ##----------------------------------------------------------------------------##
 ##                                   TOOLS                                    ##
@@ -111,7 +114,7 @@ def dummy_function(verbose = True, *args, **kwargs):
             warnings.warn( "You didn't pass any *args", RuntimeWarning)
 
         if kwargs:
-            for key, value in kwargs.iteritems():
+            for key, value in kwargs.items():
                 print('a **kwarg: ', repr(key), ' == ' , repr(value))
         else:
             warnings.warn( "You didn't pass any **kwargs", RuntimeWarning)
@@ -197,7 +200,7 @@ class BaseSpectrumClass():
 
 
     def load(self, filename, directory = False, fmt = "ascii",
-             wmin = 3500, wmax = 11000,
+             wmin = 3500*u.angstrom, wmax = 11000*u.angstrom,
              names = ("wavelength", "flux"), wavelength_u = u.angstrom,
              flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = False):
         """
@@ -226,6 +229,7 @@ class BaseSpectrumClass():
 
             path = os.path.abspath(os.path.join(directory, filename))
             if verbose: print(path)
+
         if os.path.isfile(path):
 
             ## Some might have three columns, deal with laters - this is untidy
@@ -245,6 +249,9 @@ class BaseSpectrumClass():
             spec_table.meta["filename"] = path.split("/")[-1]
 
             spec_table['wavelength'].unit = wavelength_u
+
+            if wavelength_u != u.Angstrom:
+                spec_table['wavelength'] = spec_table['wavelength'].to(u.Angstrom)
             spec_table['flux'].unit = flux_u
 
             if "flux_err" in spec_table.colnames:
@@ -260,6 +267,8 @@ class BaseSpectrumClass():
             self.wavelength = spec_table["wavelength"]
             self.flux = spec_table["flux"]
 
+            ## If you got this far...
+            self.success = True
         else:
             warnings.warn(path + " is not a valid file path")
             if verbose: print(path + ' not found')
@@ -570,10 +579,11 @@ class BaseLightCurveClass():
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
-
-                phot_table.meta = {"filter_filename": filter_filename}
-
                 if verbose: print(phot_table)
+
+                # phot_table.meta = {"filter_filename": filter_filename}
+                phot_table.meta["filter_filename"] = filter_filename
+
                 indices = phot_table.argsort("MJD")
                 # for column_name in phot_table.colnames:
                 #     phot_table[column_name] = phot_table[column_name][indices]
@@ -584,7 +594,17 @@ class BaseLightCurveClass():
                     raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
-                self.data_filters[filter_key] = load_filter(path_to_filter, verbose = verbose)
+                # def load_filter(path, cmap = False, verbose = False):
+                #
+                if check_file_path(os.path.abspath(path_to_filter)):
+                    filter_object = FilterClass()
+                    filter_object.read_filter_file(os.path.abspath(path_to_filter), verbose = verbose)
+
+                else:
+                    warnings.warn("Couldn't load the filter")
+
+                self.data_filters[filter_key] = filter_object
+
                 self.data[filter_name] = sorted_phot_table
 
             self.filter_names = filter_names
@@ -858,7 +878,15 @@ class PhotometryClass(BaseLightCurveClass):
         """
         StringWarning(path)
         try:
-            phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+            # phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+                # phot_table = ap.table.Table.read(path, format = format, names = names)
+            phot_table = Table.read(path, format = format, names = names)
+
+            phot_table.replace_column("MJD", Time(phot_table["MJD"], format = 'mjd'))
+
+            phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+            phot_table["flux_err"].unit =  phot_table["flux"].unit
+
             self.data[np.unique(phot_table["filter"])[0]] = phot_table
 
             ## Sort the OrderedDict
@@ -991,7 +1019,7 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, *args, **kwargs):
+             verbose = False, xlim = False, *args, **kwargs):
         """
         Plots phot.
 
@@ -1039,6 +1067,9 @@ class PhotometryClass(BaseLightCurveClass):
                 ax1.set_ylim(0., np.nanmax(self.phot['flux']))
             else:
                 ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+
+            if xlim:
+                ax1.set_xlim(xlim)
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
@@ -1714,12 +1745,27 @@ class SNClass():
         pass
 
 
-    def load_sndist(self):
+    def load_sndist(self, path = _default_sn_dist_path, format = "ascii"):
+        """
+        based on read_sndist_file and load_sndist
+        """
 
         if hasattr(self, "name"):
-            sndist = load_sndist(self.name)
-            self.z = sndist["z"].data[0]
-            self.distmod = sndist["mu"].data[0]
+            # sndist = load_sndist(self.name)
+            # self.z = sndist["z"].data[0]
+            # self.distmod = sndist["mu"].data[0]
+
+            check_file_path(path)
+            sndistlist = Table.read(path, format = format)
+
+            try:
+                w = np.where(sndistlist["snname"] == snname)
+                sndist = sndistlist[w]
+
+                self.z = sndist["z"].data[0]
+                self.distmod = sndist["mu"].data[0]
+            except:
+                warnings.warn("Failed to find distance info for " + snname + ". is it in the list?")
         else:
             if verbose: print("self.name not defined.")
 
@@ -2270,6 +2316,9 @@ class SNClass():
 
     def check_overlaps(self, verbose = False):
         """
+        Checks the filters that the spectrum overlaps with.
+        originally used filter_within_spec
+
         Parameters
         ----------
 
@@ -2281,7 +2330,18 @@ class SNClass():
                 if verbose:print(i, spectrum)
                 for j, filtername in enumerate(self.phot.data_filters):
                     if verbose:print(j, filtername)
-                    within = filter_within_spec(self.phot.data_filters[filtername], self.spec[spectrum])
+
+                    if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
+                      hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
+                      hasattr(self.spec[spectrum], "data"):
+                       blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
+                       red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+
+                       if blue_bool and red_bool:
+                            within = True
+                       else:
+                            within = False
+
                     if verbose:print(within)
                     if within:
                         self.spec[spectrum]._add_to_overlapping_filters(filtername)
@@ -2568,6 +2628,14 @@ class FilterClass():
         pass
 
 
+    def get_zeropoint(self):
+        if hasattr(self, "filter_name"):
+            self.zp_AB = calc_AB_zp(filter_name)
+            self.zp_vega = calc_vega_zp(filter_name)
+        else:
+            warnings.warn("No filter name - have you loaded in a bandpass?")
+
+
 class InfoClass():
     """
 
@@ -2579,15 +2647,16 @@ class InfoClass():
     def load(self, path = False):
         if not path:
             path = _default_info_path
-            
+
         self.table = Table.read(path, format = "ascii.commented_header")
         self.table.meta["success"] = True
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
         self.distmod = self.table["mu"]
-        self.ra = self.table["RA"]
-        self.dec = self.table["Dec"]
-        self.table
+        self.RA = self.table["RA"]
+        self.Dec = self.table["Dec"]
+        self.table["SkyCoords"] = SkyCoord(self.table["RA"], self.table["Dec"], unit=(u.hourangle, u.deg))
+        self.coords = self.table["SkyCoords"]
 
     def get_sn_info(self, snname):
         try:
@@ -2602,3 +2671,50 @@ class InfoClass():
 ##----------------------------------------------------------------------------##
 ##  /CODE                                                                     ##
 ##----------------------------------------------------------------------------##
+
+## FUNCTIONS THAT ITS A PAIN TO SHIFT
+
+def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    if verbose: print(dir_path)
+    StringWarning(dir_path)
+    StringWarning(snname)
+    if type(snname) is not str and type(snname) is not np.string_:
+        raise(PathError)
+
+    if not check_dir_path(dir_path):
+        print("check_dir_path failed")
+        return False
+
+    try:
+        ls = np.array(os.listdir(dir_path))
+
+        # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+        # spec_list = ls[wspec]
+        spec_list = [i for i in ls if i[-5:] == ".spec"]
+        ## The last 18 chars are for the MJD and file_type
+        # wsn = np.where([i[:-18] == snname for i in spec_list])
+        # snmatch_list = spec_list[wsn]
+        snmatch_list = [i for i in spec_list if i[:len(snname)] == snname ]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False

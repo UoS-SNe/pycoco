@@ -13,13 +13,21 @@ import os
 import warnings
 import pycoco as pcc
 from numpy import loadtxt, savetxt, array, array_equal
+import matplotlib.pyplot as plt
+
 from astropy.table import Table
+from astropy import units as u
 
 from .defaults import *
-# from ..functions import *
 from .errors import *
 
-__all__ = ["relist", "load_coords", "check_dir_path", "check_file_path"]
+__all__ = ["setup_plot_defaults",
+            "relist",
+            "load_coords",
+            "check_dir_path",
+            "check_file_path",
+            "read_list_file",
+            "load_formatted_phot"]
 
 
 def _get_filter_directory():
@@ -163,6 +171,61 @@ def check_file_path(path, verbose = False):
 def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
                              names = ('MJD', 'flux', 'flux_err', 'filter')):
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
+
+
+def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
+    """
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    check_file_path(path)
+
+    data = Table.read(path, names = names, format = 'ascii')
+    return data
+
+
+def setup_plot_defaults():
+    """
+
+    """
+
+    plt.rcParams['ps.useafm'] = True
+    plt.rcParams['pdf.use14corefonts'] = True
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['figure.subplot.hspace'] = 0.1
+    plt.rc('font', family='sans-serif')
+    plt.rc('font', serif='Helvetica')
+    pass
+
+
+def load_formatted_phot(path, format = "ascii", names = False,
+                        verbose = True):
+    """
+    Loads a single photometry file.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    StringWarning(path)
+
+    if names:
+        phot_table = Table.read(path, format = format, names = names)
+    else:
+        phot_table = Table.read(path, format = format)
+
+    phot_table.meta = {"filename" : path}
+
+    phot_table["MJD"].unit = u.day
+    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+    phot_table["flux_err"].unit =  phot_table["flux"].unit
+
+    return phot_table
 
 if sys.version_info < (3,):
     def b(x):

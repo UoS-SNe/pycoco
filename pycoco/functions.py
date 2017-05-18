@@ -14,8 +14,8 @@ from astropy import units as u
 
 from .defaults import *
 from .errors import *
-from .utils import *
 from .classes import *
+from .utils import *
 
 
 ##
@@ -25,15 +25,15 @@ from .classes import *
 __all__ = ["load_filter",
            "get_filter_from_filename",
            "load_phot",
-           "load_formatted_phot",
+        #    "load_formatted_phot",
            "load",
            "load_all_phot",
            "find_filter_phot",
            "find_formatted_phot",
            "find_recon_spec",
-           "find_specphase_spec",
-           "setup_plot_defaults",
-           "read_list_file",
+        #    "find_specphase_spec",
+        #    "setup_plot_defaults",
+        #    "read_list_file",
            "load_specfit",
            "compare_spec",
            "filter_within_spec",
@@ -124,32 +124,32 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
     return phot_table
 
-
-def load_formatted_phot(path, format = "ascii", names = False,
-                        verbose = True):
-    """
-    Loads a single photometry file.
-
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-
-    StringWarning(path)
-
-    if names:
-        phot_table = Table.read(path, format = format, names = names)
-    else:
-        phot_table = Table.read(path, format = format)
-
-    phot_table.meta = {"filename" : path}
-
-    phot_table["MJD"].unit = u.day
-    phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
-    phot_table["flux_err"].unit =  phot_table["flux"].unit
-
-    return phot_table
+#
+# def load_formatted_phot(path, format = "ascii", names = False,
+#                         verbose = True):
+#     """
+#     Loads a single photometry file.
+#
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     StringWarning(path)
+#
+#     if names:
+#         phot_table = Table.read(path, format = format, names = names)
+#     else:
+#         phot_table = Table.read(path, format = format)
+#
+#     phot_table.meta = {"filename" : path}
+#
+#     phot_table["MJD"].unit = u.day
+#     phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
+#     phot_table["flux_err"].unit =  phot_table["flux"].unit
+#
+#     return phot_table
 
 
 def load(path, format = "ascii", verbose = True):
@@ -358,50 +358,50 @@ def find_recon_spec(snname, dir_path = _default_recon_dir_path, verbose = False)
         return False
 
 
-def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
-    """
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    """
-    if verbose: print(dir_path)
-    StringWarning(dir_path)
-    StringWarning(snname)
-    if type(snname) is not str and type(snname) is not np.string_:
-        raise(PathError)
-
-    if not check_dir_path(dir_path):
-        print("check_dir_path failed")
-        return False
-
-    try:
-        ls = np.array(os.listdir(dir_path))
-
-        # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
-        # spec_list = ls[wspec]
-        spec_list = [i for i in ls if i[-5:] == ".spec"]
-        ## The last 18 chars are for the MJD and file_type
-        # wsn = np.where([i[:-18] == snname for i in spec_list])
-        # snmatch_list = spec_list[wsn]
-        snmatch_list = [i for i in spec_list if i[:len(snname)] == snname ]
-
-        if verbose:
-            print("Found: ")
-            print(ls)
-            print("Spec:")
-            print(spec_list)
-            print("Matched:")
-            print(snmatch_list)
-        if len(snmatch_list) is 0:
-            warnings.warn("No matches found.")
-        return snmatch_list
-
-    except:
-        warnings.warn("Something went wrong")
-        return False
+# def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+#     """
+#
+#     Parameters
+#     ----------
+#
+#     Returns
+#     -------
+#     """
+#     if verbose: print(dir_path)
+#     StringWarning(dir_path)
+#     StringWarning(snname)
+#     if type(snname) is not str and type(snname) is not np.string_:
+#         raise(PathError)
+#
+#     if not check_dir_path(dir_path):
+#         print("check_dir_path failed")
+#         return False
+#
+#     try:
+#         ls = np.array(os.listdir(dir_path))
+#
+#         # wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
+#         # spec_list = ls[wspec]
+#         spec_list = [i for i in ls if i[-5:] == ".spec"]
+#         ## The last 18 chars are for the MJD and file_type
+#         # wsn = np.where([i[:-18] == snname for i in spec_list])
+#         # snmatch_list = spec_list[wsn]
+#         snmatch_list = [i for i in spec_list if i[:len(snname)] == snname ]
+#
+#         if verbose:
+#             print("Found: ")
+#             print(ls)
+#             print("Spec:")
+#             print(spec_list)
+#             print("Matched:")
+#             print(snmatch_list)
+#         if len(snmatch_list) is 0:
+#             warnings.warn("No matches found.")
+#         return snmatch_list
+#
+#     except:
+#         warnings.warn("Something went wrong")
+#         return False
 
 
 # def check_url_status(url):
@@ -427,37 +427,37 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
 #     return check_url_status(url) < 400
 
 
-def setup_plot_defaults():
-    """
+# def setup_plot_defaults():
+#     """
+#
+#     """
+#
+#     plt.rcParams['ps.useafm'] = True
+#     plt.rcParams['pdf.use14corefonts'] = True
+#     plt.rcParams['text.usetex'] = True
+#     plt.rcParams['font.size'] = 14
+#     plt.rcParams['figure.subplot.hspace'] = 0.1
+#     plt.rc('font', family='sans-serif')
+#     plt.rc('font', serif='Helvetica')
+#     pass
 
-    """
 
-    plt.rcParams['ps.useafm'] = True
-    plt.rcParams['pdf.use14corefonts'] = True
-    plt.rcParams['text.usetex'] = True
-    plt.rcParams['font.size'] = 14
-    plt.rcParams['figure.subplot.hspace'] = 0.1
-    plt.rc('font', family='sans-serif')
-    plt.rc('font', serif='Helvetica')
-    pass
-
-
-def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
-    """
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-    check_file_path(path)
-    #
-    # ifile = open(path, 'r')
-    #
-    # for line in ifile:
-    #     if verbose: print(line.strip('\n'))
-    # ifile.close()
-    data = Table.read(path, names = names, format = 'ascii')
-    return data
+# def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#     check_file_path(path)
+#     #
+#     # ifile = open(path, 'r')
+#     #
+#     # for line in ifile:
+#     #     if verbose: print(line.strip('\n'))
+#     # ifile.close()
+#     data = Table.read(path, names = names, format = 'ascii')
+#     return data
 
 
 def load_specfit(path):
@@ -719,7 +719,7 @@ def load_sndist(snname, *args, **kwargs):
     return row
 
 
-def load_info(path = _default_info_path, verbose = True):
+def load_info(path = _default_info_path, verbose = False):
     """
 
     """

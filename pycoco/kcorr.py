@@ -12,13 +12,22 @@ Cohen et al. (2003).
 
 from __future__ import print_function
 
+import os
+import sys
+
 from numpy import log10
 from scipy.integrate import simps
 
 from .classes import *
 from .functions import *
+from .defaults import *
 
-__all__ = ['offset', 'convert_AB_to_Vega', 'convert_Vega_to_AB']
+__all__ = ["offset",
+            # "convert_AB_to_Vega",
+            # "convert_Vega_to_AB",
+            "calc_AB_zp",
+            "calc_vega_zp",
+            "load_dark_sky_spectrum"]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
@@ -42,40 +51,52 @@ offset = {
     "0:1z" : 0.46,
 }
 
-def convert_Vega_to_AB(phot_table, filters = False):
+# def convert_Vega_to_AB(phot_table, filters = False):
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     return phot_table
+#
+
+# def convert_AB_to_Vega():
+#     """
+#     Parameters
+#     ----------
+#     Returns
+#     -------
+#     """
+#
+#     return phot_table
+
+
+def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.dat")):
     """
-    Parameters
-    ----------
-    Returns
-    -------
+    returns spectrum of Vega as a SpectrumClass instance
     """
-
-    return phot_table
-
-
-def convert_AB_to_Vega():
-    """
-    Parameters
-    ----------
-    Returns
-    -------
-    """
-
-    return phot_table
-
-
-def load_vega(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/alpha_lyr_stis_002.dat"):
     vega = SpectrumClass()
     vega.load(path)
 
     return vega
 
 
-def load_AB(path = "/Users/berto/Code/verbose-enigma/pycoco/kcorr_data/AB_pseudospectrum.dat"):
+def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat")):
+    """
+    returns 'spectrum' as a SpectrumClass instance
+    """
     vega = SpectrumClass()
     vega.load(path)
 
     return vega
+
+
+def calc_filter_area(filter_name):
+    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_area = simps(filter_object.throughput, filter_object.wavelength)
+    return filter_area
 
 
 def calc_AB_flux(filter_name):
@@ -92,18 +113,28 @@ def calc_AB_flux(filter_name):
     return integrated_flux
 
 
-def calc_AB_zp():
+def calc_AB_zp(filter_name):
+    """
 
-    integrated_flux = calc_AB_flux("BessellV")
+    """
 
-    return -2.5 * log10(integrated_flux)
+    integrated_flux = calc_AB_flux(filter_name)
+    area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
+
+    return -2.5 * log10(area_corr_integrated_flux)
 
 
-def calc_vega_flux(filter_name):
+def calc_vega_flux(filter_name, filter_object = False,):
+    """
+
+    """
 
     vega = load_vega()
 
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    if not filter_object:
+        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    # else if hasattr(filter_object, "wavelength"):
+
     filter_object.resample_response(new_wavelength = vega.wavelength)
 
     transmitted_spec = filter_object.throughput * vega.flux
@@ -113,42 +144,49 @@ def calc_vega_flux(filter_name):
     return integrated_flux
 
 
-def calc_vega_zp(filter_name, vega_Vmag = 0.03):
-    """
-
-    WHAT?!?
-
-    """
-    integrated_V_flux = calc_vega_flux("BessellV")
-    integrated_V_flux = calc_vega_flux("BessellV")
-
-    return -2.5 * log10(integrated_V_flux) - vega_Vmag
-
-
-def calc_vega_mag(filter_name):
-    """
-    HUH?
-    """
-    zp = calc_vega_zp(filter_name)
-    flux = calc_vega_flux(filter_name)
-
-    mag = -2.5 * log10(flux) - zp
-    return mag
-
-# def calc_ve
-
-def calc_offset_AB_minus_Vega(filter_name, vega_Vmag = 0.03):
+def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     """
 
-    integrated_Vega_flux = calc_vega_flux(filter_name)
-    integrated_AB_flux = calc_AB_flux(filter_name)
+    if not filter_object:
+        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
 
-    AB  = -2.5*log10(integrated_AB_flux)
-    Vega = -2.5*log10(integrated_Vega_flux) - vega_Vmag
+    integrated_flux = calc_vega_flux(filter_name)
+    area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
 
-    return AB - Vega
+    # return -2.5 * log10(integrated_V_flux) - vega_Vmag
+    return -2.5 * log10(area_corr_integrated_flux)
+
+
+# def calc_vega_mag(filter_name):
+#     """
+#
+#     """
+#     zp = calc_vega_zp(filter_name)
+#     flux = calc_vega_flux(filter_name)
+#
+#     mag = -2.5 * log10(flux) - zp
+#     return mag
+
+
+def load_dark_sky_spectrum():
+    """
+    requires https://github.com/lsst/throughputs/ and environment vars LSST_THROUGHPUTS
+    and LSST_THROUGHPUTS_BASELINE.
+
+    e.g.:
+    setenv LSST_THROUGHPUTS ${HOME}/projects/LSST/throughputs
+    setenv LSST_THROUGHPUTS_BASELINE ${LSST_THROUGHPUTS}/baseline
+    """
+    dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+    darksky = SpectrumClass()
+    darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
+                 wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+
+    darksky.success = True
+
+    return darksky
 
 def convert_f_nu_to_f_lambda():
     pass
