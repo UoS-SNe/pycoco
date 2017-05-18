@@ -1,7 +1,7 @@
 # pycoco
 ___
 
-## v0.6.2
+## v0.6.4
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
