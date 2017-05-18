@@ -50,7 +50,7 @@ from .kcorr import *
 from .functions import *
 from .defaults import *
 from .classes import *
-
+from models import *
 
 if __name__ == "__main__":
     pass

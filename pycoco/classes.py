@@ -742,6 +742,31 @@ class BaseLightCurveClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+class ModelBaseClass():
+    """
+
+    """
+
+    def __init__(self):
+        # self.fit_params = OrderedDict
+        pass
+
+    def load_params(param_dict):
+        """
+        pass dictionary where the keys are the param names.
+        """
+
+        self.input_params = param_dict
+
+
+class FitBaseClass():
+    """
+
+    """
+    def __init__(self):
+        pass
+
 ##------------------------------------##
 ##  Inheriting Classes                ##
 ##------------------------------------##
@@ -2665,7 +2690,6 @@ class InfoClass():
             print("foo")
 
         return self.table[w]
-
 
 
 ##----------------------------------------------------------------------------##
