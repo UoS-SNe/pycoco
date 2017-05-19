@@ -1,7 +1,7 @@
 #!/usr/bin env python
 
 '''
-This is the module for the pycoco python tools.
+This is the module for the CoCo python tools.
 
 author: Rob Firth, Southampton
 date: 06-12-2016

@@ -8,6 +8,8 @@ import re
 import numpy as np
 
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
 from astropy.table import Table
 from astropy.time import Time
 from astropy import units as u
@@ -41,7 +43,8 @@ __all__ = ["load_filter",
            "list_lcs",
            "read_sndist_file",
            "load_sndist",
-           "load_info"]
+           "load_info",
+           "plot_mangle"]
 
 ##------------------------------------##
 ##  Functions                         ##
@@ -475,6 +478,7 @@ def load_specfit(path):
 
 def compare_spec(orig_spec, specfit,
                  xminorticks = 250, legend = True, verbose = True,
+                 normalise = False,
                  *args, **kwargs):
         """
         Parameters
@@ -484,6 +488,12 @@ def compare_spec(orig_spec, specfit,
         """
 
         if hasattr(orig_spec, "data") and hasattr(specfit, "data"):
+            if normalise:
+                orig_spec_flux = orig_spec.flux/np.nanmean(orig_spec.flux)
+                mangled_spec_flux = specfit.flux/np.nanmean(specfit.flux)
+            else:
+                orig_spec_flux = orig_spec.flux
+                mangled_spec_flux = specfit.flux
 
             setup_plot_defaults()
 
@@ -497,23 +507,23 @@ def compare_spec(orig_spec, specfit,
 
             plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
-            ax1.plot(orig_spec.data['wavelength'], orig_spec.flux/np.nanmean(orig_spec.flux), lw = 2,
+            ax1.plot(orig_spec.data['wavelength'], orig_spec_flux, lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
 
             plot_label_string = r'$\rm{' + specfit.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
-            ax1.plot(specfit.data['wavelength'], specfit.flux/np.nanmean(specfit.flux), lw = 2,
+            ax1.plot(specfit.data['wavelength'], mangled_spec_flux, lw = 2,
                          label = plot_label_string, color = 'Blue',
                          *args, **kwargs)
 
-            maxplotydata = np.nanmax([specfit.flux/np.nanmean(specfit.flux), orig_spec.flux/np.nanmean(orig_spec.flux)])
-            minplotydata = np.nanmin([specfit.flux/np.nanmean(specfit.flux), orig_spec.flux/np.nanmean(orig_spec.flux)])
+            maxplotydata = np.nanmax([mangled_spec_flux, orig_spec_flux])
+            minplotydata = np.nanmin([mangled_spec_flux, orig_spec_flux])
 
             if legend:
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                plot_legend = ax1.legend(loc = 0, scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(0, maxplotydata*1.02)
@@ -533,6 +543,76 @@ def compare_spec(orig_spec, specfit,
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+def plot_mangle(orig_spec, specfit,
+                 xminorticks = 250, legend = True, verbose = True,
+                 normalise = False,
+                 *args, **kwargs):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(orig_spec, "data") and hasattr(specfit, "data"):
+            if normalise:
+                orig_spec_flux = orig_spec.flux/np.nanmean(orig_spec.flux)
+                mangled_spec_flux = specfit.flux/np.nanmean(specfit.flux)
+            else:
+                orig_spec_flux = orig_spec.flux
+                mangled_spec_flux = specfit.flux
+
+            mangle = mangled_spec_flux/orig_spec_flux
+
+            setup_plot_defaults()
+
+            fig = plt.figure(figsize=[8, 4])
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            # if verbose: print(np.nanmean(specfit.flux), np.nanmean(orig_spec.flux))
+            #
+            # plot_label_string = r'$\rm{' + orig_spec.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            #
+            # ax1.plot(orig_spec.data['wavelength'], orig_spec_flux, lw = 2,
+            #              label = plot_label_string, color = 'Red',
+            #              *args, **kwargs)
+            #
+            # plot_label_string = r'$\rm{' + specfit.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            #
+            #
+            # ax1.plot(specfit.data['wavelength'], mangled_spec_flux, lw = 2,
+            #              label = plot_label_string, color = 'Blue',
+            #              *args, **kwargs)
+            #
+            # maxplotydata = np.nanmax([mangled_spec_flux, orig_spec_flux])
+            # minplotydata = np.nanmin([mangled_spec_flux, orig_spec_flux])
+
+            # if legend:
+            #
+            #     plot_legend = ax1.legend(loc = 0, scatterpoints = 1,
+            #                           numpoints = 1, frameon = False, fontsize = 12)
+
+            # ax1.set_ylim(0, maxplotydata*1.02)
+            plt.plot(orig_spec.data['wavelength'], mangle)
+            ## Label the axes
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+            yaxis_label_string = r'$\textnormal{Mangling spline}$'
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
 
 # def load_stat(stats_path = '/Users/berto/Code/CoCo/chains/SN2011dh_Bessell/BessellB-stats.dat'):
 #     verbose = False
