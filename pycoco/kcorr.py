@@ -17,6 +17,7 @@ import sys
 
 from numpy import log10
 from scipy.integrate import simps
+from astropy import units as u
 
 from .classes import *
 from .functions import *
@@ -27,7 +28,9 @@ __all__ = ["offset",
             # "convert_Vega_to_AB",
             "calc_AB_zp",
             "calc_vega_zp",
-            "load_dark_sky_spectrum"]
+            "load_dark_sky_spectrum",
+            "calc_spectrum_filter_flux",
+            "load_atmosphere"]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
@@ -93,10 +96,32 @@ def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat
     return vega
 
 
+def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baseline/atmos_std.dat")):
+    """
+    reads in atmosphere from LSST_THROUGHPUTS, default is at airmass 1.2
+    """
+
+    atmos = FilterClass()
+    atmos.load(path, wavelength_u = u.nm, fmt = "ascii.commented_header", wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+
+    return atmos
+
 def calc_filter_area(filter_name):
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object = load_filter(_default_filter_dir_path + filter_name + ".dat")
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
     return filter_area
+
+
+def calc_spectrum_filter_flux(filter_name, SpecClass):
+    filter_object = load_filter(_default_filter_dir_path + filter_name + ".dat")
+    filter_object.resample_response(new_wavelength = SpecClass.wavelength)
+    filter_area = simps(filter_object.throughput, filter_object.wavelength)
+
+    transmitted_spec = filter_object.throughput * SpecClass.flux
+
+    integrated_flux = simps(transmitted_spec, SpecClass.wavelength)
+
+    return  integrated_flux/filter_area
 
 
 def calc_AB_flux(filter_name):
@@ -187,6 +212,9 @@ def load_dark_sky_spectrum():
     darksky.success = True
 
     return darksky
+
+
+
 
 def convert_f_nu_to_f_lambda():
     pass
