@@ -904,6 +904,37 @@ class BaseFilterClass():
             warning.warn("Doesn't look like you have loaded a filter into the object")
 
 
+    def load(self, path, directory = False, fmt = "ascii.commented_header",
+             names = ("wavelength", "throughput"), wavelength_u = u.angstrom,
+             verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        """
+        Assumes Response function is fractional rather than %.
+        """
+
+        if check_file_path(os.path.abspath(path), verbose = verbose):
+
+            self.data = read(path, format = fmt, names = names)
+
+            self.wavelength = self.data["wavelength"]*wavelength_u
+            self.wavelength = self.wavelength.to(u.angstrom)
+            self.throughput = self.data["throughput"]
+
+            self.wavelength_u = self.wavelength * wavelength_u
+            self._filter_file_path = path
+
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+
+        else:
+            warnings.warn("Foo")
 
 ##------------------------------------##
 ##  Inheriting Classes                ##
@@ -1723,13 +1754,20 @@ class FilterClass(BaseFilterClass):
         pass
 
 
-    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
+    def read_filter_file(self, path, fmt = "ascii",
+                         names = ("wavelength", "throughput"),
+                         wavelength_u = u.angstrom, verbose = False):
         """
         Assumes Response function is fractional rather than %.
         """
         if check_file_path(os.path.abspath(path), verbose = verbose):
-            self.wavelength, self.throughput = np.loadtxt(path).T
-            self.wavelength_u = self.wavelength * wavelength_units
+            self.data = Table.read(path, format = fmt, names = names)
+
+            self.wavelength = self.data["wavelength"] * wavelength_u
+            self.wavelength = self.wavelength.to(u.angstrom)
+            self.throughput = self.data["throughput"]
+
+            self.wavelength_u = self.wavelength * wavelength_u
             self._filter_file_path = path
 
             filename = path.split('/')[-1]
