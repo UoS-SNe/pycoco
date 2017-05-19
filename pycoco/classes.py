@@ -40,6 +40,7 @@ warnings.resetwarnings()
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
+           "BaseFilterClass",
            "PhotometryClass",
            "SpectrumClass",
            "LCfitClass",
@@ -871,7 +872,7 @@ class BaseFilterClass():
             plt.show()
             pass
         else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
+            warnings.warn("Doesn't look like you have loaded a filter into the object")
 
 
     def resample_response(self, new_wavelength = False, k = 1,
@@ -906,7 +907,7 @@ class BaseFilterClass():
 
     def load(self, path, directory = False, fmt = "ascii.commented_header",
              names = ("wavelength", "throughput"), wavelength_u = u.angstrom,
-             verbose = False):
+             verbose = False, name = False):
         """
         Parameters
         ----------
@@ -921,7 +922,7 @@ class BaseFilterClass():
 
         if check_file_path(os.path.abspath(path), verbose = verbose):
 
-            self.data = read(path, format = fmt, names = names)
+            self.data = Table.read(path, format = fmt, names = names)
 
             self.wavelength = self.data["wavelength"]*wavelength_u
             self.wavelength = self.wavelength.to(u.angstrom)
@@ -930,6 +931,9 @@ class BaseFilterClass():
             self.wavelength_u = self.wavelength * wavelength_u
             self._filter_file_path = path
 
+            if name:
+                self.filter_name = name
+                
             filename = path.split('/')[-1]
             filename_no_extension = filename.split('.')[0]
 

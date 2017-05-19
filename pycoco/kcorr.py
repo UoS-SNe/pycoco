@@ -101,10 +101,11 @@ def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baselin
     reads in atmosphere from LSST_THROUGHPUTS, default is at airmass 1.2
     """
 
-    atmos = FilterClass()
-    atmos.load(path, wavelength_u = u.nm, fmt = "ascii.commented_header", wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+    atmos = BaseFilterClass()
+    atmos.load(path, wavelength_u = u.nm, fmt = "ascii.commented_header")
 
     return atmos
+
 
 def calc_filter_area(filter_name):
     filter_object = load_filter(_default_filter_dir_path + filter_name + ".dat")
