@@ -153,6 +153,8 @@ class TestClass(unittest.TestCase):
 
     # def test_specfitClass
 
+    # def test_compare_spec()
+    
     ## FilterClass tests
 
     def test_filter_name_parsed_OK(self):
