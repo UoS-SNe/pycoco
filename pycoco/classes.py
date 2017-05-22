@@ -926,14 +926,17 @@ class BaseFilterClass():
 
             self.wavelength = self.data["wavelength"]*wavelength_u
             self.wavelength = self.wavelength.to(u.angstrom)
+            self.data["wavelength"] = self.wavelength
             self.throughput = self.data["throughput"]
 
             self.wavelength_u = self.wavelength * wavelength_u
+            self._wavelength_units = wavelength_u
+            
             self._filter_file_path = path
 
             if name:
                 self.filter_name = name
-                
+
             filename = path.split('/')[-1]
             filename_no_extension = filename.split('.')[0]
 
