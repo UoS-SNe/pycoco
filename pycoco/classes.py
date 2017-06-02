@@ -931,7 +931,7 @@ class BaseFilterClass():
 
             self.wavelength_u = self.wavelength * wavelength_u
             self._wavelength_units = wavelength_u
-            
+
             self._filter_file_path = path
 
             if name:
@@ -1923,6 +1923,9 @@ class SNClass():
         self.mangledspec = OrderedDict()
         # self.spec = SpectrumClass()
         self.phot = PhotometryClass()
+        info = InfoClass()
+        info.load()
+        self.info = info.get_sn_info(snname)
 
         self.coco_directory = self._get_coco_directory()
         self.recon_directory = self._get_recon_directory()
