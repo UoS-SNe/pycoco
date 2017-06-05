@@ -815,7 +815,11 @@ class BaseFilterClass():
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
             setup_plot_defaults()
-            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            if hasattr(self._wavelength_units, "format"):
+                if "latex" in self._wavelength_units.format:
+                    xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            else:
+                xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + '}$'
 
             plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
 
@@ -942,6 +946,7 @@ class BaseFilterClass():
 
         else:
             warnings.warn("Foo")
+
 
 ##------------------------------------##
 ##  Inheriting Classes                ##
