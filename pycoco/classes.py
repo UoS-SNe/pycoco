@@ -903,6 +903,7 @@ class BaseFilterClass():
                                                        *args, **kwargs)
             self.throughput = interp_func(new_wavelength)
             self.wavelength = new_wavelength
+            # self.wavelength.name = "wavelength"
 
             self.throughput[np.where(self.throughput < 0.0)] = 0.0
         else:
@@ -947,6 +948,48 @@ class BaseFilterClass():
         else:
             warnings.warn("Foo")
 
+
+    def save(self, filename, path = False,
+         squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the filter loaded into the Class into a format
+        and location recognised by CoCo.
+
+        based on BaseSpectrumClass.save
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"): ## enables resampling and wavelength conversion to be easily saved
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + _default_filter_dir_path)
+                path = _default_filter_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    outtable = Table([self.wavelength, self.throughput], names = ["wavelength", "throughput"])
+                    outtable.write(outpath, format = "ascii.fast_commented_header", overwrite = True)
+
+
+            else:
+                    print("Writing " + outpath)
+                    self._spec_format_for_save().write(outpath, format = "ascii")
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
 
 ##------------------------------------##
 ##  Inheriting Classes                ##
