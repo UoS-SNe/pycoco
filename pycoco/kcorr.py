@@ -90,10 +90,10 @@ def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat
     """
     returns 'spectrum' as a SpectrumClass instance
     """
-    vega = SpectrumClass()
-    vega.load(path)
+    AB = SpectrumClass()
+    AB.load(path)
 
-    return vega
+    return AB
 
 
 def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baseline/atmos_std.dat")):
@@ -107,14 +107,14 @@ def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baselin
     return atmos
 
 
-def calc_filter_area(filter_name):
-    filter_object = load_filter(_default_filter_dir_path + filter_name + ".dat")
+def calc_filter_area(filter_name, filter_path = _default_filter_dir_path):
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
     return filter_area
 
 
-def calc_spectrum_filter_flux(filter_name, SpecClass):
-    filter_object = load_filter(_default_filter_dir_path + filter_name + ".dat")
+def calc_spectrum_filter_flux(filter_name, SpecClass, filter_path = _default_filter_dir_path):
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_object.resample_response(new_wavelength = SpecClass.wavelength)
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
 
@@ -125,11 +125,11 @@ def calc_spectrum_filter_flux(filter_name, SpecClass):
     return  integrated_flux/filter_area
 
 
-def calc_AB_flux(filter_name):
+def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path):
 
     AB = load_AB()
 
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_object.resample_response(new_wavelength = AB.wavelength)
 
     transmitted_spec = filter_object.throughput * AB.flux

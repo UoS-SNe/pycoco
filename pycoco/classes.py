@@ -980,9 +980,6 @@ class BaseFilterClass():
         self._wavelength_units = wavelength_u
 
 
-
-
-
     def save(self, filename, path = False,
          squash = False, verbose = True, *args, **kwargs):
         """
@@ -1015,11 +1012,15 @@ class BaseFilterClass():
                     print("Overwriting " + outpath)
                     outtable = Table([self.wavelength, self.throughput], names = ["wavelength", "throughput"])
                     outtable.write(outpath, format = "ascii.fast_commented_header", overwrite = True)
+                    self._format_for_save = outtable
 
 
             else:
                     print("Writing " + outpath)
-                    self._spec_format_for_save().write(outpath, format = "ascii")
+                    outtable = Table([self.wavelength, self.throughput], names = ["wavelength", "throughput"])
+
+                    outtable.write(outpath, format = "ascii.fast_commented_header")
+                    self._format_for_save = outtable
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
