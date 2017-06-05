@@ -76,9 +76,9 @@ def _check_filters():
     filter_dir = _get_filter_directory()
     path = os.path.join(filter_dir, "list.txt")
 
-    current_arr = loadtxt(path, dtype = str)
+    current_arr = array([str(i) for i in loadtxt(path, dtype = str)])
 
-    filter_arr = _get_filters()
+    filter_arr = array([str(i) for i in _get_filters()])
 
     return array_equal(current_arr, filter_arr)
 
