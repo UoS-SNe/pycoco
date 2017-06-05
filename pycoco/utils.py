@@ -12,12 +12,11 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal
+from numpy import loadtxt, savetxt, array, array_equal, exp
 import matplotlib.pyplot as plt
 
 from astropy.table import Table
 from astropy import units as u
-
 from .defaults import *
 from .errors import *
 
@@ -234,3 +233,12 @@ else:
     import codecs
     def b(x):
         return codecs.latin_1_encode(x)[0]
+
+
+def gaussian(x, g0, x0, sigma0):
+    """
+    1D gaussian
+    """
+
+    gauss = g0*(exp((-(x-x0)*(x-x0))/(2.0*sigma0*sigma0)))
+    return gauss

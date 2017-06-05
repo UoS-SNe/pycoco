@@ -949,6 +949,40 @@ class BaseFilterClass():
             warnings.warn("Foo")
 
 
+    def load_table(self, table, name,  directory = False, wavelength_u = u.angstrom,
+             verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        """
+        Assumes Response function is fractional rather than %.
+        """
+
+        self.filter_name = name
+
+        self.data = table
+
+        if not hasattr(table["wavelength"], "unit"):
+            self.wavelength = self.data["wavelength"]*wavelength_u
+        else:
+            self.wavelength = self.data["wavelength"]
+
+        self.wavelength = self.wavelength.to(u.angstrom)
+        self.data["wavelength"] = self.wavelength
+        self.throughput = self.data["throughput"]
+
+        self.wavelength_u = self.wavelength.to(wavelength_u)
+        self._wavelength_units = wavelength_u
+
+
+
+
+
     def save(self, filename, path = False,
          squash = False, verbose = True, *args, **kwargs):
         """
@@ -1822,7 +1856,7 @@ class FilterClass(BaseFilterClass):
             self.wavelength = self.wavelength.to(u.angstrom)
             self.throughput = self.data["throughput"]
 
-            self.wavelength_u = self.wavelength * wavelength_u
+            self.wavelength_u = self.wavelength.to(wavelength_u)
             self._filter_file_path = path
 
             filename = path.split('/')[-1]
