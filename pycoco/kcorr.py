@@ -15,9 +15,11 @@ from __future__ import print_function
 import os
 import sys
 
-from numpy import log10
+from numpy import log10, linspace
 from scipy.integrate import simps
 from astropy import units as u
+from astropy.table import Table
+from astropy.constants import c
 
 from .classes import *
 from .functions import *
@@ -81,19 +83,30 @@ def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.
     returns spectrum of Vega as a SpectrumClass instance
     """
     vega = SpectrumClass()
-    vega.load(path)
+    vega.load(path, wmin = 1500*u.angstrom, *args, **kwargs)
 
     return vega
 
 
-def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat")):
+def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
     """
     returns 'spectrum' as a SpectrumClass instance
     """
     AB = SpectrumClass()
-    AB.load(path)
+    AB.load(path, wmin = wmin, *args, **kwargs)
 
     return AB
+
+
+def generate_AB_pseudospectrum():
+    f_nu_AB = 3.63078e-20 ## erg s^-1 cm^-2 Hz^-1
+    freq = linspace(2e13, 2e15, num = 1000)[::-1]*u.Hz ## Hz
+    wavelength = (c/freq).to("Angstrom") ## \AA
+    f = freq*f_nu_AB ## erg s^-1 cm^-2
+    f_lambda = f/wavelength
+
+    table = Table([wavelength, f_lambda], names = ("flux", "wavelength"))
+    return table
 
 
 def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baseline/atmos_std.dat")):
@@ -107,13 +120,17 @@ def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baselin
     return atmos
 
 
-def calc_filter_area(filter_name, filter_path = _default_filter_dir_path):
+def calc_filter_area(filter_name = False, filter_path = _default_filter_dir_path):
     filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
     return filter_area
 
 
 def calc_spectrum_filter_flux(filter_name, SpecClass, filter_path = _default_filter_dir_path):
+    """
+    returns flux in units of
+
+    """
     filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_object.resample_response(new_wavelength = SpecClass.wavelength)
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
@@ -196,7 +213,7 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
 #     return mag
 
 
-def load_dark_sky_spectrum():
+def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *args, **kwargs):
     """
     requires https://github.com/lsst/throughputs/ and environment vars LSST_THROUGHPUTS
     and LSST_THROUGHPUTS_BASELINE.
@@ -208,7 +225,7 @@ def load_dark_sky_spectrum():
     dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
     darksky = SpectrumClass()
     darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
-                 wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+                  wmin = wmin, wmax = wmax, *args, **kwargs)
 
     darksky.success = True
 
