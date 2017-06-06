@@ -12,7 +12,7 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal, exp
+from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray
 import matplotlib.pyplot as plt
 
 from astropy.table import Table
@@ -62,10 +62,10 @@ def _get_filters():
         elif filter_file == "list.txt":
             file_list.remove(filter_file)
 
-    return array(file_list)
+    return asarray(file_list)
 
 
-def _check_filters():
+def _get_current_filter_registry(verbose = False):
     """
     Parameters
     ----------
@@ -76,11 +76,37 @@ def _check_filters():
     filter_dir = _get_filter_directory()
     path = os.path.join(filter_dir, "list.txt")
 
-    current_arr = array([str(i) for i in loadtxt(path, dtype = str)])
+    # current_arr = loadtxt(path, dtype = str) ## This causes chaos with encoding
+    current_arr = []
+    with open(path ,"r") as infile:
+        for line in infile:
+            if verbose: print(line.strip("\n"))
+            current_arr.append(line.strip("\n"))
 
-    filter_arr = array([str(i) for i in _get_filters()])
+    current_arr = asarray(current_arr)
 
-    return array_equal(current_arr, filter_arr)
+    return current_arr
+
+def _check_filters(verbose = False):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    filter_dir = _get_filter_directory()
+    path = os.path.join(filter_dir, "list.txt")
+
+    # current_arr = sort([str(i) for i in _get_current_filter_registry()])
+    # filter_arr = sort([str(i) for i in _get_filters()])
+    current_arr = sort(_get_current_filter_registry())
+    filter_arr = sort(_get_filters())
+    if verbose:
+        print(current_arr, filter_arr)
+        print(len(current_arr), len(filter_arr))
+    # return array_equal(current_arr, filter_arr)
+    return array_equiv(current_arr, filter_arr)
 
 
 def make_list_dot_txt():
@@ -98,7 +124,7 @@ def make_list_dot_txt():
     pass
 
 
-def relist(force = False):
+def relist(force = False, verbose = False):
     """
     Parameters
     ----------
@@ -106,7 +132,9 @@ def relist(force = False):
     Returns
     -------
     """
-    if force or not _check_filters:
+    if verbose: print(force, _check_filters())
+    if force or not _check_filters():
+        if verbose: print("updating list.txt")
         make_list_dot_txt()
     else:
         print("current list.txt is up to date. re run with force = True to force.")
