@@ -518,8 +518,8 @@ def compare_spec(orig_spec, specfit,
                          label = plot_label_string, color = 'Blue',
                          *args, **kwargs)
 
-            maxplotydata = np.nanmax([mangled_spec_flux, orig_spec_flux])
-            minplotydata = np.nanmin([mangled_spec_flux, orig_spec_flux])
+            maxplotydata = np.nanmax(np.append(mangled_spec_flux, orig_spec_flux))
+            minplotydata = np.nanmin(np.append(mangled_spec_flux, orig_spec_flux))
 
             if legend:
 

@@ -87,6 +87,7 @@ def _get_current_filter_registry(verbose = False):
 
     return current_arr
 
+
 def _check_filters(verbose = False):
     """
     Parameters
