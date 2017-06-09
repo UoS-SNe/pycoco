@@ -5,7 +5,6 @@ Test suite for pycoco
 import os
 import unittest
 
-# from pycoco import *
 import pycoco as pcc
 import astropy.units as u
 
@@ -18,9 +17,9 @@ except NameError:
         from imp import reload  # Python 3.0 - 3.3
 
 reload(pcc)
-##------------------------------------##
-##  TESTING                           ##
-##------------------------------------##
+#  #------------------------------------#  #
+#  #  TESTING                           #  #
+#  #------------------------------------#  #
 
 class TestClass(unittest.TestCase):
     """
@@ -222,7 +221,14 @@ class TestClass(unittest.TestCase):
         darksky = pcc.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
         self.assertEqual(darksky.success, True)
+
+    def test_kcorr_calc_m_darksky(self):
+        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV")
+        self.assertAlmostEqual(21.717677839340244, m_darkskyV, 2)
     ###
+
+    # def test_coco_calls_test_LCfit(self):
+
 
 if __name__ is '__main__':
 

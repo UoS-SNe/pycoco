@@ -2,14 +2,31 @@
 
 """
 
-__all__ = ["test_LCfit", "run_LCfit", "test_specfit", "run_specfit", "specfit_sn"]
+import os
+import sys
+import warnings
+import subprocess
 
-##------------------------------------##
-## CoCo Functions                     ##
-##------------------------------------##
+from numpy import asarray
+
+from .classes import *
+from .defaults import *
+from .utils import *
+
+__all__ = ["test_LCfit",
+           "run_LCfit",
+           "test_specfit",
+           "run_specfit",
+           "specfit_sn",
+           "run_LCfit_fileinput"
+           ]
+
+#  #------------------------------------#  #
+#  # CoCo Functions                     #  #
+#  #------------------------------------#  #
 
 
-def test_LCfit(snname, coco_dir = False,
+def test_LCfit(snname, coco_dir = _default_coco_dir_path,
                verbose = True):
     """
     Check to see if a fit has been done. Does this by
@@ -20,12 +37,12 @@ def test_LCfit(snname, coco_dir = False,
     -------
     """
 
-    try:
-        if not coco_dir:
-            coco_dir = _default_coco_dir_path
-
-    except:
-        warnings.warn("Something funky with your input")
+    # try:
+    #     if not coco_dir:
+    #         coco_dir = _default_coco_dir_path
+    #
+    # except:
+    #     warnings.warn("Something funky with your input")
 
     check_dir_path(coco_dir)
 
@@ -53,7 +70,7 @@ def test_LCfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_LCfit(path):
+def run_LCfit(path, coco_dir = _default_coco_dir_path, verbose = True,):
     """
     Parameters
     ----------
@@ -64,10 +81,47 @@ def run_LCfit(path):
     relist() ## Check filter file is up to date
 
     if verbose: print("Running CoCo lcfit on " + path)
-    subprocess.call(["./lcfit", path])
+    cwd = os.getcwd()
+    os.chdir(coco_dir)
+    subprocess.call([os.path.join(_default_coco_dir_path, "lcfit"), path])
+    os.chdir(cwd)
+    if verbose: print("Fit complete")
+    pass
+
+
+def run_LCfit_fileinput(listfile_path, coco_dir = _default_coco_dir_path, data_dir = _default_data_dir_path, verbose = True):
+    """
+
+    :param listfile:
+    :param verbose:
+    :return:
+    """
+
+    check_file_path(listfile_path)
+
+    if verbose: print("Reading ", listfile_path)
+
+    file_list = []
+
+    with  open(listfile_path) as infile:
+        for line in infile:
+            if verbose: print(os.path.join(data_dir, os.pardir, line.strip("\n")))
+            file_list.append(os.path.join(data_dir, os.pardir, line.strip("\n")))
+
+    file_list = asarray(file_list)
+
+    for lc_path in file_list:
+        run_LCfit(lc_path, coco_dir=coco_dir, verbose=verbose)
 
     pass
 
+def run_all_SNe_LCfit(verbose = True):
+    """
+
+    :param verbose:
+    :return:
+    """
+    pass
 
 def test_specfit(snname, coco_dir = False,
                verbose = True):
@@ -128,7 +182,7 @@ def run_specfit(path, verbose = True):
     relist() ## Check filter file is up to date
 
     if verbose: print("Running CoCo specfit on " + path)
-    subprocess.call(["./specfit", path])
+    subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
 
     pass
 

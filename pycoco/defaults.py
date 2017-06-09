@@ -29,7 +29,8 @@ __all__ = ["_default_data_dir_path",
 COCO_ROOT_DIR = os.environ["COCO_ROOT_DIR"]
 LSST_THROUGHPUTS_ROOT = os.environ["LSST_THROUGHPUTS"]
 
-_default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
+# _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
+_default_data_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/"))
 _default_filter_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/filters/"))
 _default_coco_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR))
 _default_recon_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "recon/"))

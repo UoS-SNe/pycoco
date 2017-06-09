@@ -216,15 +216,15 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     return -2.5 * log10(area_corr_integrated_flux)
 
 
-# def calc_vega_mag(filter_name):
-#     """
-#
-#     """
-#     zp = calc_vega_zp(filter_name)
-#     flux = calc_vega_flux(filter_name)
-#
-#     mag = -2.5 * log10(flux) - zp
-#     return mag
+def calc_vega_mag(filter_name):
+    """
+
+    """
+    zp = calc_vega_zp(filter_name)
+    flux = calc_vega_flux(filter_name)
+
+    mag = -2.5 * log10(flux) - zp
+    return mag
 
 
 def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *args, **kwargs):
@@ -244,6 +244,26 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     darksky.success = True
 
     return darksky
+
+
+def calc_m_darksky(filter_name, vega = False):
+    """
+
+    :param filter_name:
+    :param vega:
+    :return:
+    """
+    dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
+    darksky = SpectrumClass()
+    darksky.load(dark_sky_path, wavelength_u=u.nm, flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
+                 fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, )
+
+    if vega:
+        zp = calc_vega_zp(filter_name)
+    else:
+        zp = calc_AB_zp(filter_name)
+
+    return -2.5 * log10(calc_spectrum_filter_flux(filter_name, darksky)) - zp
 
 
 def nu_to_lambda(freq):
