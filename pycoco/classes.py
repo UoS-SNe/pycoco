@@ -2807,8 +2807,11 @@ class InfoClass():
         self.distmod = self.table["mu"]
         self.RA = self.table["RA"]
         self.Dec = self.table["Dec"]
+
         self.table["SkyCoords"] = SkyCoord(self.table["RA"], self.table["Dec"], unit=(u.hourangle, u.deg))
         self.coords = self.table["SkyCoords"]
+
+        self.type = self.table["Type"]
 
     def get_sn_info(self, snname):
         try:

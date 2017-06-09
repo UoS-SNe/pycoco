@@ -214,6 +214,23 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
     return data
 
 
+def make_master_list(lists_dir):
+    """
+
+    :return:
+    """
+    if not lists_dir:
+        l = os.listdir(os.path.join(_default_coco_dir_path, "lists/"))
+    else:
+        check_dir_path(lists_dir)
+        l = os.listdir(lists_dir)
+    badlist = ['.DS_Store',  'master.list', 'lightcurves.list',]
+    ## remove hidden files etc.
+    goodlist = [i for i in l if i not in badlist]
+
+    return goodlist
+
+
 def setup_plot_defaults():
     """
 
