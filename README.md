@@ -1,7 +1,7 @@
 # pycoco
 ___
 
-## v0.6.4
+## v0.7.0
 ___
 
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
@@ -36,6 +36,8 @@ ___
  * better handing of CoCo sim outputs
 
  * SN position and mu now stored in infofile `./testdata/info/info.dat`
+
+ * dark sky calculations and integration with LSST Throughputs now done
 ___
 
 
