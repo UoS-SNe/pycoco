@@ -17,6 +17,7 @@ from astropy import units as u
 from .defaults import *
 from .errors import *
 from .classes import *
+# from .classes import InfoClass
 from .utils import *
 
 
@@ -46,9 +47,22 @@ __all__ = ["load_filter",
            "load_info",
            "plot_mangle"]
 
-##------------------------------------##
-##  Functions                         ##
-##------------------------------------##
+# def importtest():
+#     x = BaseSpectrumClass()
+#     x = BaseLightCurveClass()
+#     x = BaseFilterClass()
+#     x = PhotometryClass()
+#     x = SpectrumClass()
+#     x = LCfitClass()
+#     x = specfitClass()
+#     x = SNClass()
+#     x = FilterClass()
+#     x = InfoClass()
+#     pass
+
+#  #------------------------------------#  #
+#  #  Functions                         #  #
+#  #------------------------------------#  #
 
 def load_filter(path, cmap = False, verbose = False):
     """

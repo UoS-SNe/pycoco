@@ -29,13 +29,13 @@ from .extinction import *
 from .colours import *
 from .utils import *
 from .errors import *
-from .coco_calls import *
 from .defaults import *
 from .kcorr import *
 # from .functions import *
+# from .coco_calls import *
 
-warnings.resetwarnings()
-# warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
+# warnings.resetwarnings()
+# warnings.simplefilter("error") ## Turn warnings into errors - good for debugging
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
@@ -49,13 +49,13 @@ __all__ = ["BaseSpectrumClass",
            "InfoClass",
            "find_specphase_spec"]
 
-##----------------------------------------------------------------------------##
-##                                   TOOLS                                    ##
-##----------------------------------------------------------------------------##
+#  #----------------------------------------------------------------------------#  #
+#  #                                   TOOLS                                    #  #
+#  #----------------------------------------------------------------------------#  #
 
-##------------------------------------##
-##  DUMMY CODE                        ##
-##------------------------------------##
+#  #------------------------------------#  #
+#  #  DUMMY CODE                        #  #
+#  #------------------------------------#  #
 
 class CustomValueError(ValueError):
     """
@@ -199,18 +199,18 @@ class BaseSpectrumClass():
             pass
 
 
-    def load(self, filename, directory = False, fmt = "ascii",
-             wmin = 3500*u.angstrom, wmax = 11000*u.angstrom,
-             names = ("wavelength", "flux"), wavelength_u = u.angstrom,
-             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom, verbose = False):
+    def load(self, filename, directory=False, fmt="ascii",
+             wmin=3500 * u.angstrom, wmax=11000 * u.angstrom,
+             names=("wavelength", "flux"), wavelength_u=u.angstrom,
+             flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
+             convert_flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
+             verbose=False):
         """
         Parameters
         ----------
-
         Returns
         -------
         """
-
 
         StringWarning(filename)
 
@@ -236,14 +236,14 @@ class BaseSpectrumClass():
             try:
                 if hasattr(self, "recon_directory"):
                     names = names + ("flux_err",)
-                spec_table = Table.read(path, format = fmt, names = names)
+                spec_table = Table.read(path, format=fmt, names=names)
 
             except:
                 if "flux_err" not in names:
                     names = names + ("flux_err",)
-                spec_table = Table.read(path, format = fmt, names = names)
+                spec_table = Table.read(path, format=fmt, names=names)
 
-            if verbose:print("Reading " + path)
+            if verbose: print("Reading " + path)
 
             spec_table.meta["filepath"] = path
             spec_table.meta["filename"] = path.split("/")[-1]
@@ -252,22 +252,30 @@ class BaseSpectrumClass():
 
             if wavelength_u != u.Angstrom:
                 spec_table['wavelength'] = spec_table['wavelength'].to(u.Angstrom)
-            spec_table['flux'].unit = flux_u
 
+            spec_table['flux'].unit = flux_u
             if "flux_err" in spec_table.colnames:
                 spec_table["flux_err"].unit = flux_u
 
-            ## enforce wmin and wmax
-            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
+                #  Automatically convert units?
+            if flux_u != convert_flux_u:
+                spec_table["flux"] = spec_table["flux"].to(convert_flux_u)
+                if "flux_err" in spec_table.colnames:
+                    spec_table["flux_err"] = spec_table["flux_err"].to(convert_flux_u)
+
+                flux_u = convert_flux_u
+
+            # enforce wmin and wmax
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
             self.min_wavelength = np.nanmin(spec_table["wavelength"])
             self.max_wavelength = np.nanmax(spec_table["wavelength"])
 
-            ## assign to class
+            #  assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
             self.flux = spec_table["flux"]
 
-            ## If you got this far...
+            #  If you got this far...
             self.success = True
         else:
             warnings.warn(path + " is not a valid file path")
@@ -1025,9 +1033,9 @@ class BaseFilterClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
-##------------------------------------##
-##  Inheriting Classes                ##
-##------------------------------------##
+#  #------------------------------------#  #
+#  #  Inheriting Classes                #  #
+#  #------------------------------------#  #
 
 class PhotometryClass(BaseLightCurveClass):
     """
@@ -1055,7 +1063,7 @@ class PhotometryClass(BaseLightCurveClass):
         self.data_filters = OrderedDict()
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
+        self.set_data_directory(self._default_data_dir_path)
         self.set_filter_directory(self._get_filter_directory())
 
 
@@ -1070,7 +1078,7 @@ class PhotometryClass(BaseLightCurveClass):
                  default datalocation: '../testdata/', with '/lc/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
+        return self.data_directory
 
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
@@ -1447,12 +1455,12 @@ class SpectrumClass(BaseSpectrumClass):
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
+        self.set_data_directory(self._default_data_dir_path)
 
         pass
 
 
-    def _get_data_directory(self):
+    def _get_data_directory(self, path=False):
         """
         Get the default path to the data directory.
 
@@ -1463,7 +1471,7 @@ class SpectrumClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
+        return self.data_directory
 
 
     def set_data_directory(self, data_dir_path = '', verbose = False):

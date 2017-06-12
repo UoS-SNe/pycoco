@@ -1,13 +1,6 @@
 """
 Test suite for pycoco
 """
-
-import os
-import unittest
-
-import pycoco as pcc
-import astropy.units as u
-
 try:
     reload  # Python 2.7
 except NameError:
@@ -16,7 +9,13 @@ except NameError:
     except ImportError:
         from imp import reload  # Python 3.0 - 3.3
 
-reload(pcc)
+import os
+import unittest
+
+import pycoco as pcc
+import astropy.units as u
+
+
 #  #------------------------------------#  #
 #  #  TESTING                           #  #
 #  #------------------------------------#  #
@@ -54,12 +53,12 @@ class TestClass(unittest.TestCase):
     def test_load_all_phot_returns_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
-    def test_find_filter_phot_finds_5_SN2005bf(self):
-        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
-        phot_path = pcc.find_filter_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")
-        # phot_filename = phot_path.split('/')[-1]
-        # self.assertEqual(phot_filename, 'SN2005bf.dat')
-        self.assertEqual(len(phot_path), 5)
+    # def test_find_filter_phot_finds_5_SN2005bf(self):
+    #     directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
+    #     phot_path = pcc.find_filter_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")
+    #     # phot_filename = phot_path.split('/')[-1]
+    #     # self.assertEqual(phot_filename, 'SN2005bf.dat')
+    #     self.assertEqual(len(phot_path), 5)
 
     def test_find_formatted_phot_finds_SN2005bf(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
@@ -232,7 +231,7 @@ class TestClass(unittest.TestCase):
 
 if __name__ is '__main__':
 
-    test = False
+    # test = False
     test = True
 
     if test:
