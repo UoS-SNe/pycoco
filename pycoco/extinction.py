@@ -31,7 +31,7 @@ def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
     for i in enumerate(x):
 
         ## IR
-        if i[1] >= 0.3 and i[1] <= 1.1:
+        if 0.3 <= i[1] <= 1.1:
             if verbose: print('IR')
             a = np.append(a, 0.574*np.power(i[1], 1.61))
             b = np.append(b, -0.527*np.power(i[1], 1.61))
@@ -39,7 +39,7 @@ def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
             pass_x= np.append(pass_x, i[1])
 
         ## Near-IR/OPT
-        if i[1] > 1.1 and i[1] <= 3.3:
+        if 1.1 < i[1] <= 3.3:
             if verbose: print('Near-IR/Optical')
             y = i[1] - 1.82
             if cardelli:
@@ -58,7 +58,7 @@ def coeffs(x, wavl = False, verbose = False, cardelli = True, odonnell = False):
             pass_x= np.append(pass_x, i[1])
 
         ## Near-UV
-        if i[1] > 3.3 and i[1] <= 8.0:
+        if 3.3 < i[1] <= 8.0:
             if verbose: print('Near-UV')
 
             if i[1] >= 5.9:

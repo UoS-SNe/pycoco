@@ -6,6 +6,8 @@ from __future__ import print_function ## Force python3-like printing
 
 import os
 import warnings
+import re
+
 # import unittest
 # import httplib ## use http.client on python3 - not using at the mo
 # from urlparse import urlparse
@@ -2881,3 +2883,67 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
     except:
         warnings.warn("Something went wrong")
         return False
+
+
+def find_filter_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
+    """
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SN*.dat. Uses regex via `re` -
+    probably overkill.
+
+    Parameters
+    ----------
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    -------
+
+    phot_list :
+
+    """
+    # regex = re.compile("^SN.*.dat")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        # return False
+        raise PathError
+
+
+    try:
+        if snname:
+            match_string = "^" + str(snname) + ".*" + '.dat'
+        else:
+            match_string = "^" + str(prefix) + ".*" + '.dat'
+    except:
+        raise TypeError
+
+    regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+
+    phot_list = [os.path.abspath(os.path.join(path, match.group(0))) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
+
+    if verbose:
+        print("searching for", match_string)
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+    return phot_list
