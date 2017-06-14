@@ -575,7 +575,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose = False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -594,10 +594,12 @@ class BaseLightCurveClass():
 
 
             for filter_name in filter_names:
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
                 if verbose: print(phot_table)
+                if verbose: print(type(filter_name), type(filter_file_type))
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
@@ -645,7 +647,7 @@ class BaseLightCurveClass():
         # StringWarning(path)
         try:
             self.phot = phot_table
-            self.unpack()
+            self.unpack(verbose=verbose)
 
             ## Sort the OrderedDict
             self._sort_phot()
