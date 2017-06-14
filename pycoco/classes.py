@@ -147,7 +147,7 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_list_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "lists/"))
+        self._default_list_dir_path = os.path.join(_default_coco_dir_path, "lists/")
         #
         # ## Initialise using class methods
         self.set_list_directory(self._get_list_directory())
@@ -166,7 +166,7 @@ class BaseSpectrumClass():
                  default location: '~/Code/CoCo/', with 'lists/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir))), "lists/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir)), "lists/")
 
 
     def set_list_directory(self, list_dir_path = '', verbose = False):
@@ -219,17 +219,17 @@ class BaseSpectrumClass():
         if not directory:
             ## Differentiate between the two child classes
             if hasattr(self, 'data_directory'):
-                path = os.path.abspath(os.path.join(self.data_directory, filename))
+                path = os.path.join(self.data_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.data_directory")
 
             if hasattr(self, 'recon_directory'):
-                path = os.path.abspath(os.path.join(self.recon_directory, filename))
+                path = os.path.join(self.recon_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
             StringWarning(directory)
             check_dir_path(directory)
 
-            path = os.path.abspath(os.path.join(directory, filename))
+            path = os.path.join(directory, filename)
             if verbose: print(path)
 
         if os.path.isfile(path):
@@ -1455,7 +1455,7 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1544,7 +1544,7 @@ class LCfitClass(BaseLightCurveClass):
                  default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+        return os.path.join(self._default_recon_dir_path, os.path.pardir, "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1709,7 +1709,7 @@ class specfitClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1729,7 +1729,7 @@ class specfitClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir)), "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -2101,7 +2101,7 @@ class SNClass():
         if not snname:
             snname = self.name
         if not path:
-            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
         if verbose: print(path)
         self.phot.load(path, verbose = verbose)
 
@@ -2143,7 +2143,7 @@ class SNClass():
 
         if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
             for i, path in enumerate(self.list['spec_path']):
-                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_fullpath = os.path.join(self.coco_directory, path)
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
                 if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
@@ -2934,7 +2934,7 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
 
     ls = os.listdir(path)
 
-    phot_list = [os.path.abspath(os.path.join(path, match.group(0))) for file_name in ls for match in [regex.search(file_name)] if match]
+    phot_list = [os.path.join(path, match.group(0)) for file_name in ls for match in [regex.search(file_name)] if match]
 
     if os.path.join(path, snname + file_type) in phot_list:
         phot_list.remove(os.path.join(path,snname + file_type))
