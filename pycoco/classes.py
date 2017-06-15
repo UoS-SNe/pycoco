@@ -509,7 +509,7 @@ class BaseLightCurveClass():
         $PYCOCO_FILTER_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+                 default datalocation, i.e.: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
