@@ -189,7 +189,7 @@ def calc_vega_flux(filter_name, filter_object = False,):
     vega = load_vega()
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat")
+        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
     # else if hasattr(filter_object, "wavelength"):
 
     filter_object.resample_response(new_wavelength = vega.wavelength)

@@ -15,6 +15,7 @@ __all__ = ["_default_data_dir_path",
            "_default_specphase_dir_path",
            "_default_sn_dist_path",
            "_default_lcsim_path",
+           "_default_list_dir_path",
            "_colourmap_name",
            "_spec_colourmap_name",
            "spec_colourmap",
@@ -31,6 +32,7 @@ LSST_THROUGHPUTS_ROOT = os.environ["LSST_THROUGHPUTS"]
 
 _default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
 _default_filter_dir_path = os.path.join(COCO_ROOT_DIR, "data/filters/")
+_default_list_dir_path = os.path.join(COCO_ROOT_DIR, "lists/")
 _default_coco_dir_path = os.path.join(COCO_ROOT_DIR)
 _default_recon_dir_path = os.path.join(COCO_ROOT_DIR, "recon/")
 _default_specphase_dir_path = os.path.join(COCO_ROOT_DIR, "spectra/")

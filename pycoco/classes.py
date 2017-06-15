@@ -1313,8 +1313,8 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, xlim = False, *args, **kwargs):
+    def plot(self, filters=False, legend=True, xminorticks=5, enforce_zero = True,
+             verbose=False, xlim=False, yaxis_max_factor=1.02, *args, **kwargs):
         """
         Plots phot.
 
@@ -1359,9 +1359,9 @@ class PhotometryClass(BaseLightCurveClass):
                                       numpoints = 1, frameon = False, fontsize = 12)
             ## Use ap table groups instead? - can't; no support for mixin columns.
             if enforce_zero:
-                ax1.set_ylim(0., np.nanmax(self.phot['flux']))
+                ax1.set_ylim(0., yaxis_max_factor * np.nanmax(self.phot['flux']))
             else:
-                ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+                ax1.set_ylim(np.nanmin(self.phot['flux']), yaxis_max_factor * np.nanmax(self.phot['flux']))
 
             if xlim:
                 ax1.set_xlim(xlim)
