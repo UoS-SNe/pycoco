@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import numpy as np
 
-__all__ = ['extinction_law', 'unred']
+__all__ = ["extinction_law", "unred", "deredden"]
 
 def extinction_law(a, b, Rv = 3.1):
     """Eqn 1 from Cardelli 1989"""
