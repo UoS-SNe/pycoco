@@ -15,6 +15,7 @@ __all__ = ["_default_data_dir_path",
            "_default_specphase_dir_path",
            "_default_sn_dist_path",
            "_default_lcsim_path",
+           "_default_list_dir_path",
            "_colourmap_name",
            "_spec_colourmap_name",
            "spec_colourmap",
@@ -29,16 +30,16 @@ __all__ = ["_default_data_dir_path",
 COCO_ROOT_DIR = os.environ["COCO_ROOT_DIR"]
 LSST_THROUGHPUTS_ROOT = os.environ["LSST_THROUGHPUTS"]
 
-# _default_data_dir_path = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir) + '/testdata/')
-_default_data_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/"))
-_default_filter_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "data/filters/"))
-_default_coco_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR))
-_default_recon_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "recon/"))
-_default_specphase_dir_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "spectra/"))
-_default_sn_dist_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sndist.list"))
-_default_lcsim_path = os.path.abspath(os.path.join(COCO_ROOT_DIR, "sim/"))
-_default_info_path = os.path.abspath(os.path.join(_default_data_dir_path, "info/info.dat"))
-_default_kcorr_data_path = os.path.abspath(os.path.join(__file__, os.pardir) + '/kcorr_data/')
+_default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
+_default_filter_dir_path = os.path.join(COCO_ROOT_DIR, "data/filters/")
+_default_list_dir_path = os.path.join(COCO_ROOT_DIR, "lists/")
+_default_coco_dir_path = os.path.join(COCO_ROOT_DIR)
+_default_recon_dir_path = os.path.join(COCO_ROOT_DIR, "recon/")
+_default_specphase_dir_path = os.path.join(COCO_ROOT_DIR, "spectra/")
+_default_sn_dist_path = os.path.join(COCO_ROOT_DIR, "sndist.list")
+_default_lcsim_path = os.path.join(COCO_ROOT_DIR, "sim/")
+_default_info_path = os.path.join(_default_data_dir_path, "info/info.dat")
+_default_kcorr_data_path = os.path.join(os.path.abspath(os.path.join(__file__, os.pardir)), 'kcorr_data/')
 _default_lsst_throughputs_path = os.path.abspath(LSST_THROUGHPUTS_ROOT)
 # _colormap_name = 'jet'
 # _colourmap_name = 'rainbow'

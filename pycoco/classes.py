@@ -6,6 +6,8 @@ from __future__ import print_function ## Force python3-like printing
 
 import os
 import warnings
+import re
+
 # import unittest
 # import httplib ## use http.client on python3 - not using at the mo
 # from urlparse import urlparse
@@ -145,7 +147,7 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_list_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "lists/"))
+        self._default_list_dir_path = os.path.join(_default_coco_dir_path, "lists/")
         #
         # ## Initialise using class methods
         self.set_list_directory(self._get_list_directory())
@@ -164,7 +166,7 @@ class BaseSpectrumClass():
                  default location: '~/Code/CoCo/', with 'lists/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir))), "lists/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir)), "lists/")
 
 
     def set_list_directory(self, list_dir_path = '', verbose = False):
@@ -217,17 +219,17 @@ class BaseSpectrumClass():
         if not directory:
             ## Differentiate between the two child classes
             if hasattr(self, 'data_directory'):
-                path = os.path.abspath(os.path.join(self.data_directory, filename))
+                path = os.path.join(self.data_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.data_directory")
 
             if hasattr(self, 'recon_directory'):
-                path = os.path.abspath(os.path.join(self.recon_directory, filename))
+                path = os.path.join(self.recon_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
             StringWarning(directory)
             check_dir_path(directory)
 
-            path = os.path.abspath(os.path.join(directory, filename))
+            path = os.path.join(directory, filename)
             if verbose: print(path)
 
         if os.path.isfile(path):
@@ -380,7 +382,7 @@ class BaseSpectrumClass():
         self.EBV = EBV
 
 
-    def deredden(self, verbose = False):
+    def deredden(self, z, EBV_host, EBV_MW = False, verbose = True):
         """
         Parameters
         ----------
@@ -389,10 +391,12 @@ class BaseSpectrumClass():
         -------
         """
 
-        if hasattr(self, "EBV") and hasattr(self, "data"):
+        if hasattr(self, "data"):
             if verbose: print("Foo")
-
-            self.flux_dered = unred(self.wavelength, self.flux, EBV = self.EBV)
+            if hasattr(self, "EBV") and not EBV_MW:
+                EBV_MW = self.EBV
+                
+            self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
         else:
@@ -507,7 +511,7 @@ class BaseLightCurveClass():
         $PYCOCO_FILTER_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+                 default datalocation, i.e.: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
@@ -573,7 +577,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose = False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -592,10 +596,12 @@ class BaseLightCurveClass():
 
 
             for filter_name in filter_names:
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
                 if verbose: print(phot_table)
+                if verbose: print(type(filter_name), type(filter_file_type))
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
@@ -643,7 +649,7 @@ class BaseLightCurveClass():
         # StringWarning(path)
         try:
             self.phot = phot_table
-            self.unpack()
+            self.unpack(verbose=verbose)
 
             ## Sort the OrderedDict
             self._sort_phot()
@@ -1309,8 +1315,8 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, xlim = False, *args, **kwargs):
+    def plot(self, filters=False, legend=True, xminorticks=5, enforce_zero = True,
+             verbose=False, xlim=False, yaxis_max_factor=1.02, *args, **kwargs):
         """
         Plots phot.
 
@@ -1355,9 +1361,9 @@ class PhotometryClass(BaseLightCurveClass):
                                       numpoints = 1, frameon = False, fontsize = 12)
             ## Use ap table groups instead? - can't; no support for mixin columns.
             if enforce_zero:
-                ax1.set_ylim(0., np.nanmax(self.phot['flux']))
+                ax1.set_ylim(0., yaxis_max_factor * np.nanmax(self.phot['flux']))
             else:
-                ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+                ax1.set_ylim(np.nanmin(self.phot['flux']), yaxis_max_factor * np.nanmax(self.phot['flux']))
 
             if xlim:
                 ax1.set_xlim(xlim)
@@ -1451,7 +1457,7 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1540,7 +1546,7 @@ class LCfitClass(BaseLightCurveClass):
                  default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+        return os.path.join(self._default_recon_dir_path, os.path.pardir, "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1705,7 +1711,7 @@ class specfitClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1725,7 +1731,7 @@ class specfitClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir)), "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -2097,7 +2103,7 @@ class SNClass():
         if not snname:
             snname = self.name
         if not path:
-            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
         if verbose: print(path)
         self.phot.load(path, verbose = verbose)
 
@@ -2139,7 +2145,7 @@ class SNClass():
 
         if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
             for i, path in enumerate(self.list['spec_path']):
-                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_fullpath = os.path.join(self.coco_directory, path)
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
                 if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
@@ -2881,3 +2887,67 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
     except:
         warnings.warn("Something went wrong")
         return False
+
+
+def find_filter_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
+    """
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SN*.dat. Uses regex via `re` -
+    probably overkill.
+
+    Parameters
+    ----------
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    -------
+
+    phot_list :
+
+    """
+    # regex = re.compile("^SN.*.dat")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        # return False
+        raise PathError
+
+
+    try:
+        if snname:
+            match_string = "^" + str(snname) + ".*" + '.dat'
+        else:
+            match_string = "^" + str(prefix) + ".*" + '.dat'
+    except:
+        raise TypeError
+
+    regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+
+    phot_list = [os.path.join(path, match.group(0)) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
+
+    if verbose:
+        print("searching for", match_string)
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+    return phot_list
