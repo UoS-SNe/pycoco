@@ -380,7 +380,7 @@ class BaseSpectrumClass():
         self.EBV = EBV
 
 
-    def deredden(self, verbose = True):
+    def deredden(self, verbose = False):
         """
         Parameters
         ----------
@@ -392,7 +392,7 @@ class BaseSpectrumClass():
         if hasattr(self, "EBV") and hasattr(self, "data"):
             if verbose: print("Foo")
 
-            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            self.flux_dered = unred(self.wavelength, self.flux, EBV = self.EBV)
             self.data["flux_dered"] = self.flux_dered
 
         else:
