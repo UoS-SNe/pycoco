@@ -1000,6 +1000,18 @@ def run_specfit(path, verbose = True):
 
     pass
 
+def get_all_spec_lists(dirpath = _default_list_dir_path):
+    ignore = [".DS_Store", "master.list", "lightcurves.list"]
+
+    check_dir_path(dirpath)
+
+    if verbose: print(dirpath)
+
+    listfile_list = [i for i in os.listdir(dirpath) if i not in ignore]
+
+    fullpath_list = [os.path.join(dirpath, j) for j in listfile_list]
+
+    return fullpath_list
 
 def specfit_sn(snname, verbose = True):
     """
