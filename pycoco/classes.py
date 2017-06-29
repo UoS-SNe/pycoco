@@ -19,7 +19,7 @@ import astropy.units as u
 from astropy.constants import c
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from astropy.table import Table, vstack
+from astropy.table import Table, vstack, Row
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -395,7 +395,7 @@ class BaseSpectrumClass():
             if verbose: print("Foo")
             if hasattr(self, "EBV") and not EBV_MW:
                 EBV_MW = self.EBV
-                
+
             self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
@@ -605,11 +605,16 @@ class BaseLightCurveClass():
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
+                if not isinstance(phot_table, Row):
+                # if len(np.unique(self.phot.loc["filter", filter_name]["MJD"])) > 1:
+                    indices = phot_table.argsort("MJD")
+                    # for column_name in phot_table.colnames:
+                    #     phot_table[column_name] = phot_table[column_name][indices]
+                    sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                else:
+                    sorted_phot_table = phot_table
 
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
