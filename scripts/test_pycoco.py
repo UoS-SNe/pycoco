@@ -226,9 +226,13 @@ class TestClass(unittest.TestCase):
         self.assertAlmostEqual(21.717677839340244, m_darkskyV, 2)
     ###
 
+    ## test CoCo stuff
+
     # def test_coco_calls_test_LCfit(self):
 
-
+    def test_coco_lists_phase_is_monotonic(self):
+        checklist = pcc.utils.check_all_lists(pcc._default_list_dir_path)
+        self.assertTrue(all(checklist))
 if __name__ is '__main__':
 
     # test = False

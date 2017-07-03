@@ -1000,6 +1000,7 @@ def run_specfit(path, verbose = True):
 
     pass
 
+
 def get_all_spec_lists(dirpath = _default_list_dir_path):
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
@@ -1012,6 +1013,7 @@ def get_all_spec_lists(dirpath = _default_list_dir_path):
     fullpath_list = [os.path.join(dirpath, j) for j in listfile_list]
 
     return fullpath_list
+
 
 def specfit_sn(snname, verbose = True):
     """

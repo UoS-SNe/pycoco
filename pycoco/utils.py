@@ -21,12 +21,16 @@ from .defaults import *
 from .errors import *
 
 __all__ = ["setup_plot_defaults",
-            "relist",
-            "load_coords",
-            "check_dir_path",
-            "check_file_path",
-            "read_list_file",
-            "load_formatted_phot"]
+           "relist",
+           "load_coords",
+           "check_dir_path",
+           "check_file_path",
+           "read_list_file",
+           "load_formatted_phot",
+           "strictly_increasing",
+           "check_list",
+           "check_all_lists"
+           ]
 
 
 def _get_filter_directory():
@@ -213,6 +217,57 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
     data = Table.read(path, names = names, format = 'ascii')
     return data
 
+
+def strictly_increasing(L):
+    """https://stackoverflow.com/a/4983359"""
+    return all(x<y for x, y in zip(L, L[1:]))
+
+def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
+               specfiletype=".txt", verbose = True):
+    """
+
+    :return:
+    """
+
+    listtable = read_list_file(path, names=names, verbose=verbose)
+    phases = []
+
+
+    for item in listtable["spec_path"]:
+        filename = item.split("/")[-1]
+        filename = filename.split("_")[1:][0]
+        filename = filename.strip(specfiletype)
+        try:
+            phase = float(filename)
+        except:
+            pass
+        phases.append(phase)
+        if verbose: print(phase)
+
+    return strictly_increasing(phases)
+
+
+def check_all_lists(lists_dir, verbose=False):
+    """
+    Checks that the phases in the listfiles within lists_dir are monotonic
+
+    :param lists_dir:
+    :param verbose:
+    :return:
+    """
+    checklist = []
+    master_list = make_master_list(lists_dir)
+
+    for spec_listfile in master_list:
+        if verbose: print(spec_listfile)
+        check_status = check_list(os.path.join(_default_list_dir_path, spec_listfile), verbose=verbose)
+        checklist.append(check_status)
+        if check_status:
+            print(spec_listfile, " passed")
+        else:
+            print(spec_listfile, " failed")
+
+    return checklist
 
 def make_master_list(lists_dir):
     """

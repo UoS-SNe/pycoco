@@ -1783,9 +1783,9 @@ class specfitClass(BaseSpectrumClass):
         pass
 
 
-    def plot_comparision(self, SpectrumClassInstance,
-                         xminorticks = 250, legend = True,
-                         verbose = True,
+    def plot_comparison(self, SpectrumClassInstance,
+                         xminorticks=250, legend=True,
+                         verbose=True, twoaxes=True,
                          *args, **kwargs):
         """
         Plots spec.
@@ -1803,10 +1803,9 @@ class specfitClass(BaseSpectrumClass):
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+                                right = 0.94, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
-
 
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
@@ -1816,8 +1815,14 @@ class specfitClass(BaseSpectrumClass):
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
+            if twoaxes:
+                ax2 = ax1.twinx()
+                ax2.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
 
-            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+            else:
+                ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
                          label = plot_label_string_compare, color = 'Blue',
                          *args, **kwargs)
 
@@ -1825,9 +1830,13 @@ class specfitClass(BaseSpectrumClass):
             minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
 
             if legend:
+                ## https://stackoverflow.com/a/10129461
+                lines, labels = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax2.get_legend_handles_labels()
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
+                # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                ax1.legend(lines + lines2,labels + labels2, loc=0, scatterpoints=1,
+                                        numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
@@ -2110,16 +2119,33 @@ class SNClass():
         pass
 
 
-    def load_list(self, path, verbose = True):
+    def load_list(self, path, specfiletype = ".txt", verbose = False):
         """
         Parameters
         ----------
         Returns
         -------
         """
-        listdata = read_list_file(path, verbose = verbose)
+        listdata = read_list_file(path, verbose=verbose)
         listdata.sort('mjd_obs')
+
+        phases = []
+
+        for item in listdata["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+
+            phases.append(phase)
+            if verbose: print(phase)
+        listdata["phase"] = phases
+
         self.list  = listdata
+
 
 
     def load_spec(self, snname = False, spec_dir_path = False, verbose = False):
@@ -2180,7 +2206,8 @@ class SNClass():
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
 
-                self.mangledspec[spec_filename] = SpectrumClass()
+                # self.mangledspec[spec_filename] = SpectrumClass()
+                self.mangledspec[spec_filename] = specfitClass()
 
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
                                               verbose = verbose)
