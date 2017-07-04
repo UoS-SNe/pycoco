@@ -1039,6 +1039,12 @@ class BaseFilterClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+class LCModel():
+    def __init__(self):
+        pass
+
+
 #  #------------------------------------#  #
 #  #  Inheriting Classes                #  #
 #  #------------------------------------#  #

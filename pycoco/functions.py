@@ -18,7 +18,6 @@ from astropy import units as u
 from .defaults import *
 from .errors import *
 from .classes import *
-# from .classes import InfoClass
 from .utils import *
 
 
