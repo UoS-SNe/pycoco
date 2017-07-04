@@ -1,4 +1,3 @@
-#!/usr/bin env python
 '''
 This is the utilities sub-module for the pycoco python tools.
 
@@ -12,10 +11,10 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray
+from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray, zeros
 import matplotlib.pyplot as plt
 
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy import units as u
 from .defaults import *
 from .errors import *
@@ -29,7 +28,8 @@ __all__ = ["setup_plot_defaults",
            "load_formatted_phot",
            "strictly_increasing",
            "check_list",
-           "check_all_lists"
+           "check_all_lists",
+           "specphot_out_to_ap_table"
            ]
 
 
@@ -204,6 +204,12 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
                              names = ('MJD', 'flux', 'flux_err', 'filter')):
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
+
+def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter')):
+    mjd = out[0]+mjdmax
+    filters = Column([filter_name.astype(str) for i in out[0]])
+    ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
+    return ap_table
 
 def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
     """

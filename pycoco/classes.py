@@ -2869,8 +2869,8 @@ class SNClass():
                     if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
                       hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
                       hasattr(self.spec[spectrum], "data"):
-                       blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
-                       red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+                       blue_bool = self.phot.data_filters[filtername]._lower_edge > spec_obj.min_wavelength
+                       red_bool = self.phot.data_filters[filtername]._upper_edge < spec_obj.max_wavelength
 
                        if blue_bool and red_bool:
                             within = True
