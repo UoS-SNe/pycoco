@@ -3,8 +3,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import sys
-import os
+# import os
 import re
 
 packageName = 'pycoco'

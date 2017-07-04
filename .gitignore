@@ -1,6 +1,11 @@
 ## Added by Rob
 */*.png
 
+# PyCharm #
+###########
+.idea/
+
+
 # Compiled source #
 ###################
 *.com

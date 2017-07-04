@@ -1,14 +1,6 @@
 """
 Test suite for pycoco
 """
-
-import os
-import unittest
-
-# from pycoco import *
-import pycoco as pcc
-import astropy.units as u
-
 try:
     reload  # Python 2.7
 except NameError:
@@ -17,10 +9,16 @@ except NameError:
     except ImportError:
         from imp import reload  # Python 3.0 - 3.3
 
-reload(pcc)
-##------------------------------------##
-##  TESTING                           ##
-##------------------------------------##
+import os
+import unittest
+
+import pycoco as pcc
+import astropy.units as u
+
+
+#  #------------------------------------#  #
+#  #  TESTING                           #  #
+#  #------------------------------------#  #
 
 class TestClass(unittest.TestCase):
     """
@@ -55,12 +53,12 @@ class TestClass(unittest.TestCase):
     def test_load_all_phot_returns_PathError_for_None(self):
         self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
 
-    def test_find_filter_phot_finds_5_SN2005bf(self):
-        directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
-        phot_path = pcc.find_filter_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")
-        # phot_filename = phot_path.split('/')[-1]
-        # self.assertEqual(phot_filename, 'SN2005bf.dat')
-        self.assertEqual(len(phot_path), 5)
+    # def test_find_filter_phot_finds_5_SN2005bf(self):
+    #     directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
+    #     phot_path = pcc.find_filter_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")
+    #     # phot_filename = phot_path.split('/')[-1]
+    #     # self.assertEqual(phot_filename, 'SN2005bf.dat')
+    #     self.assertEqual(len(phot_path), 5)
 
     def test_find_formatted_phot_finds_SN2005bf(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc._default_data_dir_path, "lc"))
@@ -153,6 +151,8 @@ class TestClass(unittest.TestCase):
 
     # def test_specfitClass
 
+    # def test_compare_spec()
+    
     ## FilterClass tests
 
     def test_filter_name_parsed_OK(self):
@@ -220,11 +220,22 @@ class TestClass(unittest.TestCase):
         darksky = pcc.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
         self.assertEqual(darksky.success, True)
+
+    def test_kcorr_calc_m_darksky(self):
+        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV")
+        self.assertAlmostEqual(21.717677839340244, m_darkskyV, 2)
     ###
 
+    ## test CoCo stuff
+
+    # def test_coco_calls_test_LCfit(self):
+
+    def test_coco_lists_phase_is_monotonic(self):
+        checklist = pcc.utils.check_all_lists(pcc._default_list_dir_path)
+        self.assertTrue(all(checklist))
 if __name__ is '__main__':
 
-    test = False
+    # test = False
     test = True
 
     if test:

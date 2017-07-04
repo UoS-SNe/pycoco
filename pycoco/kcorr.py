@@ -15,8 +15,11 @@ from __future__ import print_function
 import os
 import sys
 
-from numpy import log10
+from numpy import log10, linspace, ones
 from scipy.integrate import simps
+from astropy import units as u
+from astropy.table import Table
+from astropy.constants import c
 
 from .classes import *
 from .functions import *
@@ -27,7 +30,9 @@ __all__ = ["offset",
             # "convert_Vega_to_AB",
             "calc_AB_zp",
             "calc_vega_zp",
-            "load_dark_sky_spectrum"]
+            "load_dark_sky_spectrum",
+            "calc_spectrum_filter_flux",
+            "load_atmosphere"]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
@@ -73,37 +78,89 @@ offset = {
 #     return phot_table
 
 
-def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.dat")):
+def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
     """
     returns spectrum of Vega as a SpectrumClass instance
     """
     vega = SpectrumClass()
-    vega.load(path)
+    vega.load(path, wmin = wmin, *args, **kwargs)
 
     return vega
 
 
-def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat")):
+def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
     """
     returns 'spectrum' as a SpectrumClass instance
     """
-    vega = SpectrumClass()
-    vega.load(path)
+    AB = SpectrumClass()
+    AB.load(path, wmin = wmin, *args, **kwargs)
 
-    return vega
+    return AB
 
 
-def calc_filter_area(filter_name):
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+def generate_AB_pseudospectrum(fnu = False):
+    """
+
+    """
+
+    f_nu_AB = 3.63078e-20 ## erg s^-1 cm^-2 Hz^-1
+    freq = linspace(2e13, 2e15, num = 1000)[::-1]*u.Hz ## Hz
+    f_nu = ones(len(freq))*f_nu_AB
+
+
+    if fnu:
+        table = Table([freq, f_nu], names = ("frequency", "flux"))
+    else:
+        wavelength = (c/freq).to("Angstrom") ## \AA
+        f = freq*f_nu_AB ## erg s^-1 cm^-2
+        f_lambda = f/wavelength
+
+        table = Table([wavelength, f_lambda], names = ("wavelength", "flux"))
+
+    return table
+
+
+def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baseline/atmos_std.dat")):
+    """
+    reads in atmosphere from LSST_THROUGHPUTS, default is at airmass 1.2
+    """
+
+    atmos = BaseFilterClass()
+    atmos.load(path, wavelength_u = u.nm, fmt = "ascii.commented_header")
+
+    return atmos
+
+
+def calc_filter_area(filter_name = False, filter_path = _default_filter_dir_path):
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+    filter_object.calculate_effective_wavelength()
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
     return filter_area
 
 
-def calc_AB_flux(filter_name):
+def calc_spectrum_filter_flux(filter_name, SpecClass, filter_path = _default_filter_dir_path):
+    """
+    returns flux in units of
+
+    """
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+    filter_object.calculate_effective_wavelength()
+    filter_object.resample_response(new_wavelength = SpecClass.wavelength)
+    filter_area = simps(filter_object.throughput, filter_object.wavelength)
+
+    transmitted_spec = filter_object.throughput * SpecClass.flux
+
+    integrated_flux = simps(transmitted_spec, SpecClass.wavelength)
+
+    return  integrated_flux/filter_area
+
+
+def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path):
 
     AB = load_AB()
 
-    filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+    filter_object.calculate_effective_wavelength()
     filter_object.resample_response(new_wavelength = AB.wavelength)
 
     transmitted_spec = filter_object.throughput * AB.flux
@@ -132,7 +189,7 @@ def calc_vega_flux(filter_name, filter_object = False,):
     vega = load_vega()
 
     if not filter_object:
-        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
     # else if hasattr(filter_object, "wavelength"):
 
     filter_object.resample_response(new_wavelength = vega.wavelength)
@@ -150,7 +207,7 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     if not filter_object:
-        filter_object = load_filter("/Users/berto/Code/CoCo/data/filters/" + filter_name + ".dat")
+        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
 
     integrated_flux = calc_vega_flux(filter_name)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
@@ -159,18 +216,18 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     return -2.5 * log10(area_corr_integrated_flux)
 
 
-# def calc_vega_mag(filter_name):
-#     """
-#
-#     """
-#     zp = calc_vega_zp(filter_name)
-#     flux = calc_vega_flux(filter_name)
-#
-#     mag = -2.5 * log10(flux) - zp
-#     return mag
+def calc_vega_mag(filter_name):
+    """
+
+    """
+    zp = calc_vega_zp(filter_name)
+    flux = calc_vega_flux(filter_name)
+
+    mag = -2.5 * log10(flux) - zp
+    return mag
 
 
-def load_dark_sky_spectrum():
+def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *args, **kwargs):
     """
     requires https://github.com/lsst/throughputs/ and environment vars LSST_THROUGHPUTS
     and LSST_THROUGHPUTS_BASELINE.
@@ -181,12 +238,41 @@ def load_dark_sky_spectrum():
     """
     dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
     darksky = SpectrumClass()
-    darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header",
-                 wmin = 3500*u.angstrom, wmax = 11000*u.angstrom)
+    darksky.load(dark_sky_path, wavelength_u = u.nm, flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
+                 fmt = "ascii.commented_header", wmin = wmin, wmax = wmax, *args, **kwargs)
 
     darksky.success = True
 
     return darksky
 
-def convert_f_nu_to_f_lambda():
-    pass
+
+def calc_m_darksky(filter_name, vega = False):
+    """
+
+    :param filter_name:
+    :param vega:
+    :return:
+    """
+    dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
+    darksky = SpectrumClass()
+    darksky.load(dark_sky_path, wavelength_u=u.nm, flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
+                 fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, )
+
+    if vega:
+        zp = calc_vega_zp(filter_name)
+    else:
+        zp = calc_AB_zp(filter_name)
+
+    return -2.5 * log10(calc_spectrum_filter_flux(filter_name, darksky)) - zp
+
+
+def nu_to_lambda(freq):
+    """
+    """
+    wavelength = (c/freq).to("Angstrom")
+    return wavelength
+
+
+def lambda_to_nu(wavelength):
+    freq = (c/wavelength).to("Hz")
+    return freq

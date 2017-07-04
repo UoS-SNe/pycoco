@@ -1,16 +1,17 @@
-'''
+"""
 
-'''
+"""
 
 from __future__ import print_function ## Force python3-like printing
 
 import os
 import warnings
-import unittest
-import subprocess
+import re
+
+# import unittest
 # import httplib ## use http.client on python3 - not using at the mo
 # from urlparse import urlparse
-import re
+# import re
 from collections import OrderedDict
 
 import astropy as ap
@@ -30,16 +31,17 @@ from .extinction import *
 from .colours import *
 from .utils import *
 from .errors import *
-from .coco_calls import *
 from .defaults import *
 from .kcorr import *
 # from .functions import *
+# from .coco_calls import *
 
-warnings.resetwarnings()
-# warnings.simplefilter("error") ## Turn warnings into erros - good for debugging
+# warnings.resetwarnings()
+# warnings.simplefilter("error") ## Turn warnings into errors - good for debugging
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
+           "BaseFilterClass",
            "PhotometryClass",
            "SpectrumClass",
            "LCfitClass",
@@ -49,13 +51,13 @@ __all__ = ["BaseSpectrumClass",
            "InfoClass",
            "find_specphase_spec"]
 
-##----------------------------------------------------------------------------##
-##                                   TOOLS                                    ##
-##----------------------------------------------------------------------------##
+#  #----------------------------------------------------------------------------#  #
+#  #                                   TOOLS                                    #  #
+#  #----------------------------------------------------------------------------#  #
 
-##------------------------------------##
-##  DUMMY CODE                        ##
-##------------------------------------##
+#  #------------------------------------#  #
+#  #  DUMMY CODE                        #  #
+#  #------------------------------------#  #
 
 class CustomValueError(ValueError):
     """
@@ -124,15 +126,15 @@ def dummy_function(verbose = True, *args, **kwargs):
 _somevar = 'Foo'
 
 
-##----------------------------------------------------------------------------##
-##  CODE                                                                      ##
-##----------------------------------------------------------------------------##
-##----------------------------------------------------------------------------##
-##  Classes                                                                   ##
-##----------------------------------------------------------------------------##
-##------------------------------------##
-##  Base Classes                      ##
-##------------------------------------##
+#  #----------------------------------------------------------------------------#  #
+#  #  CODE                                                                      #  #
+#  #----------------------------------------------------------------------------#  #
+#  #----------------------------------------------------------------------------#  #
+#  #  Classes                                                                   #  #
+#  #----------------------------------------------------------------------------#  #
+#  #------------------------------------#  #
+#  #  Base Classes                      #  #
+#  #------------------------------------#  #
 
 class BaseSpectrumClass():
     """
@@ -145,7 +147,7 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_list_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "lists/"))
+        self._default_list_dir_path = os.path.join(_default_coco_dir_path, "lists/")
         #
         # ## Initialise using class methods
         self.set_list_directory(self._get_list_directory())
@@ -164,7 +166,7 @@ class BaseSpectrumClass():
                  default location: '~/Code/CoCo/', with 'lists/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir))), "lists/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir)), "lists/")
 
 
     def set_list_directory(self, list_dir_path = '', verbose = False):
@@ -199,35 +201,35 @@ class BaseSpectrumClass():
             pass
 
 
-    def load(self, filename, directory = False, fmt = "ascii",
-             wmin = 3500*u.angstrom, wmax = 11000*u.angstrom,
-             names = ("wavelength", "flux"), wavelength_u = u.angstrom,
-             flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s, verbose = False):
+    def load(self, filename, directory=False, fmt="ascii",
+             wmin=3500 * u.angstrom, wmax=11000 * u.angstrom,
+             names=("wavelength", "flux"), wavelength_u=u.angstrom,
+             flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
+             convert_flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
+             verbose=False):
         """
         Parameters
         ----------
-
         Returns
         -------
         """
-
 
         StringWarning(filename)
 
         if not directory:
             ## Differentiate between the two child classes
             if hasattr(self, 'data_directory'):
-                path = os.path.abspath(os.path.join(self.data_directory, filename))
+                path = os.path.join(self.data_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.data_directory")
 
             if hasattr(self, 'recon_directory'):
-                path = os.path.abspath(os.path.join(self.recon_directory, filename))
+                path = os.path.join(self.recon_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
             StringWarning(directory)
             check_dir_path(directory)
 
-            path = os.path.abspath(os.path.join(directory, filename))
+            path = os.path.join(directory, filename)
             if verbose: print(path)
 
         if os.path.isfile(path):
@@ -236,14 +238,14 @@ class BaseSpectrumClass():
             try:
                 if hasattr(self, "recon_directory"):
                     names = names + ("flux_err",)
-                spec_table = Table.read(path, format = fmt, names = names)
+                spec_table = Table.read(path, format=fmt, names=names)
 
             except:
                 if "flux_err" not in names:
                     names = names + ("flux_err",)
-                spec_table = Table.read(path, format = fmt, names = names)
+                spec_table = Table.read(path, format=fmt, names=names)
 
-            if verbose:print("Reading " + path)
+            if verbose: print("Reading " + path)
 
             spec_table.meta["filepath"] = path
             spec_table.meta["filename"] = path.split("/")[-1]
@@ -252,22 +254,30 @@ class BaseSpectrumClass():
 
             if wavelength_u != u.Angstrom:
                 spec_table['wavelength'] = spec_table['wavelength'].to(u.Angstrom)
-            spec_table['flux'].unit = flux_u
 
+            spec_table['flux'].unit = flux_u
             if "flux_err" in spec_table.colnames:
                 spec_table["flux_err"].unit = flux_u
 
-            ## enforce wmin and wmax
-            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax )]
+                #  Automatically convert units?
+            if flux_u != convert_flux_u:
+                spec_table["flux"] = spec_table["flux"].to(convert_flux_u)
+                if "flux_err" in spec_table.colnames:
+                    spec_table["flux_err"] = spec_table["flux_err"].to(convert_flux_u)
+
+                flux_u = convert_flux_u
+
+            # enforce wmin and wmax
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
             self.min_wavelength = np.nanmin(spec_table["wavelength"])
             self.max_wavelength = np.nanmax(spec_table["wavelength"])
 
-            ## assign to class
+            #  assign to class
             self.data = spec_table
             self.wavelength = spec_table["wavelength"]
             self.flux = spec_table["flux"]
 
-            ## If you got this far...
+            #  If you got this far...
             self.success = True
         else:
             warnings.warn(path + " is not a valid file path")
@@ -280,7 +290,14 @@ class BaseSpectrumClass():
         """
         Plots spec.
 
-        Parameters
+        xminorticks : spacing for minor tick marks on x axis
+
+        legend : (True) Show legend
+
+        verbose : print verbose output
+
+        compare_red :
+
         ----------
 
         Returns
@@ -324,6 +341,7 @@ class BaseSpectrumClass():
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+
             yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
 
             ax1.set_xlabel(xaxis_label_string)
@@ -364,7 +382,7 @@ class BaseSpectrumClass():
         self.EBV = EBV
 
 
-    def deredden(self, verbose = True):
+    def deredden(self, z, EBV_host, EBV_MW = False, verbose = True):
         """
         Parameters
         ----------
@@ -373,10 +391,12 @@ class BaseSpectrumClass():
         -------
         """
 
-        if hasattr(self, "EBV") and hasattr(self, "data"):
+        if hasattr(self, "data"):
             if verbose: print("Foo")
-
-            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            if hasattr(self, "EBV") and not EBV_MW:
+                EBV_MW = self.EBV
+                
+            self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
         else:
@@ -491,7 +511,7 @@ class BaseLightCurveClass():
         $PYCOCO_FILTER_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+                 default datalocation, i.e.: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
@@ -557,7 +577,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose = False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -576,10 +596,12 @@ class BaseLightCurveClass():
 
 
             for filter_name in filter_names:
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
                 if verbose: print(phot_table)
+                if verbose: print(type(filter_name), type(filter_file_type))
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
@@ -627,7 +649,7 @@ class BaseLightCurveClass():
         # StringWarning(path)
         try:
             self.phot = phot_table
-            self.unpack()
+            self.unpack(verbose=verbose)
 
             ## Sort the OrderedDict
             self._sort_phot()
@@ -772,6 +794,290 @@ class FitBaseClass():
 ##  Inheriting Classes                ##
 ##------------------------------------##
 
+class BaseFilterClass():
+    """
+
+    """
+
+    def __init__(self, verbose = True):
+        self._wavelength_units = u.Angstrom
+        self._wavelength_units._format['latex'] = r'\rm{\AA}'
+        self._frequency_units = u.Hertz
+        # self.calculate_frequency()
+        # self.calculate_effective_frequency()
+        pass
+
+
+    def calculate_effective_wavelength(self):
+        """
+        Well, what are you expecting something called `calculate_effective_wavelength`
+         to do?
+        """
+
+        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
+        lambda_eff = spline_rev(0.5)
+
+        self.lambda_effective = lambda_eff * self._wavelength_units
+        pass
+
+
+    def calculate_frequency(self):
+        nu = c/self.wavelength_u
+        self.frequency_u = nu.to(self._frequency_units)
+        self.frequency = self.frequency_u.value
+
+
+    def calculate_effective_frequency(self):
+        """
+
+        """
+
+        if hasattr(self, "frequency"):
+            spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
+            nu_eff = spline_rev(0.5)
+
+            self.nu_effective = nu_eff * self._frequency_units
+        pass
+
+
+    def plot(self, xminorticks = 250, yminorticks = 0.1,
+             show_lims = False, small = False, cumulative = False,
+             *args, **kwargs):
+        """
+        Plots filter throughput, so you can double check it.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        ## Check if there is something in the class to plot
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+
+            setup_plot_defaults()
+            if hasattr(self._wavelength_units, "format"):
+                if "latex" in self._wavelength_units.format:
+                    xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
+            else:
+                xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + '}$'
+
+            plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
+
+            yminorLocator = MultipleLocator(yminorticks)
+            xminorLocator = MultipleLocator(xminorticks)
+
+            if not small:
+                fig = plt.figure(figsize=[8, 4])
+            else:
+                fig = plt.figure(figsize=[4, 2])
+                plt.rcParams['font.size'] = 10
+
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+                                right = 0.99, hspace=0, wspace = 0)
+
+            ax1 = fig.add_subplot(111)
+
+            if cumulative:
+                throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+                yaxis_label_string = r'$\textnormal{Cumulative Throughput}$'
+
+            else:
+                throughput = self.throughput
+                yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
+
+            if hasattr(self, "_plot_colour"):
+                ax1.plot(self.wavelength, throughput, color = self._plot_colour,
+                         lw = 2, label = plot_label_string)
+            else:
+                ax1.plot(self.wavelength, throughput, lw = 2, label = plot_label_string)
+
+            if show_lims:
+                try:
+                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
+                             lw = 1.5, alpha = 0.5, ls = ':',
+                             color = hex['batman'], zorder = 0, )
+                except:
+                    print("Failed")
+
+            ax1.spines['top'].set_visible(True)
+
+            ax1.set_xlabel(xaxis_label_string)
+            ax1.set_ylabel(yaxis_label_string)
+
+            ax1.yaxis.set_minor_locator(yminorLocator)
+            ax1.xaxis.set_minor_locator(xminorLocator)
+
+            ax1.legend(loc = 0)
+
+            plt.show()
+            pass
+        else:
+            warnings.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def resample_response(self, new_wavelength = False, k = 1,
+                          *args, **kwargs):
+        """
+        Bit dodgy - spline has weird results for poorly sampled filters.
+        Now the order is by default 1, seems to be less likely to introduce artifacts
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+            self._wavelength_orig = self.wavelength
+            self._throughput_orig = self.throughput
+
+            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
+            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
+
+            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput, k = k,
+                                                       *args, **kwargs)
+            self.throughput = interp_func(new_wavelength)
+            self.wavelength = new_wavelength
+            # self.wavelength.name = "wavelength"
+
+            self.throughput[np.where(self.throughput < 0.0)] = 0.0
+        else:
+            warning.warn("Doesn't look like you have loaded a filter into the object")
+
+
+    def load(self, path, directory = False, fmt = "ascii.commented_header",
+             names = ("wavelength", "throughput"), wavelength_u = u.angstrom,
+             verbose = False, name = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        """
+        Assumes Response function is fractional rather than %.
+        """
+
+        if check_file_path(os.path.abspath(path), verbose = verbose):
+
+            self.data = Table.read(path, format = fmt, names = names)
+
+            self.wavelength = self.data["wavelength"]*wavelength_u
+            self.wavelength = self.wavelength.to(u.angstrom)
+            self.data["wavelength"] = self.wavelength
+            self.throughput = self.data["throughput"]
+
+            self.wavelength_u = self.wavelength * wavelength_u
+            self._wavelength_units = wavelength_u
+
+            self._filter_file_path = path
+
+            if name:
+                self.filter_name = name
+
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+
+        else:
+            warnings.warn("Foo")
+
+
+    def load_table(self, table, name,  directory = False, wavelength_u = u.angstrom,
+             verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        """
+        Assumes Response function is fractional rather than %.
+        """
+
+        self.filter_name = name
+
+        self.data = table
+
+        if not hasattr(table["wavelength"], "unit"):
+            self.wavelength = self.data["wavelength"]*wavelength_u
+        else:
+            self.wavelength = self.data["wavelength"]
+
+        self.wavelength = self.wavelength.to(u.angstrom)
+        self.data["wavelength"] = self.wavelength
+        self.throughput = self.data["throughput"]
+
+        self.wavelength_u = self.wavelength.to(wavelength_u)
+        self._wavelength_units = wavelength_u
+
+
+    def save(self, filename, path = False,
+         squash = False, verbose = True, *args, **kwargs):
+        """
+        Output the filter loaded into the Class into a format
+        and location recognised by CoCo.
+
+        based on BaseSpectrumClass.save
+
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+
+        if hasattr(self, "wavelength") and hasattr(self, "throughput"): ## enables resampling and wavelength conversion to be easily saved
+            if verbose: print("has data")
+            if not path:
+                if verbose: print("No directory specified, assuming " + _default_filter_dir_path)
+                path = _default_filter_dir_path
+            else:
+                StringWarning(path)
+
+            outpath = os.path.join(path, filename)
+
+            check_dir_path(path)
+
+            if os.path.isfile(outpath):
+                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                if squash:
+                    print("Overwriting " + outpath)
+                    outtable = Table([self.wavelength, self.throughput], names = ["wavelength", "throughput"])
+                    outtable.write(outpath, format = "ascii.fast_commented_header", overwrite = True)
+                    self._format_for_save = outtable
+
+
+            else:
+                    print("Writing " + outpath)
+                    outtable = Table([self.wavelength, self.throughput], names = ["wavelength", "throughput"])
+
+                    outtable.write(outpath, format = "ascii.fast_commented_header")
+                    self._format_for_save = outtable
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+class LCModel():
+    def __init__(self):
+        pass
+
+
+#  #------------------------------------#  #
+#  #  Inheriting Classes                #  #
+#  #------------------------------------#  #
+
 class PhotometryClass(BaseLightCurveClass):
     """
     Inherits from BaseLightCurveClass
@@ -798,7 +1104,7 @@ class PhotometryClass(BaseLightCurveClass):
         self.data_filters = OrderedDict()
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
+        self.set_data_directory(self._default_data_dir_path)
         self.set_filter_directory(self._get_filter_directory())
 
 
@@ -813,7 +1119,7 @@ class PhotometryClass(BaseLightCurveClass):
                  default datalocation: '../testdata/', with '/lc/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "lc/")
+        return self.data_directory
 
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
@@ -1044,8 +1350,8 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, xlim = False, *args, **kwargs):
+    def plot(self, filters=False, legend=True, xminorticks=5, enforce_zero = True,
+             verbose=False, xlim=False, yaxis_max_factor=1.02, *args, **kwargs):
         """
         Plots phot.
 
@@ -1090,9 +1396,9 @@ class PhotometryClass(BaseLightCurveClass):
                                       numpoints = 1, frameon = False, fontsize = 12)
             ## Use ap table groups instead? - can't; no support for mixin columns.
             if enforce_zero:
-                ax1.set_ylim(0., np.nanmax(self.phot['flux']))
+                ax1.set_ylim(0., yaxis_max_factor * np.nanmax(self.phot['flux']))
             else:
-                ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+                ax1.set_ylim(np.nanmin(self.phot['flux']), yaxis_max_factor * np.nanmax(self.phot['flux']))
 
             if xlim:
                 ax1.set_xlim(xlim)
@@ -1186,16 +1492,16 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
-        self.set_data_directory(self._get_data_directory())
+        self.set_data_directory(self._default_data_dir_path)
 
         pass
 
 
-    def _get_data_directory(self):
+    def _get_data_directory(self, path=False):
         """
         Get the default path to the data directory.
 
@@ -1206,7 +1512,7 @@ class SpectrumClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('PYCOCO_DATA_DIR', os.path.join(self._default_data_dir_path, os.pardir))), "spec/")
+        return self.data_directory
 
 
     def set_data_directory(self, data_dir_path = '', verbose = False):
@@ -1275,7 +1581,7 @@ class LCfitClass(BaseLightCurveClass):
                  default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+        return os.path.join(self._default_recon_dir_path, os.path.pardir, "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1440,7 +1746,7 @@ class specfitClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1460,7 +1766,7 @@ class specfitClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir)), "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1512,9 +1818,9 @@ class specfitClass(BaseSpectrumClass):
         pass
 
 
-    def plot_comparision(self, SpectrumClassInstance,
-                         xminorticks = 250, legend = True,
-                         verbose = True,
+    def plot_comparison(self, SpectrumClassInstance,
+                         xminorticks=250, legend=True,
+                         verbose=True, twoaxes=True,
                          *args, **kwargs):
         """
         Plots spec.
@@ -1532,10 +1838,9 @@ class specfitClass(BaseSpectrumClass):
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+                                right = 0.94, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
-
 
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
@@ -1545,8 +1850,14 @@ class specfitClass(BaseSpectrumClass):
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
+            if twoaxes:
+                ax2 = ax1.twinx()
+                ax2.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
 
-            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+            else:
+                ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
                          label = plot_label_string_compare, color = 'Blue',
                          *args, **kwargs)
 
@@ -1554,9 +1865,13 @@ class specfitClass(BaseSpectrumClass):
             minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
 
             if legend:
+                ## https://stackoverflow.com/a/10129461
+                lines, labels = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax2.get_legend_handles_labels()
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
+                # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                ax1.legend(lines + lines2,labels + labels2, loc=0, scatterpoints=1,
+                                        numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
@@ -1574,6 +1889,158 @@ class specfitClass(BaseSpectrumClass):
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
+class FilterClass(BaseFilterClass):
+    """Docstring for FilterClass inherits from BaseFilterClass"""
+
+    def __init__(self):
+        self._wavelength_units = u.Angstrom
+        self._wavelength_units._format['latex'] = r'\rm{\AA}'
+        self._frequency_units = u.Hertz
+        pass
+
+
+    def read_filter_file(self, path, fmt = "ascii",
+                         names = ("wavelength", "throughput"),
+                         wavelength_u = u.angstrom, verbose = False):
+        """
+        Assumes Response function is fractional rather than %.
+        """
+        if check_file_path(os.path.abspath(path), verbose = verbose):
+            self.data = Table.read(path, format = fmt, names = names)
+
+            self.wavelength = self.data["wavelength"] * wavelength_u
+            self.wavelength = self.wavelength.to(u.angstrom)
+            self.throughput = self.data["throughput"]
+
+            self.wavelength_u = self.wavelength.to(wavelength_u)
+            self._filter_file_path = path
+
+            filename = path.split('/')[-1]
+            filename_no_extension = filename.split('.')[0]
+            self.filter_name = filename_no_extension
+
+            self.set_plot_colour(verbose = verbose)
+            # self.
+            self.calculate_effective_wavelength()
+            self.calculate_edges()
+
+        else:
+            warnings.warn("Foo")
+
+
+    def calculate_edges_zero(self, verbose = False):
+        """
+        calculates the first and last wavelength that has non-zero and steps one
+         away
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        ## calculates the first and last wavelength that has non-zero
+        # w = np.where(self.throughput > 0)[0]
+        # if verbose: print(w)
+        # self._upper_edge = self.wavelength[w[-1]]
+        # self._lower_edge = self.wavelength[w[0]]
+
+        w = np.where(self.throughput > 0)[0]
+        if verbose: print(w)
+        if w[0] - 1 < 0:
+            w_low = 0
+        else:
+            w_low =  w[0] - 1
+
+        if w[-1] + 1 == len(self.throughput):
+            w_high = w[-1]
+        else:
+            w_high = w[-1] + 1
+
+        self._upper_edge = self.wavelength[w_high]
+        self._lower_edge = self.wavelength[w_low]
+
+
+    def calculate_edges(self, pc = 3., verbose = True):
+        """
+        calculates edges by defining the region that contains (100 - pc)% of the
+        flux.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        self._cumulative_throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
+        self._cumulative_throughput_spline = interp1d(self._cumulative_throughput, self.wavelength)
+
+        self._upper_edge = self._cumulative_throughput_spline(1.0 - 0.5*(0.01*pc))
+        self._lower_edge = self._cumulative_throughput_spline(0.0 + 0.5*(0.01*pc))
+
+        pass
+
+
+    def calculate_plot_colour(self, colourmap_name = "plasma", verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if not hasattr(self, "_colourmap"):
+            self._colourmap = plt.get_cmap(_colourmap_name)
+
+        if hasattr(self, 'lambda_effective'):
+
+            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
+            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+
+            if verbose: print("relative_lambda = ", relative_lambda)
+
+            self._plot_colour = self._colourmap(relative_lambda)
+
+        else:
+            warnings.warn("No self.lambda_effective set.")
+
+
+    def set_plot_colour(self, colour = False, verbose = False):
+        """
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if colour:
+            self._plot_colour = colour
+
+        else:
+            if verbose: print(hex[self.filter_name])
+            try:
+                self._plot_colour = hex[self.filter_name]
+            except:
+                if verbose: print("Nope")
+                self.calculate_plot_colour(verbose = verbose)
+
+        pass
+
+
+    def get_zeropoint(self):
+        if hasattr(self, "filter_name"):
+            self.zp_AB = calc_AB_zp(filter_name)
+            self.zp_vega = calc_vega_zp(filter_name)
+        else:
+            warnings.warn("No filter name - have you loaded in a bandpass?")
 
 
 ##------------------------------------##
@@ -1596,6 +2063,9 @@ class SNClass():
         self.mangledspec = OrderedDict()
         # self.spec = SpectrumClass()
         self.phot = PhotometryClass()
+        info = InfoClass()
+        info.load()
+        self.info = info.get_sn_info(snname)
 
         self.coco_directory = self._get_coco_directory()
         self.recon_directory = self._get_recon_directory()
@@ -1677,23 +2147,40 @@ class SNClass():
         if not snname:
             snname = self.name
         if not path:
-            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
         if verbose: print(path)
         self.phot.load(path, verbose = verbose)
 
         pass
 
 
-    def load_list(self, path, verbose = True):
+    def load_list(self, path, specfiletype = ".txt", verbose = False):
         """
         Parameters
         ----------
         Returns
         -------
         """
-        listdata = read_list_file(path, verbose = verbose)
+        listdata = read_list_file(path, verbose=verbose)
         listdata.sort('mjd_obs')
+
+        phases = []
+
+        for item in listdata["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+
+            phases.append(phase)
+            if verbose: print(phase)
+        listdata["phase"] = phases
+
         self.list  = listdata
+
 
 
     def load_spec(self, snname = False, spec_dir_path = False, verbose = False):
@@ -1719,7 +2206,7 @@ class SNClass():
 
         if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
             for i, path in enumerate(self.list['spec_path']):
-                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_fullpath = os.path.join(self.coco_directory, path)
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
                 if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
@@ -1754,7 +2241,8 @@ class SNClass():
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
 
-                self.mangledspec[spec_filename] = SpectrumClass()
+                # self.mangledspec[spec_filename] = SpectrumClass()
+                self.mangledspec[spec_filename] = specfitClass()
 
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
                                               verbose = verbose)
@@ -2376,292 +2864,6 @@ class SNClass():
         pass
 
 
-class FilterClass():
-    """Docstring for FilterClass"""
-
-    def __init__(self, verbose = True):
-        self._wavelength_units = u.Angstrom
-        self._wavelength_units._format['latex'] = r'\rm{\AA}'
-        self._frequency_units = u.Hertz
-        # self.calculate_frequency()
-        # self.calculate_effective_frequency()
-        pass
-
-
-    def read_filter_file(self, path, wavelength_units = u.angstrom, verbose = False):
-        """
-        Assumes Response function is fractional rather than %.
-        """
-        if check_file_path(os.path.abspath(path), verbose = verbose):
-            self.wavelength, self.throughput = np.loadtxt(path).T
-            self.wavelength_u = self.wavelength * wavelength_units
-            self._filter_file_path = path
-
-            filename = path.split('/')[-1]
-            filename_no_extension = filename.split('.')[0]
-            self.filter_name = filename_no_extension
-
-            self.set_plot_colour(verbose = verbose)
-            # self.
-            self.calculate_effective_wavelength()
-            self.calculate_edges()
-
-        else:
-            warnings.warn("Foo")
-
-
-    def calculate_effective_wavelength(self):
-        """
-        Well, what are you expecting something called `calculate_effective_wavelength`
-         to do?
-        """
-
-        spline_rev = interp1d((np.cumsum(self.wavelength*self.throughput)/np.sum(self.wavelength*self.throughput)), self.wavelength)
-        lambda_eff = spline_rev(0.5)
-
-        self.lambda_effective = lambda_eff * self._wavelength_units
-        pass
-
-
-    def calculate_frequency(self):
-        nu = c/self.wavelength_u
-        self.frequency_u = nu.to(self._frequency_units)
-        self.frequency = self.frequency_u.value
-
-
-    def calculate_effective_frequency(self):
-        """
-
-        """
-
-        if hasattr(self, "frequency"):
-            spline_rev = interp1d((np.cumsum(self.frequency*self.throughput)/np.sum(self.frequency*self.throughput)), self.frequency)
-            nu_eff = spline_rev(0.5)
-
-            self.nu_effective = nu_eff * self._frequency_units
-        pass
-
-
-    def calculate_edges_zero(self, verbose = False):
-        """
-        calculates the first and last wavelength that has non-zero and steps one
-         away
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## calculates the first and last wavelength that has non-zero
-        # w = np.where(self.throughput > 0)[0]
-        # if verbose: print(w)
-        # self._upper_edge = self.wavelength[w[-1]]
-        # self._lower_edge = self.wavelength[w[0]]
-
-        w = np.where(self.throughput > 0)[0]
-        if verbose: print(w)
-        if w[0] - 1 < 0:
-            w_low = 0
-        else:
-            w_low =  w[0] - 1
-
-        if w[-1] + 1 == len(self.throughput):
-            w_high = w[-1]
-        else:
-            w_high = w[-1] + 1
-
-        self._upper_edge = self.wavelength[w_high]
-        self._lower_edge = self.wavelength[w_low]
-
-
-    def calculate_edges(self, pc = 3., verbose = True):
-        """
-        calculates edges by defining the region that contains (100 - pc)% of the
-        flux.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        self._cumulative_throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
-        self._cumulative_throughput_spline = interp1d(self._cumulative_throughput, self.wavelength)
-
-        self._upper_edge = self._cumulative_throughput_spline(1.0 - 0.5*(0.01*pc))
-        self._lower_edge = self._cumulative_throughput_spline(0.0 + 0.5*(0.01*pc))
-
-        pass
-
-
-    def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False, cumulative = False,
-             *args, **kwargs):
-        """
-        Plots filter throughput, so you can double check it.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ## Check if there is something in the class to plot
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-
-            setup_plot_defaults()
-            xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
-
-            plot_label_string = r'$\textnormal{' + self.filter_name.replace('_', '\\_') + '}$'
-
-            yminorLocator = MultipleLocator(yminorticks)
-            xminorLocator = MultipleLocator(xminorticks)
-
-            if not small:
-                fig = plt.figure(figsize=[8, 4])
-            else:
-                fig = plt.figure(figsize=[4, 2])
-                plt.rcParams['font.size'] = 10
-
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
-
-            ax1 = fig.add_subplot(111)
-
-            if cumulative:
-                throughput = np.cumsum(self.throughput)/np.sum(self.throughput)
-                yaxis_label_string = r'$\textnormal{Cumulative Throughput}$'
-
-            else:
-                throughput = self.throughput
-                yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
-
-
-            if hasattr(self, "_plot_colour"):
-                ax1.plot(self.wavelength, throughput, color = self._plot_colour,
-                         lw = 2, label = plot_label_string)
-            else:
-                ax1.plot(self.wavelength, throughput, lw = 2, label = plot_label_string)
-
-            if show_lims:
-                try:
-                    ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                    ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
-                             lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
-                except:
-                    print("Failed")
-
-            ax1.spines['top'].set_visible(True)
-
-            ax1.set_xlabel(xaxis_label_string)
-            ax1.set_ylabel(yaxis_label_string)
-
-            ax1.yaxis.set_minor_locator(yminorLocator)
-            ax1.xaxis.set_minor_locator(xminorLocator)
-
-            ax1.legend(loc = 0)
-
-            plt.show()
-            pass
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def resample_response(self, new_wavelength = False, k = 1,
-                          *args, **kwargs):
-        """
-        Bit dodgy - spline has weird results for poorly sampled filters.
-        Now the order is by default 1, seems to be less likely to introduce artifacts
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if hasattr(self, "wavelength") and hasattr(self, "throughput"):
-            self._wavelength_orig = self.wavelength
-            self._throughput_orig = self.throughput
-
-            self.wavelength = np.concatenate(([0,1], self._wavelength_orig, [24999,25000]))
-            self.throughput = np.concatenate(([0,0], self._throughput_orig, [0,0]))
-
-            interp_func = InterpolatedUnivariateSpline(self.wavelength, self.throughput, k = k,
-                                                       *args, **kwargs)
-            self.throughput = interp_func(new_wavelength)
-            self.wavelength = new_wavelength
-
-            self.throughput[np.where(self.throughput < 0.0)] = 0.0
-        else:
-            warning.warn("Doesn't look like you have loaded a filter into the object")
-
-
-    def calculate_plot_colour(self, colourmap_name = "plasma", verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if not hasattr(self, "_colourmap"):
-            self._colourmap = plt.get_cmap(_colourmap_name)
-
-        if hasattr(self, 'lambda_effective'):
-
-            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
-            relative_lambda = relative_lambda / _colour_lower_lambda_limit
-
-            if verbose: print("relative_lambda = ", relative_lambda)
-
-            self._plot_colour = self._colourmap(relative_lambda)
-
-        else:
-            warnings.warn("No self.lambda_effective set.")
-
-
-    def set_plot_colour(self, colour = False, verbose = False):
-        """
-
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if colour:
-            self._plot_colour = colour
-
-        else:
-            if verbose: print(hex[self.filter_name])
-            try:
-                self._plot_colour = hex[self.filter_name]
-            except:
-                if verbose: print("Nope")
-                self.calculate_plot_colour(verbose = verbose)
-
-        pass
-
-
-    def get_zeropoint(self):
-        if hasattr(self, "filter_name"):
-            self.zp_AB = calc_AB_zp(filter_name)
-            self.zp_vega = calc_vega_zp(filter_name)
-        else:
-            warnings.warn("No filter name - have you loaded in a bandpass?")
-
-
 class InfoClass():
     """
 
@@ -2681,8 +2883,11 @@ class InfoClass():
         self.distmod = self.table["mu"]
         self.RA = self.table["RA"]
         self.Dec = self.table["Dec"]
+
         self.table["SkyCoords"] = SkyCoord(self.table["RA"], self.table["Dec"], unit=(u.hourangle, u.deg))
         self.coords = self.table["SkyCoords"]
+
+        self.type = self.table["Type"]
 
     def get_sn_info(self, snname):
         try:
@@ -2691,6 +2896,7 @@ class InfoClass():
             print("foo")
 
         return self.table[w]
+
 
 
 ##----------------------------------------------------------------------------##
@@ -2743,3 +2949,67 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
     except:
         warnings.warn("Something went wrong")
         return False
+
+
+def find_filter_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
+    """
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SN*.dat. Uses regex via `re` -
+    probably overkill.
+
+    Parameters
+    ----------
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    -------
+
+    phot_list :
+
+    """
+    # regex = re.compile("^SN.*.dat")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        # return False
+        raise PathError
+
+
+    try:
+        if snname:
+            match_string = "^" + str(snname) + ".*" + '.dat'
+        else:
+            match_string = "^" + str(prefix) + ".*" + '.dat'
+    except:
+        raise TypeError
+
+    regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+
+    phot_list = [os.path.join(path, match.group(0)) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
+
+    if verbose:
+        print("searching for", match_string)
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+    return phot_list

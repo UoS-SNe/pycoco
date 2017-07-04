@@ -12,22 +12,25 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal
+from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray
 import matplotlib.pyplot as plt
 
 from astropy.table import Table
 from astropy import units as u
-
 from .defaults import *
 from .errors import *
 
 __all__ = ["setup_plot_defaults",
-            "relist",
-            "load_coords",
-            "check_dir_path",
-            "check_file_path",
-            "read_list_file",
-            "load_formatted_phot"]
+           "relist",
+           "load_coords",
+           "check_dir_path",
+           "check_file_path",
+           "read_list_file",
+           "load_formatted_phot",
+           "strictly_increasing",
+           "check_list",
+           "check_all_lists"
+           ]
 
 
 def _get_filter_directory():
@@ -63,10 +66,10 @@ def _get_filters():
         elif filter_file == "list.txt":
             file_list.remove(filter_file)
 
-    return array(file_list)
+    return asarray(file_list)
 
 
-def _check_filters():
+def _get_current_filter_registry(verbose = False):
     """
     Parameters
     ----------
@@ -77,11 +80,38 @@ def _check_filters():
     filter_dir = _get_filter_directory()
     path = os.path.join(filter_dir, "list.txt")
 
-    current_arr = loadtxt(path, dtype = str)
+    # current_arr = loadtxt(path, dtype = str) ## This causes chaos with encoding
+    current_arr = []
+    with open(path ,"r") as infile:
+        for line in infile:
+            if verbose: print(line.strip("\n"))
+            current_arr.append(line.strip("\n"))
 
-    filter_arr = _get_filters()
+    current_arr = asarray(current_arr)
 
-    return array_equal(current_arr, filter_arr)
+    return current_arr
+
+
+def _check_filters(verbose = False):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    filter_dir = _get_filter_directory()
+    path = os.path.join(filter_dir, "list.txt")
+
+    # current_arr = sort([str(i) for i in _get_current_filter_registry()])
+    # filter_arr = sort([str(i) for i in _get_filters()])
+    current_arr = sort(_get_current_filter_registry())
+    filter_arr = sort(_get_filters())
+    if verbose:
+        print(current_arr, filter_arr)
+        print(len(current_arr), len(filter_arr))
+    # return array_equal(current_arr, filter_arr)
+    return array_equiv(current_arr, filter_arr)
 
 
 def make_list_dot_txt():
@@ -99,7 +129,7 @@ def make_list_dot_txt():
     pass
 
 
-def relist(force = False):
+def relist(force = False, verbose = False):
     """
     Parameters
     ----------
@@ -107,7 +137,9 @@ def relist(force = False):
     Returns
     -------
     """
-    if force or not _check_filters:
+    if verbose: print(force, _check_filters())
+    if force or not _check_filters():
+        if verbose: print("updating list.txt")
         make_list_dot_txt()
     else:
         print("current list.txt is up to date. re run with force = True to force.")
@@ -186,6 +218,74 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
     return data
 
 
+def strictly_increasing(L):
+    """https://stackoverflow.com/a/4983359"""
+    return all(x<y for x, y in zip(L, L[1:]))
+
+def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
+               specfiletype=".txt", verbose = True):
+    """
+
+    :return:
+    """
+
+    listtable = read_list_file(path, names=names, verbose=verbose)
+    phases = []
+
+
+    for item in listtable["spec_path"]:
+        filename = item.split("/")[-1]
+        filename = filename.split("_")[1:][0]
+        filename = filename.strip(specfiletype)
+        try:
+            phase = float(filename)
+        except:
+            pass
+        phases.append(phase)
+        if verbose: print(phase)
+
+    return strictly_increasing(phases)
+
+
+def check_all_lists(lists_dir, verbose=False):
+    """
+    Checks that the phases in the listfiles within lists_dir are monotonic
+
+    :param lists_dir:
+    :param verbose:
+    :return:
+    """
+    checklist = []
+    master_list = make_master_list(lists_dir)
+
+    for spec_listfile in master_list:
+        if verbose: print(spec_listfile)
+        check_status = check_list(os.path.join(_default_list_dir_path, spec_listfile), verbose=verbose)
+        checklist.append(check_status)
+        if check_status:
+            print(spec_listfile, " passed")
+        else:
+            print(spec_listfile, " failed")
+
+    return checklist
+
+def make_master_list(lists_dir):
+    """
+
+    :return:
+    """
+    if not lists_dir:
+        l = os.listdir(os.path.join(_default_coco_dir_path, "lists/"))
+    else:
+        check_dir_path(lists_dir)
+        l = os.listdir(lists_dir)
+    badlist = ['.DS_Store',  'master.list', 'lightcurves.list',]
+    ## remove hidden files etc.
+    goodlist = [i for i in l if i not in badlist]
+
+    return goodlist
+
+
 def setup_plot_defaults():
     """
 
@@ -234,3 +334,12 @@ else:
     import codecs
     def b(x):
         return codecs.latin_1_encode(x)[0]
+
+
+def gaussian(x, g0, x0, sigma0):
+    """
+    1D gaussian
+    """
+
+    gauss = g0*(exp((-(x-x0)*(x-x0))/(2.0*sigma0*sigma0)))
+    return gauss
