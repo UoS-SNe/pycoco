@@ -33,6 +33,7 @@ from .utils import *
 from .errors import *
 from .defaults import *
 from .kcorr import *
+from .models import *
 # from .functions import *
 # from .coco_calls import *
 
@@ -42,6 +43,7 @@ from .kcorr import *
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
            "BaseFilterClass",
+           "BaseLCModelClass",
            "PhotometryClass",
            "SpectrumClass",
            "LCfitClass",
@@ -765,34 +767,51 @@ class BaseLightCurveClass():
         pass
 
 
-class ModelBaseClass():
+class BaseLCModelClass():
     """
 
     """
 
-    def __init__(self):
+    def __init__(self, model_name):
+        if model_name in _defined_models:
+
+            if model_name == "bazin09":
+                self.function = bazin09_listarg
+                self.nparams = 4
+                self._paramnames = ["a", "t_0", "t_rise", "t_fall"]
+
+            elif model_name == "karpenka12":
+                self.function = karpenka12_listarg
+                self.nparams = 6
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_rise", "t_fall"]
+
+            elif model_name == "firth17":
+                self.function = firth17_listarg
+                self.nparams = 8
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_2", "t_x", "t_rise", "t_fall"]
+
+        else:
+            warnings.warn("Model Not Recognised.")
         # self.fit_params = OrderedDict
         pass
 
-    def load_params(param_dict):
+    def load_bestfitparams(self, param_array):
         """
-        pass dictionary where the keys are the param names.
+        pass array where the keys are the param names.
         """
 
-        self.input_params = param_dict
+        self.params = OrderedDict()
 
-
-class FitBaseClass():
-    """
-
-    """
-
-    def __init__(self):
+        for i, element in enumerate(param_array):
+            self.params[self._paramnames[i]] = element
         pass
 
-##------------------------------------##
-##  Inheriting Classes                ##
-##------------------------------------##
+    def evaluate(self, t):
+
+        self.fit = self.function(t, [self.params[p] for p in self.params])
+        pass
+
+
 
 class BaseFilterClass():
     """
@@ -1069,9 +1088,6 @@ class BaseFilterClass():
         pass
 
 
-class LCModel():
-    def __init__(self):
-        pass
 
 
 #  #------------------------------------#  #
@@ -2042,6 +2058,11 @@ class FilterClass(BaseFilterClass):
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+#  #------------------------------------#  #
+#  # Model Classes                      #  #
+#  #------------------------------------#  #
+#
+# class (BaseLCModelClass)
 
 ##------------------------------------##
 ## Standalone Classes                 ##
