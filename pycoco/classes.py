@@ -397,7 +397,7 @@ class BaseSpectrumClass():
             if verbose: print("Foo")
             if hasattr(self, "EBV") and not EBV_MW:
                 EBV_MW = self.EBV
-                
+
             self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
@@ -518,7 +518,7 @@ class BaseLightCurveClass():
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
 
-    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+    def set_filter_directory(self, filter_dir_path='', verbose=False):
         """
         Set a new filter directory path.
 
@@ -579,7 +579,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type=".dat", verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose=False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -639,7 +639,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def load_table(self, phot_table, verbose = True):
+    def load_table(self, phot_table, verbose=False):
         """
         Loads a single photometry table.
 
@@ -1093,6 +1093,7 @@ class BaseFilterClass():
 #  #------------------------------------#  #
 #  #  Inheriting Classes                #  #
 #  #------------------------------------#  #
+
 
 class PhotometryClass(BaseLightCurveClass):
     """
@@ -2203,7 +2204,6 @@ class SNClass():
         self.list  = listdata
 
 
-
     def load_spec(self, snname = False, spec_dir_path = False, verbose = False):
         """
         Parameters
@@ -2311,7 +2311,7 @@ class SNClass():
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
-                savepng = False, savepdf = False, outpath = False, plotsnname = False,
+                savepng = False, savepdf = False, outpath = False, showsnname = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -2336,6 +2336,10 @@ class SNClass():
                 fig = plt.figure(figsize=[8, 4])
             else:
                 fig = plt.figure(figsize=[8, len(filters)*1.5])
+
+            if showsnname:
+                fig.suptitle(r"$\textrm{"+self.name+"}$")
+                if verbose: print(self.name)
 
             fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.93,
                                 right = 0.91, hspace=0, wspace = 0)
@@ -2458,8 +2462,7 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-            if plotsnname:
-                if verbose: print(self.snname)
+
             if savepdf and outpath:
                 fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
             if savepng and outpath:
