@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 from astropy.table import Table, Column
 from astropy import units as u
+
 from .defaults import *
 from .errors import *
 
@@ -29,7 +30,8 @@ __all__ = ["setup_plot_defaults",
            "strictly_increasing",
            "check_list",
            "check_all_lists",
-           "specphot_out_to_ap_table"
+           "specphot_out_to_ap_table",
+           "_get_current_filter_registry"
            ]
 
 
@@ -47,7 +49,7 @@ def _get_filter_directory():
     return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
 
 
-def _get_filters():
+def _get_filters(filter_dir=False):
     """
     Parameters
     ----------
@@ -55,7 +57,9 @@ def _get_filters():
     Returns
     -------
     """
-    filter_dir = _get_filter_directory()
+    if not filter_dir:
+        filter_dir = _get_filter_directory()
+
     file_list = os.listdir(filter_dir)
 
     for filter_file in file_list:
@@ -92,7 +96,7 @@ def _get_current_filter_registry(verbose = False):
     return current_arr
 
 
-def _check_filters(verbose = False):
+def _check_filters(filter_dir=False, verbose = False):
     """
     Parameters
     ----------
@@ -100,7 +104,9 @@ def _check_filters(verbose = False):
     Returns
     -------
     """
-    filter_dir = _get_filter_directory()
+    if not filter_dir:
+        filter_dir = _get_filter_directory()
+
     path = os.path.join(filter_dir, "list.txt")
 
     # current_arr = sort([str(i) for i in _get_current_filter_registry()])

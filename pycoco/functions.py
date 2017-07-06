@@ -20,7 +20,6 @@ from .errors import *
 from .classes import *
 from .utils import *
 
-
 ##
 #
 ##
@@ -52,8 +51,9 @@ __all__ = ["load_filter",
            "run_specfit",
            "specfit_sn",
            "run_LCfit_fileinput",
-            "get_all_spec_lists",
-            "specfit_all"
+           "get_all_spec_lists",
+           "specfit_all",
+           "run_specphase"
            ]
 
 # def importtest():
@@ -1090,4 +1090,29 @@ def specfit_sn(snname, verbose = True):
 
     run_specfit(newlistpath)
 
+    pass
+
+def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coco_dir_path, verbose = True):
+    """
+    runs CoCo specphase.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    filters = _get_current_filter_registry()
+
+    if filtername+filetype not in filters:
+        warnings.warn("Filtername not recognised")
+        return False
+
+    check_file_path(phase_path)
+
+    relist() ## Check filter file is up to date
+    cwd = os.getcwd()
+    os.chdir(coco_dir)
+    # if verbose: print("Running CoCo specfit on " + path)
+    subprocess.call([os.path.join(_default_coco_dir_path, "./specphase"), phase_path, filtername])
+    os.chdir(cwd)
     pass

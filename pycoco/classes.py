@@ -1398,6 +1398,9 @@ class PhotometryClass(BaseLightCurveClass):
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
                 if filter_key in hex.keys():
                     self.data_filters[filter_key]._plot_colour = hex[filter_key]
+                else:
+                    warnings.warn("Cannot find filter in the pycoco colours registry")
+                    self.data_filters[filter_key]._plot_colour = "C0"
 
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
@@ -2364,7 +2367,9 @@ class SNClass():
 
                     if filter_key in hex.keys():
                         self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
-
+                    else:
+                        warnings.warn("Cannot find filter in the pycoco colours registry")
+                        self.phot.data_filters[filter_key]._plot_colour = "C0"
                     ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                                  yerr = self.phot.data[filter_key]['flux_err'],
                                  capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
