@@ -697,31 +697,46 @@ class BaseLightCurveClass():
         pass
 
 
+    # def _phot_format_for_save(self, filters = False, verbose = False):
+    #     """
+    #     This is hacky - clear it up!
+    #
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #
+    #     if not filters:
+    #         ## if none specified, use all filters
+    #         filters = self.data.keys()
+    #
+    #     w = np.array([])
+    #     for i, f in enumerate(filters):
+    #         w = np.append(w, np.where(self.phot["filter"] == f))
+    #     if verbose: print(w)
+    #
+    #     save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
+    #     save_table['MJD'].format = "5.5f"
+    #     save_table['flux'].format = "5.5e"
+    #     save_table['flux_err'].format = "5.5e"
+    #     # save_table[save_table.argsort("MJD")]
+    #     return save_table
+
+
     def _phot_format_for_save(self, filters = False, verbose = False):
-        """
-        This is hacky - clear it up!
+            """
+            This is hacky - clear it up!
 
-        Parameters
-        ----------
-        Returns
-        -------
-        """
+            Parameters
+            ----------
+            Returns
+            -------
+            """
 
-        if not filters:
-            ## if none specified, use all filters
-            filters = self.data.keys()
+            save_table = self.phot
 
-        w = np.array([])
-        for i, f in enumerate(filters):
-            w = np.append(w, np.where(self.phot["filter"] == f))
-        if verbose: print(w)
-
-        save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
-        save_table['MJD'].format = "5.5f"
-        save_table['flux'].format = "5.5e"
-        save_table['flux_err'].format = "5.5e"
-
-        return save_table
+            return save_table
 
 
     def save(self, filename, filters = False, path = False,
