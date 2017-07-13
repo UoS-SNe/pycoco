@@ -17,9 +17,9 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Distance
 from astropy.time import Time
-from astropy.table import Table, vstack
+from astropy.table import Table, Row, vstack
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -617,7 +617,7 @@ class BaseLightCurveClass():
                     sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
                 else:
                     sorted_phot_table = phot_table
-                    
+
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
@@ -2001,6 +2001,7 @@ class FilterClass(BaseFilterClass):
             # self.
             self.calculate_effective_wavelength()
             self.calculate_edges()
+            self.get_zeropoint()
         else:
             warnings.warn("Foo")
 
@@ -2111,9 +2112,14 @@ class FilterClass(BaseFilterClass):
 
 
     def get_zeropoint(self):
+        """
+
+        :return:
+        """
+
         if hasattr(self, "filter_name"):
-            self.zp_AB = calc_AB_zp(filter_name)
-            self.zp_vega = calc_vega_zp(filter_name)
+            self.zp_AB = self.calc_AB_zp(filter_name)
+            self.zp_vega = self.calc_vega_zp(filter_name)
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
@@ -2214,9 +2220,10 @@ class SNClass():
             pass
 
 
-    def load_phot(self, snname = False, path = False, file_type = '.dat',
+    def load_phot(self, phot_table = False, snname = False, path = False, file_type = '.dat',
                   verbose = True):
         """
+
         Parameters
         ----------
 
@@ -2226,10 +2233,13 @@ class SNClass():
 
         if not snname:
             snname = self.name
-        if not path:
-            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
-        if verbose: print(path)
-        self.phot.load(path, verbose = verbose)
+        if phot_table:
+            self.phot.load_table(phot_table=phot_table, verbose=verbose)
+        else:
+            if not path:
+                path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
+            if verbose: print(path)
+            self.phot.load(path, verbose = verbose)
 
         pass
 
@@ -3001,6 +3011,9 @@ class InfoClass():
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
         self.distmod = self.table["mu"]
+        self.distance = Distance(distmod = self.table["mu"])
+        self.table["z_distmod"] = [i.z for i in self.distance]
+
         self.RA = self.table["RA"]
         self.Dec = self.table["Dec"]
 
