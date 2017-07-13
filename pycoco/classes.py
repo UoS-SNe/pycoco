@@ -600,23 +600,24 @@ class BaseLightCurveClass():
 
 
             for filter_name in filter_names:
-                if verbose:  print(filter_name, type(filter_name))
-                # filter_name = filter_name.decode("utf-8")
-                if verbose: print(filter_file_type, type(filter_file_type))
 
                 phot_table = self.phot.loc["filter", filter_name]
-                if verbose: print(phot_table)
-                if verbose: print(type(filter_name), type(filter_file_type))
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
+                if verbose: print(phot_table)
+                if verbose: print(type(filter_name), type(filter_file_type))
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
-
-                indices = phot_table.argsort("MJD")
-                # for column_name in phot_table.colnames:
-                #     phot_table[column_name] = phot_table[column_name][indices]
-                sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                if not isinstance(phot_table, Row):
+                # if len(np.unique(self.phot.loc["filter", filter_name]["MJD"])) > 1:
+                    indices = phot_table.argsort("MJD")
+                    # for column_name in phot_table.colnames:
+                    #     phot_table[column_name] = phot_table[column_name][indices]
+                    sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
+                else:
+                    sorted_phot_table = phot_table
+                    
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
