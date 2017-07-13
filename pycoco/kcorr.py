@@ -131,10 +131,21 @@ def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baselin
     return atmos
 
 
-def calc_filter_area(filter_name = False, filter_path = _default_filter_dir_path):
-    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+def calc_filter_area(filter_name = False, filter_object=False, filter_path = _default_filter_dir_path):
+    """
+
+    :param filter_name:
+    :param filter_object:
+    :param filter_path:
+    :return:
+    """
+
+    if not filter_object:
+        filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+
     filter_object.calculate_effective_wavelength()
     filter_area = simps(filter_object.throughput, filter_object.wavelength)
+
     return filter_area
 
 
@@ -142,7 +153,12 @@ def calc_spectrum_filter_flux(filter_name, SpecClass, filter_path = _default_fil
     """
     returns flux in units of
 
+    :param filter_name:
+    :param SpecClass:
+    :param filter_path:
+    :return:
     """
+
     filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
     filter_object.calculate_effective_wavelength()
     filter_object.resample_response(new_wavelength = SpecClass.wavelength)
@@ -155,11 +171,13 @@ def calc_spectrum_filter_flux(filter_name, SpecClass, filter_path = _default_fil
     return  integrated_flux/filter_area
 
 
-def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path):
+def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path, filter_object = False):
 
     AB = load_AB()
 
-    filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+    if not filter_object:
+        filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+
     filter_object.calculate_effective_wavelength()
     filter_object.resample_response(new_wavelength = AB.wavelength)
 
@@ -170,12 +188,14 @@ def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path):
     return integrated_flux
 
 
-def calc_AB_zp(filter_name):
+def calc_AB_zp(filter_name=False, filter_object = False):
     """
 
     """
+    if not filter_object and filter_name:
+        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
 
-    integrated_flux = calc_AB_flux(filter_name)
+    integrated_flux = calc_AB_flux(filter_name, filter_object=filter_object)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
 
     return -2.5 * log10(area_corr_integrated_flux)

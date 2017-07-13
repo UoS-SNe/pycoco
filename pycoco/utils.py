@@ -217,6 +217,7 @@ def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', '
     ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
     return ap_table
 
+
 def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
     """
     Parameters
@@ -280,6 +281,7 @@ def check_all_lists(lists_dir, verbose=False):
             print(spec_listfile, " failed")
 
     return checklist
+
 
 def make_master_list(lists_dir):
     """

@@ -26,6 +26,7 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
+from scipy.integrate import simps
 
 from .extinction import *
 from .colours import *
@@ -594,16 +595,20 @@ class BaseLightCurveClass():
 
         if hasattr(self, "phot"):
             filter_names = np.unique(self.phot["filter"])
+
             self.phot.add_index('filter', unique = True)
 
 
             for filter_name in filter_names:
+                if verbose:  print(filter_name, type(filter_name))
+                # filter_name = filter_name.decode("utf-8")
+                if verbose: print(filter_file_type, type(filter_file_type))
 
                 phot_table = self.phot.loc["filter", filter_name]
-                filter_filename = filter_name + filter_file_type
-                if verbose: print(filter_filename)
                 if verbose: print(phot_table)
                 if verbose: print(type(filter_name), type(filter_file_type))
+                filter_filename = filter_name + filter_file_type
+                if verbose: print(filter_filename)
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
@@ -827,13 +832,16 @@ class BaseLCModelClass():
         pass
 
 
-
 class BaseFilterClass():
     """
 
     """
 
     def __init__(self, verbose = True):
+        """
+
+        :param verbose:
+        """
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
         self._frequency_units = u.Hertz
@@ -841,6 +849,39 @@ class BaseFilterClass():
         # self.calculate_effective_frequency()
         pass
 
+
+    def calculate_filter_area(self):
+        """
+
+        :return:
+        """
+        if hasattr(self, "throughput"):
+            self._effective_area = simps(self.throughput, self.wavelength)
+
+
+    def calculate_AB_zp(self, ABpath = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom):
+        """
+        """
+
+
+        AB = SpectrumClass()
+        AB.load(ABpath, wmin=wmin)
+
+        if not hasattr(self, "lambda_effective"):
+            self.calculate_effective_wavelength()
+
+        self.resample_response(new_wavelength=AB.wavelength)
+
+        transmitted_spec = self.throughput * AB.flux
+        integrated_flux = simps(transmitted_spec, AB.wavelength)
+
+        if not hasattr(self, "_effective_area"):
+            self.calculate_filter_area()
+
+        area_corr_integrated_flux = integrated_flux / self._effective_area
+
+        self.zp_AB = -2.5 * log10(area_corr_integrated_flux)
+        pass
 
     def calculate_effective_wavelength(self):
         """
@@ -990,6 +1031,8 @@ class BaseFilterClass():
              names = ("wavelength", "throughput"), wavelength_u = u.angstrom,
              verbose = False, name = False):
         """
+        Assumes Response function is fractional rather than %.
+
         Parameters
         ----------
 
@@ -997,9 +1040,6 @@ class BaseFilterClass():
         -------
         """
 
-        """
-        Assumes Response function is fractional rather than %.
-        """
 
         if check_file_path(os.path.abspath(path), verbose = verbose):
 
@@ -1960,7 +2000,6 @@ class FilterClass(BaseFilterClass):
             # self.
             self.calculate_effective_wavelength()
             self.calculate_edges()
-
         else:
             warnings.warn("Foo")
 
@@ -2846,28 +2885,64 @@ class SNClass():
         if hasattr(self, 'lcfit') and hasattr(self, 'spec'):
             # if verbose: print("Foo")
 
-            try:
-                # self.simplespecphot = LCfitClass()
-                self.simplespecphot = PhotometryClass()
+            # try:
+            #     # self.simplespecphot = LCfitClass()
+            #     self.simplespecphot = PhotometryClass()
+            #
+            #     lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()]) ## object dtype is slow
+            #     self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'),
+            #                                      dtype = [float, float, float, '|S'+str(lenstring)])
+            #
+            #     for i, spectrum in enumerate(self.spec):
+            #
+            #         for filter_name in self.spec[spectrum]._overlapping_filter_list:
+            #             if verbose: print(i, spectrum, filter_name)
+            #
+            #             mjd = self.spec[spectrum].mjd_obs
+            #             flux = self.lcfit.spline[filter_name](mjd)
+            #             flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
+            #             newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter':filter_name}
+            #             self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+            #
+            #     self.simplespecphot.unpack()
+            # except:
+            #     warnings.warn("simplespecphot failed")
 
-                lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()]) ## object dtype is slow
-                self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'),
-                                                 dtype = [float, float, float, '|S'+str(lenstring)])
 
-                for i, spectrum in enumerate(self.spec):
+            # self.simplespecphot = LCfitClass()
+            self.simplespecphot = PhotometryClass()
 
-                    for filter_name in self.spec[spectrum]._overlapping_filter_list:
-                        if verbose: print(i, spectrum, filter_name)
+            lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()])  ## object dtype is slow
+            # self.simplespecphot.phot = Table(names=('MJD', 'flux', 'flux_err', 'filter'),
+            #                                  dtype=[float, float, float, '|S' + str(lenstring)])
 
-                        mjd = self.spec[spectrum].mjd_obs
-                        flux = self.lcfit.spline[filter_name](mjd)
-                        flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
-                        newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter':filter_name}
-                        self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+            mjd_list = []
+            flux_list = []
+            flux_err_list = []
+            filter_list = []
 
-                self.simplespecphot.unpack()
-            except:
-                warnings.warn("simplespecphot failed")
+            for i, spectrum in enumerate(self.spec):
+
+                for filter_name in self.spec[spectrum]._overlapping_filter_list:
+                    if verbose: print(i, spectrum, filter_name, type(filter_name))
+
+                    mjd = self.spec[spectrum].mjd_obs
+                    flux = self.lcfit.spline[filter_name](mjd)
+                    flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
+                    # newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter': filter_name}
+                    # if i == 0:
+                    #     self.simplespecphot.phot = Table(newrow)
+                    # else:
+                    #     self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+
+                    mjd_list.append(mjd)
+                    flux_list.append(flux)
+                    flux_err_list.append(flux_err)
+                    filter_list.append(filter_name)
+
+                self.simplespecphot.phot = Table((mjd_list, flux_list, flux_err_list, filter_list), names=('MJD', 'flux', 'flux_err', 'filter'))
+
+            self.simplespecphot.unpack(verbose=verbose)
 
         pass
 
@@ -2892,8 +2967,8 @@ class SNClass():
                     if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
                       hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
                       hasattr(self.spec[spectrum], "data"):
-                       blue_bool = self.phot.data_filters[filtername]._lower_edge > spec_obj.min_wavelength
-                       red_bool = self.phot.data_filters[filtername]._upper_edge < spec_obj.max_wavelength
+                       blue_bool = self.phot.data_filters[filtername]._lower_edge > self.spec[spectrum].min_wavelength
+                       red_bool = self.phot.data_filters[filtername]._upper_edge < self.spec[spectrum].max_wavelength
 
                        if blue_bool and red_bool:
                             within = True
