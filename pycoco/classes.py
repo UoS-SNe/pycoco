@@ -2118,8 +2118,8 @@ class FilterClass(BaseFilterClass):
         """
 
         if hasattr(self, "filter_name"):
-            self.zp_AB = self.calc_AB_zp(filter_name)
-            self.zp_vega = self.calc_vega_zp(filter_name)
+            self.zp_AB = self.calculate_AB_zp()
+            # self.zp_vega = self.calc_vega_zp(filter_name)
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
