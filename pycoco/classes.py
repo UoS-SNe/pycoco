@@ -6,6 +6,8 @@ from __future__ import print_function ## Force python3-like printing
 
 import os
 import warnings
+import re
+
 # import unittest
 # import httplib ## use http.client on python3 - not using at the mo
 # from urlparse import urlparse
@@ -31,6 +33,7 @@ from .utils import *
 from .errors import *
 from .defaults import *
 from .kcorr import *
+from .models import *
 # from .functions import *
 # from .coco_calls import *
 
@@ -40,6 +43,7 @@ from .kcorr import *
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
            "BaseFilterClass",
+           "BaseLCModelClass",
            "PhotometryClass",
            "SpectrumClass",
            "LCfitClass",
@@ -145,7 +149,7 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_list_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "lists/"))
+        self._default_list_dir_path = os.path.join(_default_coco_dir_path, "lists/")
         #
         # ## Initialise using class methods
         self.set_list_directory(self._get_list_directory())
@@ -164,7 +168,7 @@ class BaseSpectrumClass():
                  default location: '~/Code/CoCo/', with 'lists/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir))), "lists/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_list_dir_path, os.pardir)), "lists/")
 
 
     def set_list_directory(self, list_dir_path = '', verbose = False):
@@ -217,17 +221,17 @@ class BaseSpectrumClass():
         if not directory:
             ## Differentiate between the two child classes
             if hasattr(self, 'data_directory'):
-                path = os.path.abspath(os.path.join(self.data_directory, filename))
+                path = os.path.join(self.data_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.data_directory")
 
             if hasattr(self, 'recon_directory'):
-                path = os.path.abspath(os.path.join(self.recon_directory, filename))
+                path = os.path.join(self.recon_directory, filename)
                 if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
             StringWarning(directory)
             check_dir_path(directory)
 
-            path = os.path.abspath(os.path.join(directory, filename))
+            path = os.path.join(directory, filename)
             if verbose: print(path)
 
         if os.path.isfile(path):
@@ -380,7 +384,7 @@ class BaseSpectrumClass():
         self.EBV = EBV
 
 
-    def deredden(self, verbose = True):
+    def deredden(self, z, EBV_host, EBV_MW = False, verbose = True):
         """
         Parameters
         ----------
@@ -389,10 +393,12 @@ class BaseSpectrumClass():
         -------
         """
 
-        if hasattr(self, "EBV") and hasattr(self, "data"):
+        if hasattr(self, "data"):
             if verbose: print("Foo")
+            if hasattr(self, "EBV") and not EBV_MW:
+                EBV_MW = self.EBV
 
-            self.flux_dered = unred(self.wavelength, self.flux, EBV_MW = self.EBV)
+            self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
         else:
@@ -507,12 +513,12 @@ class BaseLightCurveClass():
         $PYCOCO_FILTER_DIR. if not found, returns default.
 
         returns: Absolute path in environment variable $PYCOCO_FILTER_DIR, or
-                 default datalocation: '/Users/berto/Code/CoCo/data/filters/'.
+                 default datalocation, i.e.: '/Users/berto/Code/CoCo/data/filters/'.
         """
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
 
-    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+    def set_filter_directory(self, filter_dir_path='', verbose=False):
         """
         Set a new filter directory path.
 
@@ -573,7 +579,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type = '.dat', verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose=False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -592,10 +598,12 @@ class BaseLightCurveClass():
 
 
             for filter_name in filter_names:
+
                 phot_table = self.phot.loc["filter", filter_name]
                 filter_filename = filter_name + filter_file_type
                 if verbose: print(filter_filename)
                 if verbose: print(phot_table)
+                if verbose: print(type(filter_name), type(filter_file_type))
 
                 # phot_table.meta = {"filter_filename": filter_filename}
                 phot_table.meta["filter_filename"] = filter_filename
@@ -631,7 +639,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def load_table(self, phot_table, verbose = True):
+    def load_table(self, phot_table, verbose=False):
         """
         Loads a single photometry table.
 
@@ -643,7 +651,7 @@ class BaseLightCurveClass():
         # StringWarning(path)
         try:
             self.phot = phot_table
-            self.unpack()
+            self.unpack(verbose=verbose)
 
             ## Sort the OrderedDict
             self._sort_phot()
@@ -689,31 +697,46 @@ class BaseLightCurveClass():
         pass
 
 
+    # def _phot_format_for_save(self, filters = False, verbose = False):
+    #     """
+    #     This is hacky - clear it up!
+    #
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #
+    #     if not filters:
+    #         ## if none specified, use all filters
+    #         filters = self.data.keys()
+    #
+    #     w = np.array([])
+    #     for i, f in enumerate(filters):
+    #         w = np.append(w, np.where(self.phot["filter"] == f))
+    #     if verbose: print(w)
+    #
+    #     save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
+    #     save_table['MJD'].format = "5.5f"
+    #     save_table['flux'].format = "5.5e"
+    #     save_table['flux_err'].format = "5.5e"
+    #     # save_table[save_table.argsort("MJD")]
+    #     return save_table
+
+
     def _phot_format_for_save(self, filters = False, verbose = False):
-        """
-        This is hacky - clear it up!
+            """
+            This is hacky - clear it up!
 
-        Parameters
-        ----------
-        Returns
-        -------
-        """
+            Parameters
+            ----------
+            Returns
+            -------
+            """
 
-        if not filters:
-            ## if none specified, use all filters
-            filters = self.data.keys()
+            save_table = self.phot
 
-        w = np.array([])
-        for i, f in enumerate(filters):
-            w = np.append(w, np.where(self.phot["filter"] == f))
-        if verbose: print(w)
-
-        save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
-        save_table['MJD'].format = "5.5f"
-        save_table['flux'].format = "5.5e"
-        save_table['flux_err'].format = "5.5e"
-
-        return save_table
+            return save_table
 
 
     def save(self, filename, filters = False, path = False,
@@ -757,6 +780,52 @@ class BaseLightCurveClass():
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
+
+
+class BaseLCModelClass():
+    """
+
+    """
+
+    def __init__(self, model_name):
+        if model_name in _defined_models:
+
+            if model_name == "bazin09":
+                self.function = bazin09_listarg
+                self.nparams = 4
+                self._paramnames = ["a", "t_0", "t_rise", "t_fall"]
+
+            elif model_name == "karpenka12":
+                self.function = karpenka12_listarg
+                self.nparams = 6
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_rise", "t_fall"]
+
+            elif model_name == "firth17":
+                self.function = firth17_listarg
+                self.nparams = 8
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_2", "t_x", "t_rise", "t_fall"]
+
+        else:
+            warnings.warn("Model Not Recognised.")
+        # self.fit_params = OrderedDict
+        pass
+
+    def load_bestfitparams(self, param_array):
+        """
+        pass array where the keys are the param names.
+        """
+
+        self.params = OrderedDict()
+
+        for i, element in enumerate(param_array):
+            self.params[self._paramnames[i]] = element
+        pass
+
+    def evaluate(self, t):
+
+        self.fit = self.function(t, [self.params[p] for p in self.params])
+        pass
+
 
 
 class BaseFilterClass():
@@ -1033,9 +1102,13 @@ class BaseFilterClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+
+
 #  #------------------------------------#  #
 #  #  Inheriting Classes                #  #
 #  #------------------------------------#  #
+
 
 class PhotometryClass(BaseLightCurveClass):
     """
@@ -1309,8 +1382,8 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def plot(self, filters = False, legend = True, xminorticks = 5, enforce_zero = True,
-             verbose = False, xlim = False, *args, **kwargs):
+    def plot(self, filters=False, legend=True, xminorticks=5, enforce_zero = True,
+             verbose=False, xlim=False, yaxis_max_factor=1.02, *args, **kwargs):
         """
         Plots phot.
 
@@ -1340,6 +1413,9 @@ class PhotometryClass(BaseLightCurveClass):
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
                 if filter_key in hex.keys():
                     self.data_filters[filter_key]._plot_colour = hex[filter_key]
+                else:
+                    warnings.warn("Cannot find filter in the pycoco colours registry")
+                    self.data_filters[filter_key]._plot_colour = "C0"
 
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
@@ -1355,9 +1431,9 @@ class PhotometryClass(BaseLightCurveClass):
                                       numpoints = 1, frameon = False, fontsize = 12)
             ## Use ap table groups instead? - can't; no support for mixin columns.
             if enforce_zero:
-                ax1.set_ylim(0., np.nanmax(self.phot['flux']))
+                ax1.set_ylim(0., yaxis_max_factor * np.nanmax(self.phot['flux']))
             else:
-                ax1.set_ylim(np.nanmin(self.phot['flux']), np.nanmax(self.phot['flux']))
+                ax1.set_ylim(np.nanmin(self.phot['flux']), yaxis_max_factor * np.nanmax(self.phot['flux']))
 
             if xlim:
                 ax1.set_xlim(xlim)
@@ -1451,7 +1527,7 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.abspath(os.path.join(_default_data_dir_path, "spec/"))
+        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1540,7 +1616,7 @@ class LCfitClass(BaseLightCurveClass):
                  default CoCo location: '~/Code/CoCo/', with 'recon/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.path.pardir))), "recon/")
+        return os.path.join(self._default_recon_dir_path, os.path.pardir, "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1705,7 +1781,7 @@ class specfitClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.abspath(os.path.join(_default_coco_dir_path, "recon/"))
+        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1725,7 +1801,7 @@ class specfitClass(BaseSpectrumClass):
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir))), "recon/")
+        return os.path.join(os.environ.get('COCO_ROOT_DIR', os.path.join(self._default_recon_dir_path, os.pardir)), "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -1777,9 +1853,9 @@ class specfitClass(BaseSpectrumClass):
         pass
 
 
-    def plot_comparision(self, SpectrumClassInstance,
-                         xminorticks = 250, legend = True,
-                         verbose = True,
+    def plot_comparison(self, SpectrumClassInstance,
+                         xminorticks=250, legend=True,
+                         verbose=True, twoaxes=True,
                          *args, **kwargs):
         """
         Plots spec.
@@ -1797,10 +1873,9 @@ class specfitClass(BaseSpectrumClass):
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+                                right = 0.94, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
-
 
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
@@ -1810,8 +1885,14 @@ class specfitClass(BaseSpectrumClass):
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
+            if twoaxes:
+                ax2 = ax1.twinx()
+                ax2.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
 
-            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+            else:
+                ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
                          label = plot_label_string_compare, color = 'Blue',
                          *args, **kwargs)
 
@@ -1819,9 +1900,13 @@ class specfitClass(BaseSpectrumClass):
             minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
 
             if legend:
+                ## https://stackoverflow.com/a/10129461
+                lines, labels = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax2.get_legend_handles_labels()
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
+                # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                ax1.legend(lines + lines2,labels + labels2, loc=0, scatterpoints=1,
+                                        numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
@@ -1992,6 +2077,11 @@ class FilterClass(BaseFilterClass):
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+#  #------------------------------------#  #
+#  # Model Classes                      #  #
+#  #------------------------------------#  #
+#
+# class (BaseLCModelClass)
 
 ##------------------------------------##
 ## Standalone Classes                 ##
@@ -2097,22 +2187,38 @@ class SNClass():
         if not snname:
             snname = self.name
         if not path:
-            path = os.path.abspath(os.path.join(self.phot._default_data_dir_path, snname + file_type))
+            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
         if verbose: print(path)
         self.phot.load(path, verbose = verbose)
 
         pass
 
 
-    def load_list(self, path, verbose = True):
+    def load_list(self, path, specfiletype = ".txt", verbose = False):
         """
         Parameters
         ----------
         Returns
         -------
         """
-        listdata = read_list_file(path, verbose = verbose)
+        listdata = read_list_file(path, verbose=verbose)
         listdata.sort('mjd_obs')
+
+        phases = []
+
+        for item in listdata["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+
+            phases.append(phase)
+            if verbose: print(phase)
+        listdata["phase"] = phases
+
         self.list  = listdata
 
 
@@ -2139,7 +2245,7 @@ class SNClass():
 
         if hasattr(self, 'coco_directory') and hasattr(self, 'list'):
             for i, path in enumerate(self.list['spec_path']):
-                spec_fullpath = os.path.abspath(os.path.join(self.coco_directory, path))
+                spec_fullpath = os.path.join(self.coco_directory, path)
                 spec_filename = path.split('/')[-1]
                 spec_dir_path = spec_fullpath.replace(spec_filename, '')
                 if verbose: print(spec_fullpath, spec_dir_path, spec_filename)
@@ -2174,7 +2280,8 @@ class SNClass():
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
 
-                self.mangledspec[spec_filename] = SpectrumClass()
+                # self.mangledspec[spec_filename] = SpectrumClass()
+                self.mangledspec[spec_filename] = specfitClass()
 
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
                                               verbose = verbose)
@@ -2222,7 +2329,7 @@ class SNClass():
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
-                savepng = False, savepdf = False, outpath = False, plotsnname = False,
+                savepng = False, savepdf = False, outpath = False, showsnname = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -2248,6 +2355,10 @@ class SNClass():
             else:
                 fig = plt.figure(figsize=[8, len(filters)*1.5])
 
+            if showsnname:
+                fig.suptitle(r"$\textrm{"+self.name+"}$")
+                if verbose: print(self.name)
+
             fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.93,
                                 right = 0.91, hspace=0, wspace = 0)
             ## Label the axes
@@ -2271,7 +2382,9 @@ class SNClass():
 
                     if filter_key in hex.keys():
                         self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
-
+                    else:
+                        warnings.warn("Cannot find filter in the pycoco colours registry")
+                        self.phot.data_filters[filter_key]._plot_colour = "C0"
                     ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                                  yerr = self.phot.data[filter_key]['flux_err'],
                                  capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
@@ -2369,8 +2482,7 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-            if plotsnname:
-                if verbose: print(self.snname)
+
             if savepdf and outpath:
                 fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
             if savepng and outpath:
@@ -2780,8 +2892,8 @@ class SNClass():
                     if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
                       hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
                       hasattr(self.spec[spectrum], "data"):
-                       blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
-                       red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+                       blue_bool = self.phot.data_filters[filtername]._lower_edge > spec_obj.min_wavelength
+                       red_bool = self.phot.data_filters[filtername]._upper_edge < spec_obj.max_wavelength
 
                        if blue_bool and red_bool:
                             within = True
@@ -2881,3 +2993,67 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
     except:
         warnings.warn("Something went wrong")
         return False
+
+
+def find_filter_phot(path = _default_data_dir_path, snname = False,
+              prefix = 'SN', file_type = '.dat',
+              verbose = True):
+    """
+    Tries to find photometry in the supplied directory.
+
+    Looks in a directory for things that match SN*.dat. Uses regex via `re` -
+    probably overkill.
+
+    Parameters
+    ----------
+
+    path :
+
+    snname :
+
+    prefix :
+
+    file_type :
+
+
+    Returns
+    -------
+
+    phot_list :
+
+    """
+    # regex = re.compile("^SN.*.dat")
+
+    StringWarning(path)
+    if not check_dir_path(path):
+        # return False
+        raise PathError
+
+
+    try:
+        if snname:
+            match_string = "^" + str(snname) + ".*" + '.dat'
+        else:
+            match_string = "^" + str(prefix) + ".*" + '.dat'
+    except:
+        raise TypeError
+
+    regex = re.compile(match_string)
+
+    ls = os.listdir(path)
+
+    phot_list = [os.path.join(path, match.group(0)) for file_name in ls for match in [regex.search(file_name)] if match]
+
+    if os.path.join(path, snname + file_type) in phot_list:
+        phot_list.remove(os.path.join(path,snname + file_type))
+        warnings.warn("Found " + os.path.join(path,snname + file_type) + " - you could just read that in.")
+
+    if verbose:
+        print("searching for", match_string)
+        print("Found: ")
+        print(ls)
+        print("Matched:")
+        print(phot_list)
+    if len(phot_list) is 0:
+        warnings.warn("No matches found.")
+    return phot_list
