@@ -2181,10 +2181,10 @@ class SNClass():
         # self._mangledspeclist = find_recon_spec(snname)
         self._mangledspeclist = find_specphase_spec(self.name)
         self.mangledspec = OrderedDict()
-
+        if verbose: print("loading mangledspec")
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
-
+                if verbose: print(i, spec_filename)
                 self.mangledspec[spec_filename] = SpectrumClass()
 
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
@@ -2192,10 +2192,13 @@ class SNClass():
 
                 orig_specpath = self.mangledspec[spec_filename].data.meta['comments']
                 orig_specname = orig_specpath
+                print(orig_specpath)
                 w = np.where(self.list["spec_path"] == orig_specpath)
+                if verbose: print(w[0])
 
-                self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
-                self.mangledspec[spec_filename].data.add_index('wavelength')
+                if len(w[0]) > 0:
+                    self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
+                    self.mangledspec[spec_filename].data.add_index('wavelength')
         #
         else:
             warnings.warn("no coco or no listfile")
