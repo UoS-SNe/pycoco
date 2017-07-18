@@ -1,4 +1,3 @@
-#!/usr/bin env python
 '''
 This is the utilities sub-module for the pycoco python tools.
 
@@ -12,21 +11,28 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray
+from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray, zeros
 import matplotlib.pyplot as plt
 
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy import units as u
+
 from .defaults import *
 from .errors import *
 
 __all__ = ["setup_plot_defaults",
-            "relist",
-            "load_coords",
-            "check_dir_path",
-            "check_file_path",
-            "read_list_file",
-            "load_formatted_phot"]
+           "relist",
+           "load_coords",
+           "check_dir_path",
+           "check_file_path",
+           "read_list_file",
+           "load_formatted_phot",
+           "strictly_increasing",
+           "check_list",
+           "check_all_lists",
+           "specphot_out_to_ap_table",
+           "_get_current_filter_registry"
+           ]
 
 
 def _get_filter_directory():
@@ -43,7 +49,7 @@ def _get_filter_directory():
     return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
 
 
-def _get_filters():
+def _get_filters(filter_dir=False):
     """
     Parameters
     ----------
@@ -51,7 +57,9 @@ def _get_filters():
     Returns
     -------
     """
-    filter_dir = _get_filter_directory()
+    if not filter_dir:
+        filter_dir = _get_filter_directory()
+
     file_list = os.listdir(filter_dir)
 
     for filter_file in file_list:
@@ -88,7 +96,7 @@ def _get_current_filter_registry(verbose = False):
     return current_arr
 
 
-def _check_filters(verbose = False):
+def _check_filters(filter_dir=False, verbose = False):
     """
     Parameters
     ----------
@@ -96,7 +104,9 @@ def _check_filters(verbose = False):
     Returns
     -------
     """
-    filter_dir = _get_filter_directory()
+    if not filter_dir:
+        filter_dir = _get_filter_directory()
+
     path = os.path.join(filter_dir, "list.txt")
 
     # current_arr = sort([str(i) for i in _get_current_filter_registry()])
@@ -201,6 +211,13 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
 
+def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter')):
+    mjd = out[0]+mjdmax
+    filters = Column([filter_name.astype(str) for i in out[0]])
+    ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
+    return ap_table
+
+
 def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbose = True):
     """
     Parameters
@@ -212,6 +229,58 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 
     data = Table.read(path, names = names, format = 'ascii')
     return data
+
+
+def strictly_increasing(L):
+    """https://stackoverflow.com/a/4983359"""
+    return all(x<y for x, y in zip(L, L[1:]))
+
+def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
+               specfiletype=".txt", verbose = True):
+    """
+
+    :return:
+    """
+
+    listtable = read_list_file(path, names=names, verbose=verbose)
+    phases = []
+
+
+    for item in listtable["spec_path"]:
+        filename = item.split("/")[-1]
+        filename = filename.split("_")[1:][0]
+        filename = filename.strip(specfiletype)
+        try:
+            phase = float(filename)
+        except:
+            pass
+        phases.append(phase)
+        if verbose: print(phase)
+
+    return strictly_increasing(phases)
+
+
+def check_all_lists(lists_dir, verbose=False):
+    """
+    Checks that the phases in the listfiles within lists_dir are monotonic
+
+    :param lists_dir:
+    :param verbose:
+    :return:
+    """
+    checklist = []
+    master_list = make_master_list(lists_dir)
+
+    for spec_listfile in master_list:
+        if verbose: print(spec_listfile)
+        check_status = check_list(os.path.join(_default_list_dir_path, spec_listfile), verbose=verbose)
+        checklist.append(check_status)
+        if check_status:
+            print(spec_listfile, " passed")
+        else:
+            print(spec_listfile, " failed")
+
+    return checklist
 
 
 def make_master_list(lists_dir):

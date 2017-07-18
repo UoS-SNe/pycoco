@@ -18,9 +18,7 @@ from astropy import units as u
 from .defaults import *
 from .errors import *
 from .classes import *
-# from .classes import InfoClass
 from .utils import *
-
 
 ##
 #
@@ -52,7 +50,10 @@ __all__ = ["load_filter",
            "test_specfit",
            "run_specfit",
            "specfit_sn",
-           "run_LCfit_fileinput"
+           "run_LCfit_fileinput",
+           "get_all_spec_lists",
+           "specfit_all",
+           "run_specphase"
            ]
 
 # def importtest():
@@ -983,7 +984,7 @@ def test_specfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_specfit(path, verbose = True):
+def run_specfit(path, coco_dir=_default_coco_dir_path, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path
 
@@ -994,13 +995,15 @@ def run_specfit(path, verbose = True):
     """
     check_file_path(path)
     relist() ## Check filter file is up to date
-
+    cwd = os.getcwd()
+    os.chdir(coco_dir)
     if verbose: print("Running CoCo specfit on " + path)
     subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
-
+    os.chdir(cwd)
     pass
 
-def get_all_spec_lists(dirpath = _default_list_dir_path):
+
+def get_all_spec_lists(dirpath = _default_list_dir_path, verbose=False):
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
     check_dir_path(dirpath)
@@ -1012,6 +1015,22 @@ def get_all_spec_lists(dirpath = _default_list_dir_path):
     fullpath_list = [os.path.join(dirpath, j) for j in listfile_list]
 
     return fullpath_list
+
+
+def specfit_all(verbose=True, dirpath=_default_list_dir_path):
+
+    fullpath_list = get_all_spec_lists(dirpath)
+
+    for i, path in enumerate(fullpath_list):
+
+        if verbose: print(i, path)
+
+        run_specfit(path, verbose=verbose)
+
+        if verbose: print("Done")
+
+    pass
+
 
 def specfit_sn(snname, verbose = True):
     """
@@ -1071,4 +1090,29 @@ def specfit_sn(snname, verbose = True):
 
     run_specfit(newlistpath)
 
+    pass
+
+def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coco_dir_path, verbose = True):
+    """
+    runs CoCo specphase.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+    filters = _get_current_filter_registry()
+
+    if filtername+filetype not in filters:
+        warnings.warn("Filtername not recognised")
+        return False
+
+    check_file_path(phase_path)
+
+    relist() ## Check filter file is up to date
+    cwd = os.getcwd()
+    os.chdir(coco_dir)
+    # if verbose: print("Running CoCo specfit on " + path)
+    subprocess.call([os.path.join(_default_coco_dir_path, "./specphase"), phase_path, filtername])
+    os.chdir(cwd)
     pass

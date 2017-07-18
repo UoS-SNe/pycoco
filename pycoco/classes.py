@@ -17,15 +17,20 @@ from collections import OrderedDict
 import astropy as ap
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Distance
 from astropy.time import Time
+<<<<<<< HEAD
 from astropy.table import Table, vstack, Row
+=======
+from astropy.table import Table, Row, vstack
+>>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
 
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
+from scipy.integrate import simps
 
 from .extinction import *
 from .colours import *
@@ -33,6 +38,7 @@ from .utils import *
 from .errors import *
 from .defaults import *
 from .kcorr import *
+from .models import *
 # from .functions import *
 # from .coco_calls import *
 
@@ -42,6 +48,7 @@ from .kcorr import *
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
            "BaseFilterClass",
+           "BaseLCModelClass",
            "PhotometryClass",
            "SpectrumClass",
            "LCfitClass",
@@ -516,7 +523,7 @@ class BaseLightCurveClass():
         return os.path.abspath(os.environ.get('PYCOCO_FILTER_DIR', self._default_filter_dir_path))
 
 
-    def set_filter_directory(self, filter_dir_path = '', verbose = False):
+    def set_filter_directory(self, filter_dir_path='', verbose=False):
         """
         Set a new filter directory path.
 
@@ -577,7 +584,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def unpack(self, filter_file_type=".dat", verbose = False):
+    def unpack(self, filter_file_type=".dat", verbose=False):
         """
         If loading from preformatted file, then unpack the table into self.data
         OrderedDict and load FilterClass objects into self.data_filters OrderedDict
@@ -592,6 +599,7 @@ class BaseLightCurveClass():
 
         if hasattr(self, "phot"):
             filter_names = np.unique(self.phot["filter"])
+
             self.phot.add_index('filter', unique = True)
 
 
@@ -613,7 +621,10 @@ class BaseLightCurveClass():
                     sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
                 else:
                     sorted_phot_table = phot_table
+<<<<<<< HEAD
 
+=======
+>>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
 
                 filter_key = np.unique(phot_table["filter"])[0]
 
@@ -642,7 +653,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def load_table(self, phot_table, verbose = True):
+    def load_table(self, phot_table, verbose=False):
         """
         Loads a single photometry table.
 
@@ -700,31 +711,46 @@ class BaseLightCurveClass():
         pass
 
 
+    # def _phot_format_for_save(self, filters = False, verbose = False):
+    #     """
+    #     This is hacky - clear it up!
+    #
+    #     Parameters
+    #     ----------
+    #     Returns
+    #     -------
+    #     """
+    #
+    #     if not filters:
+    #         ## if none specified, use all filters
+    #         filters = self.data.keys()
+    #
+    #     w = np.array([])
+    #     for i, f in enumerate(filters):
+    #         w = np.append(w, np.where(self.phot["filter"] == f))
+    #     if verbose: print(w)
+    #
+    #     save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
+    #     save_table['MJD'].format = "5.5f"
+    #     save_table['flux'].format = "5.5e"
+    #     save_table['flux_err'].format = "5.5e"
+    #     # save_table[save_table.argsort("MJD")]
+    #     return save_table
+
+
     def _phot_format_for_save(self, filters = False, verbose = False):
-        """
-        This is hacky - clear it up!
+            """
+            This is hacky - clear it up!
 
-        Parameters
-        ----------
-        Returns
-        -------
-        """
+            Parameters
+            ----------
+            Returns
+            -------
+            """
 
-        if not filters:
-            ## if none specified, use all filters
-            filters = self.data.keys()
+            save_table = self.phot
 
-        w = np.array([])
-        for i, f in enumerate(filters):
-            w = np.append(w, np.where(self.phot["filter"] == f))
-        if verbose: print(w)
-
-        save_table = self.phot["MJD", "flux", "flux_err", "filter"][w.astype(int)]
-        save_table['MJD'].format = "5.5f"
-        save_table['flux'].format = "5.5e"
-        save_table['flux_err'].format = "5.5e"
-
-        return save_table
+            return save_table
 
 
     def save(self, filename, filters = False, path = False,
@@ -770,12 +796,61 @@ class BaseLightCurveClass():
         pass
 
 
+class BaseLCModelClass():
+    """
+
+    """
+
+    def __init__(self, model_name):
+        if model_name in _defined_models:
+
+            if model_name == "bazin09":
+                self.function = bazin09_listarg
+                self.nparams = 4
+                self._paramnames = ["a", "t_0", "t_rise", "t_fall"]
+
+            elif model_name == "karpenka12":
+                self.function = karpenka12_listarg
+                self.nparams = 6
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_rise", "t_fall"]
+
+            elif model_name == "firth17":
+                self.function = firth17_listarg
+                self.nparams = 8
+                self._paramnames = ["a", "b", "t_0", "t_1", "t_2", "t_x", "t_rise", "t_fall"]
+
+        else:
+            warnings.warn("Model Not Recognised.")
+        # self.fit_params = OrderedDict
+        pass
+
+    def load_bestfitparams(self, param_array):
+        """
+        pass array where the keys are the param names.
+        """
+
+        self.params = OrderedDict()
+
+        for i, element in enumerate(param_array):
+            self.params[self._paramnames[i]] = element
+        pass
+
+    def evaluate(self, t):
+
+        self.fit = self.function(t, [self.params[p] for p in self.params])
+        pass
+
+
 class BaseFilterClass():
     """
 
     """
 
     def __init__(self, verbose = True):
+        """
+
+        :param verbose:
+        """
         self._wavelength_units = u.Angstrom
         self._wavelength_units._format['latex'] = r'\rm{\AA}'
         self._frequency_units = u.Hertz
@@ -783,6 +858,39 @@ class BaseFilterClass():
         # self.calculate_effective_frequency()
         pass
 
+
+    def calculate_filter_area(self):
+        """
+
+        :return:
+        """
+        if hasattr(self, "throughput"):
+            self._effective_area = simps(self.throughput, self.wavelength)
+
+
+    def calculate_AB_zp(self, ABpath = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom):
+        """
+        """
+
+
+        AB = SpectrumClass()
+        AB.load(ABpath, wmin=wmin)
+
+        if not hasattr(self, "lambda_effective"):
+            self.calculate_effective_wavelength()
+
+        self.resample_response(new_wavelength=AB.wavelength)
+
+        transmitted_spec = self.throughput * AB.flux
+        integrated_flux = simps(transmitted_spec, AB.wavelength)
+
+        if not hasattr(self, "_effective_area"):
+            self.calculate_filter_area()
+
+        area_corr_integrated_flux = integrated_flux / self._effective_area
+
+        self.zp_AB = -2.5 * log10(area_corr_integrated_flux)
+        pass
 
     def calculate_effective_wavelength(self):
         """
@@ -932,6 +1040,8 @@ class BaseFilterClass():
              names = ("wavelength", "throughput"), wavelength_u = u.angstrom,
              verbose = False, name = False):
         """
+        Assumes Response function is fractional rather than %.
+
         Parameters
         ----------
 
@@ -939,9 +1049,6 @@ class BaseFilterClass():
         -------
         """
 
-        """
-        Assumes Response function is fractional rather than %.
-        """
 
         if check_file_path(os.path.abspath(path), verbose = verbose):
 
@@ -1044,9 +1151,13 @@ class BaseFilterClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+
+
+
 #  #------------------------------------#  #
 #  #  Inheriting Classes                #  #
 #  #------------------------------------#  #
+
 
 class PhotometryClass(BaseLightCurveClass):
     """
@@ -1351,6 +1462,9 @@ class PhotometryClass(BaseLightCurveClass):
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
                 if filter_key in hex.keys():
                     self.data_filters[filter_key]._plot_colour = hex[filter_key]
+                else:
+                    warnings.warn("Cannot find filter in the pycoco colours registry")
+                    self.data_filters[filter_key]._plot_colour = "C0"
 
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
@@ -1788,9 +1902,9 @@ class specfitClass(BaseSpectrumClass):
         pass
 
 
-    def plot_comparision(self, SpectrumClassInstance,
-                         xminorticks = 250, legend = True,
-                         verbose = True,
+    def plot_comparison(self, SpectrumClassInstance,
+                         xminorticks=250, legend=True,
+                         verbose=True, twoaxes=True,
                          *args, **kwargs):
         """
         Plots spec.
@@ -1808,10 +1922,9 @@ class specfitClass(BaseSpectrumClass):
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
-                                right = 0.99, hspace=0, wspace = 0)
+                                right = 0.94, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
-
 
             if verbose: print(self.data.__dict__)
             plot_label_string = r'$\rm{' + self.data.meta["filename"].replace('_', '\_') + '}$'
@@ -1821,8 +1934,14 @@ class specfitClass(BaseSpectrumClass):
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
                          label = plot_label_string, color = 'Red',
                          *args, **kwargs)
+            if twoaxes:
+                ax2 = ax1.twinx()
+                ax2.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+                         label = plot_label_string_compare, color = 'Blue',
+                         *args, **kwargs)
 
-            ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
+            else:
+                ax1.plot(SpectrumClassInstance.data['wavelength'], SpectrumClassInstance.data['flux'],
                          label = plot_label_string_compare, color = 'Blue',
                          *args, **kwargs)
 
@@ -1830,9 +1949,13 @@ class specfitClass(BaseSpectrumClass):
             minplotydata = np.nanmin(np.append(self.flux, SpectrumClassInstance.data['flux']))
 
             if legend:
+                ## https://stackoverflow.com/a/10129461
+                lines, labels = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax2.get_legend_handles_labels()
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-                                      numpoints = 1, frameon = False, fontsize = 12)
+                # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                ax1.legend(lines + lines2,labels + labels2, loc=0, scatterpoints=1,
+                                        numpoints = 1, frameon = False, fontsize = 12)
 
             ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
@@ -1886,7 +2009,7 @@ class FilterClass(BaseFilterClass):
             # self.
             self.calculate_effective_wavelength()
             self.calculate_edges()
-
+            self.get_zeropoint()
         else:
             warnings.warn("Foo")
 
@@ -1997,12 +2120,22 @@ class FilterClass(BaseFilterClass):
 
 
     def get_zeropoint(self):
+        """
+
+        :return:
+        """
+
         if hasattr(self, "filter_name"):
-            self.zp_AB = calc_AB_zp(filter_name)
-            self.zp_vega = calc_vega_zp(filter_name)
+            self.zp_AB = self.calculate_AB_zp()
+            # self.zp_vega = self.calc_vega_zp(filter_name)
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+#  #------------------------------------#  #
+#  # Model Classes                      #  #
+#  #------------------------------------#  #
+#
+# class (BaseLCModelClass)
 
 ##------------------------------------##
 ## Standalone Classes                 ##
@@ -2095,9 +2228,10 @@ class SNClass():
             pass
 
 
-    def load_phot(self, snname = False, path = False, file_type = '.dat',
+    def load_phot(self, phot_table = False, snname = False, path = False, file_type = '.dat',
                   verbose = True):
         """
+
         Parameters
         ----------
 
@@ -2107,23 +2241,42 @@ class SNClass():
 
         if not snname:
             snname = self.name
-        if not path:
-            path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
-        if verbose: print(path)
-        self.phot.load(path, verbose = verbose)
+        if phot_table:
+            self.phot.load_table(phot_table=phot_table, verbose=verbose)
+        else:
+            if not path:
+                path = os.path.join(self.phot._default_data_dir_path, snname + file_type)
+            if verbose: print(path)
+            self.phot.load(path, verbose = verbose)
 
         pass
 
 
-    def load_list(self, path, verbose = True):
+    def load_list(self, path, specfiletype = ".txt", verbose = False):
         """
         Parameters
         ----------
         Returns
         -------
         """
-        listdata = read_list_file(path, verbose = verbose)
+        listdata = read_list_file(path, verbose=verbose)
         listdata.sort('mjd_obs')
+
+        phases = []
+
+        for item in listdata["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+
+            phases.append(phase)
+            if verbose: print(phase)
+        listdata["phase"] = phases
+
         self.list  = listdata
 
 
@@ -2184,8 +2337,14 @@ class SNClass():
         if verbose: print("loading mangledspec")
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
+<<<<<<< HEAD
                 if verbose: print(i, spec_filename)
                 self.mangledspec[spec_filename] = SpectrumClass()
+=======
+
+                # self.mangledspec[spec_filename] = SpectrumClass()
+                self.mangledspec[spec_filename] = specfitClass()
+>>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
 
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
                                               verbose = verbose)
@@ -2236,7 +2395,7 @@ class SNClass():
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
-                savepng = False, savepdf = False, outpath = False, plotsnname = False,
+                savepng = False, savepdf = False, outpath = False, showsnname = False,
                 verbose = False, *args, **kwargs):
         """
         Parameters
@@ -2262,6 +2421,10 @@ class SNClass():
             else:
                 fig = plt.figure(figsize=[8, len(filters)*1.5])
 
+            if showsnname:
+                fig.suptitle(r"$\textrm{"+self.name+"}$")
+                if verbose: print(self.name)
+
             fig.subplots_adjust(left = 0.1, bottom = 0.13, top = 0.93,
                                 right = 0.91, hspace=0, wspace = 0)
             ## Label the axes
@@ -2285,7 +2448,9 @@ class SNClass():
 
                     if filter_key in hex.keys():
                         self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
-
+                    else:
+                        warnings.warn("Cannot find filter in the pycoco colours registry")
+                        self.phot.data_filters[filter_key]._plot_colour = "C0"
                     ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                                  yerr = self.phot.data[filter_key]['flux_err'],
                                  capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
@@ -2383,8 +2548,7 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-            if plotsnname:
-                if verbose: print(self.snname)
+
             if savepdf and outpath:
                 fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
             if savepng and outpath:
@@ -2748,28 +2912,64 @@ class SNClass():
         if hasattr(self, 'lcfit') and hasattr(self, 'spec'):
             # if verbose: print("Foo")
 
-            try:
-                # self.simplespecphot = LCfitClass()
-                self.simplespecphot = PhotometryClass()
+            # try:
+            #     # self.simplespecphot = LCfitClass()
+            #     self.simplespecphot = PhotometryClass()
+            #
+            #     lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()]) ## object dtype is slow
+            #     self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'),
+            #                                      dtype = [float, float, float, '|S'+str(lenstring)])
+            #
+            #     for i, spectrum in enumerate(self.spec):
+            #
+            #         for filter_name in self.spec[spectrum]._overlapping_filter_list:
+            #             if verbose: print(i, spectrum, filter_name)
+            #
+            #             mjd = self.spec[spectrum].mjd_obs
+            #             flux = self.lcfit.spline[filter_name](mjd)
+            #             flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
+            #             newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter':filter_name}
+            #             self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+            #
+            #     self.simplespecphot.unpack()
+            # except:
+            #     warnings.warn("simplespecphot failed")
 
-                lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()]) ## object dtype is slow
-                self.simplespecphot.phot = Table(names = ('MJD', 'flux', 'flux_err', 'filter'),
-                                                 dtype = [float, float, float, '|S'+str(lenstring)])
 
-                for i, spectrum in enumerate(self.spec):
+            # self.simplespecphot = LCfitClass()
+            self.simplespecphot = PhotometryClass()
 
-                    for filter_name in self.spec[spectrum]._overlapping_filter_list:
-                        if verbose: print(i, spectrum, filter_name)
+            lenstring = np.nanmax([len(i) for i in self.lcfit.data_filters.keys()])  ## object dtype is slow
+            # self.simplespecphot.phot = Table(names=('MJD', 'flux', 'flux_err', 'filter'),
+            #                                  dtype=[float, float, float, '|S' + str(lenstring)])
 
-                        mjd = self.spec[spectrum].mjd_obs
-                        flux = self.lcfit.spline[filter_name](mjd)
-                        flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
-                        newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter':filter_name}
-                        self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+            mjd_list = []
+            flux_list = []
+            flux_err_list = []
+            filter_list = []
 
-                self.simplespecphot.unpack()
-            except:
-                warnings.warn("simplespecphot failed")
+            for i, spectrum in enumerate(self.spec):
+
+                for filter_name in self.spec[spectrum]._overlapping_filter_list:
+                    if verbose: print(i, spectrum, filter_name, type(filter_name))
+
+                    mjd = self.spec[spectrum].mjd_obs
+                    flux = self.lcfit.spline[filter_name](mjd)
+                    flux_err = self.lcfit.spline[filter_name + "_err"](mjd)
+                    # newrow = {'MJD': mjd, 'flux': flux, 'flux_err': flux_err, 'filter': filter_name}
+                    # if i == 0:
+                    #     self.simplespecphot.phot = Table(newrow)
+                    # else:
+                    #     self.simplespecphot.phot.add_row([mjd, flux, flux_err, filter_name])
+
+                    mjd_list.append(mjd)
+                    flux_list.append(flux)
+                    flux_err_list.append(flux_err)
+                    filter_list.append(filter_name)
+
+                self.simplespecphot.phot = Table((mjd_list, flux_list, flux_err_list, filter_list), names=('MJD', 'flux', 'flux_err', 'filter'))
+
+            self.simplespecphot.unpack(verbose=verbose)
 
         pass
 
@@ -2794,8 +2994,8 @@ class SNClass():
                     if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
                       hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
                       hasattr(self.spec[spectrum], "data"):
-                       blue_bool = filter_obj._lower_edge > spec_obj.min_wavelength
-                       red_bool = filter_obj._upper_edge < spec_obj.max_wavelength
+                       blue_bool = self.phot.data_filters[filtername]._lower_edge > self.spec[spectrum].min_wavelength
+                       red_bool = self.phot.data_filters[filtername]._upper_edge < self.spec[spectrum].max_wavelength
 
                        if blue_bool and red_bool:
                             within = True
@@ -2827,6 +3027,9 @@ class InfoClass():
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
         self.distmod = self.table["mu"]
+        self.distance = Distance(distmod = self.table["mu"])
+        self.table["z_distmod"] = [i.z for i in self.distance]
+
         self.RA = self.table["RA"]
         self.Dec = self.table["Dec"]
 

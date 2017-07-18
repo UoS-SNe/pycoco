@@ -9,6 +9,8 @@ date: 06-12-2016
 
 from __future__ import print_function ## Force python3-like printing
 
+import sys
+
 if __name__ is not '__main__':
 
     __name__ = 'pycoco'
@@ -45,12 +47,11 @@ from .extinction import *
 from .colours import *
 from .utils import *
 from .errors import *
-# from .coco_calls import *
 from .kcorr import *
 from .functions import *
 from .defaults import *
 from .classes import *
-
+from .models import *
 
 if __name__ == "__main__":
     pass
