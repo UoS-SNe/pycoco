@@ -730,7 +730,7 @@ class BaseLightCurveClass():
     #     return save_table
 
 
-    def _phot_format_for_save(self, filters = False, verbose = False):
+    def _phot_format_for_save(self, names = ('MJD', 'flux', 'flux_err', 'filter'), filters = False, verbose = False):
             """
             This is hacky - clear it up!
 
@@ -746,6 +746,7 @@ class BaseLightCurveClass():
 
 
     def save(self, filename, filters = False, path = False,
+             names = ('MJD', 'flux', 'flux_err', 'filter'),
              squash = False, verbose = True, *args, **kwargs):
         """
         Output the photometry loaded into the SNClass via self.load_phot* into a format
@@ -778,10 +779,10 @@ class BaseLightCurveClass():
                 warnings.warn("Found existing file matching " + outpath + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
-                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", overwrite = True)
+                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", overwrite = True, names=names)
             else:
                     print("Writing " + outpath)
-                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header")
+                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", names=names)
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -1312,7 +1313,7 @@ class PhotometryClass(BaseLightCurveClass):
 
     def load_phot_from_files(self, path = False, snname = False, prefix = 'SN',
              file_type = '.dat', names = ('MJD', 'flux', 'flux_err', 'filter'),
-             format = 'ascii', filter_file_type = '.dat', verbose = True):
+             format = 'ascii', filter_file_type = '.dat', verbose = False):
         """
         Finds and loads in data (from file) into phot objects.
 
@@ -2221,7 +2222,7 @@ class SNClass():
 
 
     def load_phot(self, phot_table = False, snname = False, path = False, file_type = '.dat',
-                  verbose = True):
+                  verbose = False):
         """
 
         Parameters

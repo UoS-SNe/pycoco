@@ -212,8 +212,22 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
 
 
 def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter')):
+    """
+
+    :param out:
+    :param mjdmax:
+    :param filter_name:
+    :param names:
+    :return:
+    """
+
     mjd = out[0]+mjdmax
-    filters = Column([filter_name.astype(str) for i in out[0]])
+
+    if not isinstance("BessellI", str):
+        filters = Column([filter_name.astype(str) for i in out[0]])
+    else:
+        filters = Column([filter_name for i in out[0]])
+
     ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
     return ap_table
 
@@ -234,6 +248,7 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 def strictly_increasing(L):
     """https://stackoverflow.com/a/4983359"""
     return all(x<y for x, y in zip(L, L[1:]))
+
 
 def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
                specfiletype=".txt", verbose = True):
