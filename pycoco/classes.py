@@ -629,7 +629,7 @@ class BaseLightCurveClass():
                 if check_file_path(os.path.abspath(path_to_filter)):
                     filter_object = FilterClass()
                     filter_object.read_filter_file(os.path.abspath(path_to_filter), verbose = verbose)
-
+                    filter_object.calculate_AB_zp()
                 else:
                     warnings.warn("Couldn't load the filter")
 
