@@ -2124,15 +2124,18 @@ class FilterClass(BaseFilterClass):
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+
 #  #------------------------------------#  #
 #  # Model Classes                      #  #
 #  #------------------------------------#  #
 #
 # class (BaseLCModelClass)
 
+
 ##------------------------------------##
 ## Standalone Classes                 ##
 ##------------------------------------##
+
 
 class SNClass():
     """docstring for SNClass."""

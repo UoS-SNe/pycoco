@@ -11,7 +11,7 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray, zeros
+from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
 import matplotlib.pyplot as plt
 
 from astropy.table import Table, Column
@@ -31,7 +31,9 @@ __all__ = ["setup_plot_defaults",
            "check_list",
            "check_all_lists",
            "specphot_out_to_ap_table",
-           "_get_current_filter_registry"
+           "_get_current_filter_registry",
+           "get_mjdmax",
+           "get_mjdmax_flux"
            ]
 
 
@@ -355,6 +357,37 @@ def load_formatted_phot(path, format = "ascii", names = False,
     phot_table["flux_err"].unit =  phot_table["flux"].unit
 
     return phot_table
+
+
+def get_mjdmax(sn, filter_key):
+    """
+
+    :param sn:
+    :param filter_key:
+    :return:
+    """
+    f = sn.lcfit.spline[filter_key]
+    mjd_spline = arange(nanmin(sn.phot.data[filter_key]["MJD"]),
+                           nanmax(sn.phot.data[filter_key]["MJD"]),
+                           0.001)
+    w = where(f(mjd_spline) == nanmax(f(mjd_spline)))
+
+    mjdmax = mjd_spline[w]
+
+    return mjdmax
+
+def get_mjdmax_flux(sn, filter_key):
+    """
+
+    :param sn:
+    :param filter_key:
+    :return:
+    """
+    f = sn.lcfit.spline[filter_key]
+    mjd_spline = arange(nanmin(sn.phot.data[filter_key]["MJD"]),
+                           nanmax(sn.phot.data[filter_key]["MJD"]),
+                           0.001)
+    return nanmax(f(mjd_spline))
 
 if sys.version_info < (3,):
     def b(x):
