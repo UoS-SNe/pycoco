@@ -24,6 +24,7 @@ from astropy.constants import c
 from .classes import *
 from .functions import *
 from .defaults import *
+from .utils import check_file_path, check_dir_path
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -147,6 +148,8 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = _de
             filter_object.calculate_filter_area()
             return filter_object._effective_area
     else:
+        check_file_path(os.path.join(filter_path, filter_name + ".dat"))
+
         filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
         filter_object.calculate_effective_wavelength()
         filter_area = simps(filter_object.throughput, filter_object.wavelength)
@@ -154,28 +157,39 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = _de
     return filter_area
 
 
-def calc_spectrum_filter_flux(filter_name=False, filter_object=False, SpecClass, filter_path = _default_filter_dir_path):
+def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_object=False,
+                              filter_path = _default_filter_dir_path, spectrum_dir=None, spectrum_filename=None):
     """
     returns flux in units of
 
     :param filter_name:
-    :param SpecClass:
+    :param spectrum_object:
     :param filter_path:
     :return:
     """
     if not filter_object:
+        check_file_path(os.path.join(filter_path, filter_name + ".dat"))
+
         filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
         if not hasattr(filter_object, "lambda_effective"):
             filter_object.calculate_effective_wavelength()
 
-    filter_object.resample_response(new_wavelength = SpecClass.wavelength)
+    if not spectrum_object:
+        spectrum_path=os.path.join(spectrum_dir, spectrum_filename)
+
+        check_file_path(spectrum_path)
+
+        spectrum_object = SpectrumClass()
+        spectrum_object.load(filename=spectrum_filename, path=spectrum_dir)
+
+    filter_object.resample_response(new_wavelength = spectrum_object.wavelength)
     if hasattr(filter_object, "_effective_area"):
         filter_object.calculate_filter_area()
         filter_area = filter_object._effective_area
         # filter_area = simps(filter_object.throughput, filter_object.wavelength)
 
-    transmitted_spec = filter_object.throughput * SpecClass.flux
-    integrated_flux = simps(transmitted_spec, SpecClass.wavelength)
+    transmitted_spec = filter_object.throughput * spectrum_object.flux
+    integrated_flux = simps(transmitted_spec, spectrum_object.wavelength)
 
     return  integrated_flux/filter_area
 
