@@ -154,7 +154,7 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = _de
     return filter_area
 
 
-def calc_spectrum_filter_flux(filter_name=False, filter_object=False, SpecClass, filter_path = _default_filter_dir_path):
+def calc_spectrum_filter_flux(filter_name=False, filter_object=False, filter_path=_default_filter_dir_path):
     """
     returns flux in units of
 
