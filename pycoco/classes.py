@@ -2132,9 +2132,9 @@ class FilterClass(BaseFilterClass):
 # class (BaseLCModelClass)
 
 
-##------------------------------------##
-## Standalone Classes                 ##
-##------------------------------------##
+#  #------------------------------------#  #
+#  # Standalone Classes                 #  #
+#  #------------------------------------#  #
 
 
 class SNClass():
@@ -2800,7 +2800,7 @@ class SNClass():
                 ## Check if there is something in the class to plot
                 if hasattr(self.phot.data_filters[filter_key], "wavelength") and hasattr(self.phot.data_filters[filter_key], "throughput"):
 
-                    plot_label_string = r'$' + self.phot.data_filters[filter_key].filter_name + '$'
+                    plot_label_string = r'$\textnormal{' + self.phot.data_filters[filter_key].filter_name + '}$'
 
 
                     if hasattr(self.phot.data_filters[filter_key], "_plot_colour"):
@@ -3036,9 +3036,9 @@ class InfoClass():
 
 
 
-##----------------------------------------------------------------------------##
-##  /CODE                                                                     ##
-##----------------------------------------------------------------------------##
+#  #----------------------------------------------------------------------------#  #
+#  #  /CODE                                                                     #  #
+#  #----------------------------------------------------------------------------#  #
 
 ## FUNCTIONS THAT ITS A PAIN TO SHIFT
 
