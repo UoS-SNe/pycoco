@@ -11,7 +11,7 @@ import sys
 import os
 import warnings
 import pycoco as pcc
-from numpy import loadtxt, savetxt, array, array_equal, array_equiv, exp, sort, asarray, zeros
+from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
 import matplotlib.pyplot as plt
 
 from astropy.table import Table, Column
@@ -31,7 +31,9 @@ __all__ = ["setup_plot_defaults",
            "check_list",
            "check_all_lists",
            "specphot_out_to_ap_table",
-           "_get_current_filter_registry"
+           "_get_current_filter_registry",
+           "get_mjdmax",
+           "get_mjdmax_flux"
            ]
 
 
@@ -212,8 +214,22 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
 
 
 def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter')):
+    """
+
+    :param out:
+    :param mjdmax:
+    :param filter_name:
+    :param names:
+    :return:
+    """
+
     mjd = out[0]+mjdmax
-    filters = Column([filter_name.astype(str) for i in out[0]])
+
+    if not isinstance("BessellI", str):
+        filters = Column([filter_name.astype(str) for i in out[0]])
+    else:
+        filters = Column([filter_name for i in out[0]])
+
     ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
     return ap_table
 
@@ -234,6 +250,7 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 def strictly_increasing(L):
     """https://stackoverflow.com/a/4983359"""
     return all(x<y for x, y in zip(L, L[1:]))
+
 
 def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
                specfiletype=".txt", verbose = True):
@@ -340,6 +357,37 @@ def load_formatted_phot(path, format = "ascii", names = False,
     phot_table["flux_err"].unit =  phot_table["flux"].unit
 
     return phot_table
+
+
+def get_mjdmax(sn, filter_key):
+    """
+
+    :param sn:
+    :param filter_key:
+    :return:
+    """
+    f = sn.lcfit.spline[filter_key]
+    mjd_spline = arange(nanmin(sn.phot.data[filter_key]["MJD"]),
+                           nanmax(sn.phot.data[filter_key]["MJD"]),
+                           0.001)
+    w = where(f(mjd_spline) == nanmax(f(mjd_spline)))
+
+    mjdmax = mjd_spline[w]
+
+    return mjdmax
+
+def get_mjdmax_flux(sn, filter_key):
+    """
+
+    :param sn:
+    :param filter_key:
+    :return:
+    """
+    f = sn.lcfit.spline[filter_key]
+    mjd_spline = arange(nanmin(sn.phot.data[filter_key]["MJD"]),
+                           nanmax(sn.phot.data[filter_key]["MJD"]),
+                           0.001)
+    return nanmax(f(mjd_spline))
 
 if sys.version_info < (3,):
     def b(x):
