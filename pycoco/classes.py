@@ -19,11 +19,8 @@ import astropy.units as u
 from astropy.constants import c
 from astropy.coordinates import SkyCoord, Distance
 from astropy.time import Time
-<<<<<<< HEAD
 from astropy.table import Table, vstack, Row
-=======
-from astropy.table import Table, Row, vstack
->>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
+
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -621,10 +618,6 @@ class BaseLightCurveClass():
                     sorted_phot_table = Table([phot_table[column_name][indices] for column_name in phot_table.colnames])
                 else:
                     sorted_phot_table = phot_table
-<<<<<<< HEAD
-
-=======
->>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
 
                 filter_key = np.unique(phot_table["filter"])[0]
 
@@ -2341,15 +2334,10 @@ class SNClass():
         if verbose: print("loading mangledspec")
         if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
             for i, spec_filename in enumerate(self._mangledspeclist):
-<<<<<<< HEAD
-                if verbose: print(i, spec_filename)
-                self.mangledspec[spec_filename] = SpectrumClass()
-=======
 
+                if verbose: print(i, spec_filename)
                 # self.mangledspec[spec_filename] = SpectrumClass()
                 self.mangledspec[spec_filename] = specfitClass()
->>>>>>> 13f65bc2ba16c902f495ba613e320c655ffcef54
-
                 self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
                                               verbose = verbose)
 
