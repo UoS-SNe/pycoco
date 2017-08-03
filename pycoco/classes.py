@@ -731,7 +731,7 @@ class BaseLightCurveClass():
     #     return save_table
 
 
-    def _phot_format_for_save(self, names = ('MJD', 'flux', 'flux_err', 'filter'), filters = False, verbose = False):
+    def _phot_format_for_save(self, names = ('MJD', 'flux', 'flux_err', 'filter'), filters = False, verbose = False, sort=False):
             """
             This is hacky - clear it up!
 
@@ -741,7 +741,12 @@ class BaseLightCurveClass():
             -------
             """
 
-            save_table = self.phot
+
+            if sort:
+                save_table = self.phot
+                save_table = save_table[save_table.argsort()]
+            else:
+                save_table = self.phot
 
             return save_table
 
