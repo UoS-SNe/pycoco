@@ -288,6 +288,23 @@ class BaseSpectrumClass():
             if verbose: print(path + ' not found')
 
 
+    def load_table(self, spec_table, path, trim_wavelength=False, wmin=3500 * u.angstrom,
+                   wmax=11000 * u.angstrom):
+        """Use with care - basically assumes you have all of your ducks in a row"""
+
+        if trim_wavelength:
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
+
+        spec_table.meta["filepath"] = path
+        spec_table.meta["filename"] = path.split("/")[-1]
+
+        self.min_wavelength = np.nanmin(spec_table["wavelength"])
+        self.max_wavelength = np.nanmax(spec_table["wavelength"])
+        self.data = spec_table
+        self.wavelength = spec_table["wavelength"]
+        self.flux = spec_table["flux"]
+        pass
+
     def plot(self, xminorticks = 250, legend = True,
              verbose = False, compare_red = True,
              *args, **kwargs):
@@ -3019,7 +3036,10 @@ class InfoClass():
         if not path:
             path = _default_info_path
 
-        self.table = Table.read(path, format = "ascii.commented_header")
+        self._data = Table.read(path, format = "ascii.commented_header")
+
+        self.table = self._data
+
         self.table.meta["success"] = True
         self.snname = self.table["snname"]
         self.z_obs = self.table["z_obs"]
