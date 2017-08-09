@@ -376,6 +376,7 @@ def get_mjdmax(sn, filter_key):
 
     return mjdmax
 
+
 def get_mjdmax_flux(sn, filter_key):
     """
 

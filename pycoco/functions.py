@@ -11,6 +11,9 @@ import subprocess
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
+from scipy.optimize import leastsq
+from lmfit import minimize, Parameters, fit_report
+
 from astropy.table import Table
 from astropy.time import Time
 from astropy import units as u
@@ -833,6 +836,59 @@ def load_info(path = _default_info_path, verbose = False):
     return i
 
 
+def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False):
+    """
+
+    :param s1:
+    :param s2:
+    :param wmin:
+    :param wmax:
+    :param scale:
+    :param report:
+    :return:
+    """
+    ## Check the bluer one is first?
+
+    s1_overlap = pcc.SpectrumClass()
+    s2_overlap = pcc.SpectrumClass()
+
+    s1_overlap.load_table(s1.data[np.where(s1.data["wavelength"] > s2.min_wavelength)], path="", trim_wavelength=True,
+                          wmin=wmin, wmax=wmax)
+    s2_overlap.load_table(s2.data[np.where(s2.data["wavelength"] < s1.max_wavelength)], path="", trim_wavelength=True,
+                          wmin=wmin, wmax=wmax)
+
+    s2_spline = InterpolatedUnivariateSpline(s2_overlap.wavelength, s2_overlap.flux, k=5)
+
+    if scale:
+        params = Parameters()
+        params.add("scale", value=1)
+
+        out = minimize(residual, params, args=(s1_overlap.flux, s2_spline(s1_overlap.wavelength)))
+        if report: print(fit_report(out))
+
+        scale_factor = out.params["scale"]
+
+    else:
+
+        scale_factor = 1
+
+    blue_spec_table = s1.data[np.where(s1.data["wavelength"] < wmin)]
+
+    overlap_mean_flux = Column(
+        list(map(np.nanmean, zip(s1_overlap.data["flux"], s2_spline(s1_overlap.wavelength) * scale_factor))),
+        name=s1_overlap.data["flux"].name, unit=s1_overlap.data["flux"].unit)
+    overlap_spectable = Table((s1_overlap.data["wavelength"], overlap_mean_flux),
+                              names=(s2_overlap.data["wavelength"].name, overlap_mean_flux.name))
+
+    red_spec_table = s2.data[np.where(s2.data["wavelength"] > max_wavelength)]
+    red_spec_table["flux"] = red_spec_table["flux"] * scale_factor
+
+    combined_spec = pcc.SpectrumClass()
+    combined_spec.load_table(vstack([blue_spec_table, overlap_spectable, red_spec_table]), path="")
+
+    return combined_spec
+
+
 
 #  #------------------------------------#  #
 #  # CoCo Functions                     #  #
@@ -1091,6 +1147,7 @@ def specfit_sn(snname, verbose = True):
     run_specfit(newlistpath)
 
     pass
+
 
 def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coco_dir_path, verbose = True):
     """
