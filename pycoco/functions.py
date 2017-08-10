@@ -11,10 +11,11 @@ import subprocess
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-from scipy.optimize import leastsq
+# from scipy.optimize import leastsq
 from lmfit import minimize, Parameters, fit_report
+from scipy.interpolate import InterpolatedUnivariateSpline
 
-from astropy.table import Table
+from astropy.table import Table, Column, vstack
 from astropy.time import Time
 from astropy import units as u
 
@@ -836,37 +837,36 @@ def load_info(path = _default_info_path, verbose = False):
     return i
 
 
-def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False):
-    """
-
-    :param s1:
-    :param s2:
-    :param wmin:
-    :param wmax:
-    :param scale:
-    :param report:
-    :return:
-    """
+def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False, showplot=False):
     ## Check the bluer one is first?
 
-    s1_overlap = pcc.SpectrumClass()
-    s2_overlap = pcc.SpectrumClass()
+    s1_overlap = SpectrumClass()
+    s2_overlap = SpectrumClass()
 
     s1_overlap.load_table(s1.data[np.where(s1.data["wavelength"] > s2.min_wavelength)], path="", trim_wavelength=True,
                           wmin=wmin, wmax=wmax)
     s2_overlap.load_table(s2.data[np.where(s2.data["wavelength"] < s1.max_wavelength)], path="", trim_wavelength=True,
                           wmin=wmin, wmax=wmax)
 
-    s2_spline = InterpolatedUnivariateSpline(s2_overlap.wavelength, s2_overlap.flux, k=5)
+    s2_spline = InterpolatedUnivariateSpline(s2.wavelength, s2.flux, k=5)
+    #     s2_spline = InterpolatedUnivariateSpline(s2_overlap.wavelength, s2_overlap.flux, k=5)
 
     if scale:
         params = Parameters()
         params.add("scale", value=1)
 
-        out = minimize(residual, params, args=(s1_overlap.flux, s2_spline(s1_overlap.wavelength)))
+        out = minimize(data_residual, params, args=(s1_overlap.flux, s2_spline(s1_overlap.wavelength)))
         if report: print(fit_report(out))
 
         scale_factor = out.params["scale"]
+
+        if showplot:
+            fig = plt.figure()
+            fig.subplots_adjust(left=0.09, bottom=0.20, top=0.99,
+                                right=0.97, hspace=0.1, wspace=0.1)
+
+            ax1 = fig.add_subplot(111)
+            ax1.plot(s1_overlap.wavelength, s2_spline(s1_overlap.wavelength))
 
     else:
 
@@ -880,14 +880,21 @@ def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False):
     overlap_spectable = Table((s1_overlap.data["wavelength"], overlap_mean_flux),
                               names=(s2_overlap.data["wavelength"].name, overlap_mean_flux.name))
 
-    red_spec_table = s2.data[np.where(s2.data["wavelength"] > max_wavelength)]
+    red_spec_table = s2.data[np.where(s2.data["wavelength"] > wmax)]
     red_spec_table["flux"] = red_spec_table["flux"] * scale_factor
 
-    combined_spec = pcc.SpectrumClass()
+    combined_spec = SpectrumClass()
     combined_spec.load_table(vstack([blue_spec_table, overlap_spectable, red_spec_table]), path="")
 
     return combined_spec
 
+
+def data_residual(params, data1, data2):
+    scale = params["scale"]
+
+    res = data1 - scale * data2
+
+    return res
 
 
 #  #------------------------------------#  #
