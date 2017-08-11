@@ -486,7 +486,7 @@ class BaseSpectrumClass():
             check_dir_path(path)
 
             if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
+                warnings.warn("Found existing file matching " + os.path.join(path, filename) + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
                     self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
