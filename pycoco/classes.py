@@ -494,7 +494,7 @@ class BaseSpectrumClass():
 
             else:
                     print("Writing " + outpath)
-                    self._spec_format_for_save().write(outpath, format = "ascii")
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")

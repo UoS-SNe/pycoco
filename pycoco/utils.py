@@ -213,7 +213,7 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
 
-def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter')):
+def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'), remove_zero=False):
     """
 
     :param out:
@@ -225,12 +225,17 @@ def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', '
 
     mjd = out[0]+mjdmax
 
-    if not isinstance("BessellI", str):
+    if not isinstance(filter_name, str):
         filters = Column([filter_name.astype(str) for i in out[0]])
     else:
         filters = Column([filter_name for i in out[0]])
 
-    ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
+    if remove_zero:
+        w = where(out[1] != 0.0)
+        ap_table = Table([mjd[w], out[1][w], zeros(len(out[1][w])), filters[w]], names = names)
+
+    else:
+        ap_table = Table([mjd, out[1], zeros(len(out[1])), filters], names = names)
     return ap_table
 
 
