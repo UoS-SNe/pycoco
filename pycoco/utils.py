@@ -33,7 +33,8 @@ __all__ = ["setup_plot_defaults",
            "specphot_out_to_ap_table",
            "_get_current_filter_registry",
            "get_mjdmax",
-           "get_mjdmax_flux"
+           "get_mjdmax_flux",
+           "get_max_info"
            ]
 
 
@@ -394,6 +395,23 @@ def get_mjdmax_flux(sn, filter_key):
                            nanmax(sn.phot.data[filter_key]["MJD"]),
                            0.001)
     return nanmax(f(mjd_spline))
+
+def get_max_info(sn, filter_key):
+    """
+
+    :param sn:
+    :param filter_key:
+    :return:
+    """
+    f = sn.lcfit.spline[filter_key]
+    mjd_spline = arange(nanmin(sn.phot.data[filter_key]["MJD"]),
+                           nanmax(sn.phot.data[filter_key]["MJD"]),
+                           0.001)
+    w = where(f(mjd_spline) == nanmax(f(mjd_spline)))
+    mjdmax = mjd_spline[w]
+
+    return mjdmax, nanmax(f(mjd_spline))
+
 
 if sys.version_info < (3,):
     def b(x):
