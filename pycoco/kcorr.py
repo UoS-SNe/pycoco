@@ -19,7 +19,7 @@ from numpy import log10, linspace, ones
 from scipy.integrate import simps
 from astropy import units as u
 from astropy.table import Table
-from astropy.constants import c
+from astropy.constants import c as c
 
 from .classes import *
 from .functions import *
@@ -158,7 +158,8 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = _de
 
 
 def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_object=False,
-                              filter_path = _default_filter_dir_path, spectrum_dir=None, spectrum_filename=None):
+                              filter_path = _default_filter_dir_path, spectrum_dir=None, spectrum_filename=None,
+                              correct_for_area=True):
     """
     returns flux in units of
 
@@ -191,7 +192,10 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
     transmitted_spec = filter_object.throughput * spectrum_object.flux
     integrated_flux = simps(transmitted_spec, spectrum_object.wavelength)
 
-    return  integrated_flux/filter_area
+    if correct_for_area:
+        return  integrated_flux/filter_area
+    else:
+        return  integrated_flux
 
 
 def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path, filter_object = False):

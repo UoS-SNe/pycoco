@@ -341,7 +341,7 @@ class BaseSpectrumClass():
 
 
             ax1.plot(self.data['wavelength'], self.flux, lw = 2,
-                         label = plot_label_string, color = 'Red',
+                         label = plot_label_string, color = 'C0',
                          *args, **kwargs)
 
             maxplotydata = np.nanmax(self.flux)
@@ -907,6 +907,7 @@ class BaseFilterClass():
 
         self.zp_AB = -2.5 * log10(area_corr_integrated_flux)
         pass
+
 
     def calculate_effective_wavelength(self):
         """
@@ -1506,6 +1507,7 @@ class PhotometryClass(BaseLightCurveClass):
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
             yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}$'
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
