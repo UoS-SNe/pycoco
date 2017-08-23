@@ -330,7 +330,7 @@ class BaseSpectrumClass():
             setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
-            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
+            fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.95,
                                 right = 0.99, hspace=0, wspace = 0)
 
             ax1 = fig.add_subplot(111)
@@ -362,8 +362,8 @@ class BaseSpectrumClass():
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
-
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
@@ -884,13 +884,13 @@ class BaseFilterClass():
             self._effective_area = simps(self.throughput, self.wavelength)
 
 
-    def calculate_AB_zp(self, ABpath = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom):
+    def calculate_AB_zp(self, ABpath = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom, wmax=25000 * u.angstrom):
         """
         """
 
 
         AB = SpectrumClass()
-        AB.load(ABpath, wmin=wmin)
+        AB.load(ABpath, wmin=wmin, wmax=wmax)
 
         if not hasattr(self, "lambda_effective"):
             self.calculate_effective_wavelength()
@@ -1507,7 +1507,7 @@ class PhotometryClass(BaseLightCurveClass):
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
             yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
-            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}$'
+            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
@@ -1979,7 +1979,7 @@ class specfitClass(BaseSpectrumClass):
 
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
-            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
+            yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
 
             ax1.set_xlabel(xaxis_label_string)
             ax1.set_ylabel(yaxis_label_string)
@@ -2011,23 +2011,30 @@ class FilterClass(BaseFilterClass):
         """
         if check_file_path(os.path.abspath(path), verbose = verbose):
             self.data = Table.read(path, format = fmt, names = names)
-
             self.wavelength = self.data["wavelength"] * wavelength_u
+            if verbose: print("1", np.nanmax(self.wavelength))
             self.wavelength = self.wavelength.to(u.angstrom)
             self.throughput = self.data["throughput"]
+            if verbose: print("2", np.nanmax(self.wavelength))
 
             self.wavelength_u = self.wavelength.to(wavelength_u)
             self._filter_file_path = path
+            if verbose: print("3", np.nanmax(self.wavelength))
 
             filename = path.split('/')[-1]
             filename_no_extension = filename.split('.')[0]
             self.filter_name = filename_no_extension
+            if verbose: print("4", np.nanmax(self.wavelength))
 
             self.set_plot_colour(verbose = verbose)
-            # self.
+            if verbose: print("5", np.nanmax(self.wavelength))
             self.calculate_effective_wavelength()
+            if verbose: print("6", np.nanmax(self.wavelength))
             self.calculate_edges()
+            if verbose: print("7", np.nanmax(self.wavelength))
             self.get_zeropoint()
+            if verbose: print("8", np.nanmax(self.wavelength))
+
         else:
             warnings.warn("Foo")
 
@@ -2127,8 +2134,11 @@ class FilterClass(BaseFilterClass):
             self._plot_colour = colour
 
         else:
-            if verbose: print(hex[self.filter_name])
+
             try:
+                if verbose:
+                    if self.filter_name in hex.keys:
+                        print(hex[self.filter_name])
                 self._plot_colour = hex[self.filter_name]
             except:
                 if verbose: print("Nope")
@@ -2144,7 +2154,8 @@ class FilterClass(BaseFilterClass):
         """
 
         if hasattr(self, "filter_name"):
-            self.zp_AB = self.calculate_AB_zp()
+            # self.zp_AB = self.calculate_AB_zp()
+            self.calculate_AB_zp()
             # self.zp_vega = self.calc_vega_zp(filter_name)
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
@@ -2446,6 +2457,7 @@ class SNClass():
             ## Label the axes
             xaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
             yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
+            # yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{cm}^{-2}$'
 
 
             if not multiplot:
