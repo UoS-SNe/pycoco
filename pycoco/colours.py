@@ -82,7 +82,8 @@ hex["DES_z"] = hex['SDSS_z']
 
 hex['u'] = '#40d47e'
 hex['b'] = '#0000ff'
-hex['v'] = '#ffff00'
+hex['v'] = '#2ca02c'
+# hex['v'] = '#ffff00'
 hex['r'] = '#c0392b'
 hex['i'] = '#8e44ad'
 hex['z'] = '#000000'

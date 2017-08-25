@@ -206,7 +206,7 @@ class BaseSpectrumClass():
 
 
     def load(self, filename, directory=False, fmt="ascii",
-             wmin=3500 * u.angstrom, wmax=11000 * u.angstrom,
+             wmin=1500 * u.angstrom, wmax=11000 * u.angstrom,
              names=("wavelength", "flux"), wavelength_u=u.angstrom,
              flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
              convert_flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
@@ -340,7 +340,10 @@ class BaseSpectrumClass():
             plot_label_string = r'$\rm{' + self.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
-            ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+            # ax1.plot(self.data['wavelength'], self.flux, lw = 2,
+            #              label = plot_label_string, color = 'C0',
+            #              *args, **kwargs)
+            ax1.plot(self.wavelength, self.flux, lw = 2,
                          label = plot_label_string, color = 'C0',
                          *args, **kwargs)
 
@@ -486,12 +489,12 @@ class BaseSpectrumClass():
             check_dir_path(path)
 
             if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + os.path.join(path, filename) + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
-                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
-
-
+                    self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header", overwrite=True)
+                else:
+                    warnings.warn("Found existing file matching " + os.path.join(path,
+                                                                                 filename) + ". Run with squash = True to overwrite")
             else:
                     print("Writing " + outpath)
                     self._spec_format_for_save().write(outpath, format = "ascii.fast_commented_header")
