@@ -15,7 +15,7 @@ from __future__ import print_function
 import os
 import sys
 
-from numpy import log10, linspace, ones
+from numpy import log10, linspace, ones, array_equal
 from scipy.integrate import simps
 from astropy import units as u
 from astropy.table import Table
@@ -183,7 +183,9 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         spectrum_object = SpectrumClass()
         spectrum_object.load(filename=spectrum_filename, path=spectrum_dir)
 
-    filter_object.resample_response(new_wavelength = spectrum_object.wavelength)
+    if not array_equal(filter_object.wavelength, spectrum_object.wavelength):
+        filter_object.resample_response(new_wavelength = spectrum_object.wavelength)
+
     if hasattr(filter_object, "_effective_area"):
         filter_object.calculate_filter_area()
         filter_area = filter_object._effective_area
