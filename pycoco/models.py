@@ -38,3 +38,4 @@ def firth17_listarg(x, params):
     numerator = params[0] * (1. + params[1] * (x - params[3]) * (x - params[3])) * np.exp(- (x - params[2]) / params[7])
     denominator = (1. + np.exp(- (x - params[2]) / params[6])) / (1. + np.exp(- (x - params[4]) / params[5]))
     return numerator/denominator
+
