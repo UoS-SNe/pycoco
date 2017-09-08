@@ -14,17 +14,22 @@ from __future__ import print_function
 
 import os
 import sys
+import copy
 
-from numpy import log10, linspace, ones, array_equal
+from numpy import log10, linspace, ones, array_equal, zeros, append, array
 from scipy.integrate import simps
 from astropy import units as u
 from astropy.table import Table
 from astropy.constants import c as c
+from lmfit import minimize, Parameters, fit_report
+from scipy import interpolate
+from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 from .classes import *
 from .functions import *
 from .defaults import *
-from .utils import check_file_path, check_dir_path
+from .utils import check_file_path, setup_plot_defaults, check_dir_path
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -33,7 +38,14 @@ __all__ = ["offset",
             "calc_vega_zp",
             "load_dark_sky_spectrum",
             "calc_spectrum_filter_flux",
-            "load_atmosphere"]
+            "load_atmosphere",
+            "save_mangle",
+            "applymangle",
+            "calculate_fluxes",
+            "manglemin",
+            "plot_mangledata",
+            "manglemin",
+           ]
 
 ## offset is calculated as m_AB - m_vega
 offset = {
@@ -299,6 +311,8 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
     """
 
     :param filter_name:
+    :param filter_object:
+    :param dark_sky:
     :param vega:
     :return:
     """
@@ -325,11 +339,149 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
 
 def nu_to_lambda(freq):
     """
+
+    :param freq:
+    :return:
     """
     wavelength = (c/freq).to("Angstrom")
     return wavelength
 
 
 def lambda_to_nu(wavelength):
+    """
+
+    :param wavelength:
+    :return:
+    """
     freq = (c/wavelength).to("Hz")
     return freq
+
+
+## Mangling
+
+def save_mangle(mS, filename, orig_filename, path=False,
+                squash=False, verbose=True, *args, **kwargs):
+    """
+
+    :param mS:
+    :param filename:
+    :param orig_filename:
+    :param path:
+    :param squash:
+    :param verbose:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+
+    if hasattr(mS, "data"):
+        if verbose: print("has data")
+        if not path:
+            if verbose: print("No directory specified, assuming " + mS._default_data_dir_path)
+            path = mS._default_data_dir_path
+        else:
+            StringWarning(path)
+
+        outpath = os.path.join(path, filename)
+
+        pcc.check_dir_path(path)
+
+        save_table = Table()
+
+        save_table['wavelength'] = mS.wavelength
+        save_table['flux'] = mS.flux
+
+        save_table['wavelength'].format = "5.5f"
+        save_table['flux'].format = "5.5e"
+
+        save_table.meta["comments"] = [orig_filename, ]
+
+        if os.path.isfile(outpath):
+            if squash:
+                print("Overwriting " + outpath)
+                save_table.write(outpath, format="ascii.no_header", overwrite=True)
+            else:
+                warnings.warn("Found existing file matching " + os.path.join(path,
+                                                                             filename) + ". Run with squash = True to overwrite")
+        else:
+            print("Writing " + outpath)
+            save_table.write(outpath, format="ascii.no_header")
+
+    else:
+        warnings.warn("Doesn't seem to be any data here (empty self.data)")
+    pass
+
+
+def applymangle(params, SpectrumObject):
+    """
+
+    :param params:
+    :param SpectrumObject:
+    :return:
+    """
+
+    MangledSpectrumObject = copy.deepcopy(SpectrumObject)
+    paramlist = array([params[key].value for key in params.keys()])
+    print("params:", paramlist)
+
+    weights = append(append(1.0, paramlist), 1.0)
+    print("weights:", weights)
+
+    # SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights)
+    SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights, bc_type = "clamped")
+
+    plt.plot(MangledSpectrumObject.wavelength, SplObj(MangledSpectrumObject.wavelength))
+    plt.scatter(data_table["lambda_eff"], weights)
+
+    plt.show()
+
+    MangledSpectrumObject.flux = MangledSpectrumObject.flux * SplObj(MangledSpectrumObject.wavelength)
+
+    return MangledSpectrumObject
+
+
+def calculate_fluxes(data_table, S, verbose=False):
+    """
+
+    :param data_table:
+    :param S:
+    :param verbose:
+    :return:
+    """
+    for i, f in enumerate(data_table["filter_object"]):
+        column = Column(zeros(len(data_table)), name=fit_flux)
+
+        if isinstance(f, FilterClass):
+            mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
+            print(data_table["spec_filterflux"][i], mangledspec_filterflux)
+            # data_table["mangledspec_filterflux"][i] = mangledspec_filterflux
+            column[i] = mangledspec_filterflux
+
+        else:
+            pass
+    return column
+
+
+def manglemin(params, SpectrumObject, data_table, verbose=False, *args, **kwargs):
+    """
+    """
+    MangledSpectrumObject = copy.deepcopy(SpectrumObject)
+    paramlist = array([params[key].value for key in params.keys()])
+
+    weights = append(append(1.0, paramlist), 1.0)
+
+    # SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights)
+    SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights, bc_type = "clamped")
+
+    MangledSpectrumObject.flux = MangledSpectrumObject.flux * SplObj(MangledSpectrumObject.wavelength)
+
+    specflux = array([calc_spectrum_filter_flux(filter_object=FilterObject, spectrum_object=MangledSpectrumObject) for
+         FilterObject in data_table[data_table["mask"]]["filter_object"]])
+    if verbose:
+        print("params:", paramlist)
+        print("weights:", weights)
+        print("flux:", specflux)
+        print("fitflux:", data_table[data_table["mask"]]["fitflux"].data)
+
+    return data_table[data_table["mask"]]["fitflux"] - specflux
+
