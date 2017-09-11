@@ -359,6 +359,16 @@ def lambda_to_nu(wavelength):
 
 ## Mangling
 
+def manglespec3(SpectrumObject):
+    """
+
+    :param SpectrumObject:
+    :return:
+    """
+
+    pass
+
+
 def save_mangle(mS, filename, orig_filename, path=False,
                 squash=False, verbose=True, *args, **kwargs):
     """

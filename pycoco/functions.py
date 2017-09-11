@@ -1186,7 +1186,7 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coc
 
 def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=True,
                     spl=False, spl_clamped=False, spl_wav=False, return_fig=False, m_upper=False, m_lower=False,
-                    c_upper=False, c_lower=False, ylim=False, frameon=True, units=True):
+                    c_upper=False, c_lower=False, ylim=False, frameon=True, units=True, legend=True):
     """
 
     :param S:
@@ -1304,10 +1304,12 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     lines1, labels1 = ax1.get_legend_handles_labels()
     #     lines2, labels2 = ax2.get_legend_handles_labels()
 
-    # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
-    #     ax.legend(lines + lines1 + lines2,labels + labels1 + labels2, loc=0, scatterpoints=1,
-    ax.legend(lines + lines1, labels + labels1, loc=0, scatterpoints=1,
-              numpoints=1, frameon=frameon, fontsize=12)
+    if legend:
+        # plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+        #     ax.legend(lines + lines1 + lines2,labels + labels1 + labels2, loc=0, scatterpoints=1,
+
+        ax.legend(lines + lines1, labels + labels1, loc=0, scatterpoints=1,
+                  numpoints=1, frameon=frameon, fontsize=12)
 
     ax.set_ylabel(spec_yaxis_label_string)
     if return_fig:
