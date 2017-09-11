@@ -1186,7 +1186,9 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coc
 
 def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=True,
                     spl=False, spl_clamped=False, spl_wav=False, return_fig=False, m_upper=False, m_lower=False,
-                    c_upper=False, c_lower=False, ylim=False, frameon=True, units=True, legend=True):
+                    c_upper=False, c_lower=False, ylim=False, frameon=True, units=True, legend=True,
+                    zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
+                    plot_anchors=True, plot_fitflux=True):
     """
 
     :param S:
@@ -1213,6 +1215,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     setup_plot_defaults()
     xaxis_label_string = r'$\textnormal{Wavelength, Angstrom (\AA)}$'
     yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
+
     if units:
         spec_yaxis_label_string = r'$\textnormal{Flux, erg s}^{-1}\textnormal{\AA}^{-1}\textnormal{cm}^{-2}$'
     else:
@@ -1223,7 +1226,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
 
     # fig = plt.figure(figsize=[12, 6])
     fig = plt.figure(figsize=[8, 4])
-    fig.subplots_adjust(left=0.09, bottom=0.13, top=0.95,
+    fig.subplots_adjust(left=0.1, bottom=0.15, top=0.95,
                         right=0.92, hspace=0, wspace=0)
 
     ax = fig.add_subplot(111)
@@ -1232,23 +1235,39 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     #     ax.plot(S.data['wavelength'], S.data['flux'], zorder = 0, label=r"$\textnormal{Spectrum}$")
     ax.plot(S.wavelength, S.flux, zorder=0, label=r"$\textnormal{Spectrum}$")
 
-    ax.scatter(data_table["lambda_eff"], data_table["fitflux"], color=data_table["knot_colours"], label=None,
-               marker="*", s=120)
-    ax.scatter(data_table["lambda_eff"], data_table["spec_filterflux"], edgecolors=data_table["knot_colours"],
-               label=None)
+    if plot_anchors:
+        if plot_fitflux:
+            ax.scatter(data_table["lambda_eff"], data_table["fitflux"], color=data_table["knot_colours"], label=None,
+                       marker="*", s=120)
+
+        ax.scatter(data_table["lambda_eff"], data_table["spec_filterflux"], edgecolors=data_table["knot_colours"],
+                   label=None)
+    else:
+        ax.scatter(data_table["lambda_eff"][data_table["mask"]], data_table["fitflux"][data_table["mask"]], color=data_table["knot_colours"][data_table["mask"]], label=None,
+                   marker="*", s=120)
+        ax.scatter(data_table["lambda_eff"][data_table["mask"]], data_table["spec_filterflux"][data_table["mask"]], edgecolors=data_table["knot_colours"][data_table["mask"]],
+                   label=None)
     if mS:
         ax.plot(mS.wavelength, mS.flux, zorder=0, label=r"$\textnormal{Mangled Spectrum}$")
         ax.scatter(data_table["lambda_eff"], data_table["mangledspec_filterflux"],
                    edgecolors=data_table["knot_colours"],
                    label=None)
+
     if not spl_wav:
         spl_wav = S.wavelength
     if spl:
         # ax.plot(spl_wav, spl(spl_wav), color="Black", label=r"$\textnormal{Spline}$")
         ax1.plot(spl_wav, spl(spl_wav), color="Black", label=r"$\textnormal{Spline}$")
+        if knot:
+            ax1.scatter(data_table["lambda_eff"], spl(data_table["lambda_eff"]), color = "Black", label=None, marker="D", s=20)
+
     if spl_clamped:
         # ax.plot(spl_wav, spl_clamped(spl_wav), color="Black", label=r"$\textnormal(Clamped Spline)$")
         ax.plot(spl_wav, spl_clamped(spl_wav), color="Black", label=r"$\textnormal(Clamped Spline)$")
+
+        if knot:
+            ax1.scatter(data_table["lambda_eff"], spl(data_table["lambda_eff"]), color="Black", label=None, marker="D",
+                    s=100)
 
     if show_linear_extrap:
         ax.plot(S.data['wavelength'].data, m_upper * S.data['wavelength'].data + c_upper, color=hex["batman"],
@@ -1272,25 +1291,32 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
 
             if show_lims:
                 try:
-                    ax1.plot([f._upper_edge, f._upper_edge], [0, 1.1],
+                    ax1.plot([f._upper_edge, f._upper_edge], [0, 2.5],
                              lw=1.5, alpha=0.5, ls=':',
                              color=f._plot_colour, zorder=0, )
-                    ax1.plot([f._lower_edge, f._lower_edge], [0, 1.1],
+                    ax1.plot([f._lower_edge, f._lower_edge], [0, 2.5],
                              lw=1.5, alpha=0.5, ls=':',
                              color=f._plot_colour, zorder=0, )
                 except:
                     print("Failed")
 
     default_xlims = ax1.get_xlim()
-    ax1.plot(default_xlims, [0, 0], color=hex["black"], ls=":")
+    default_axylims = ax.get_ylim()
+
+    if zero:
+        ax1.plot(default_xlims, [0, 0], color=hex["black"], ls=":")
+
     ax1.set_xlim(default_xlims)
     ax1.set_xlim(S.min_wavelength * 0.95, S.max_wavelength * 1.05)
     default_ylims = ax1.get_ylim()
 
+    # ax.set_ylim([0, default_axylims[1]])
+    ax.set_ylim([0, 7.01e-16])
     ax1.set_ylim([0, default_ylims[1]])
-
+    # ax.set_ylim([0.0, 7.01e-16])
+    print(default_axylims[1])
     if ylim:
-        ax.set_ylim(ylim)
+        ax1.set_ylim(ylim)
 
     ax1.set_xlabel(xaxis_label_string)
     ax.set_xlabel(xaxis_label_string)
@@ -1312,14 +1338,22 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
                   numpoints=1, frameon=frameon, fontsize=12)
 
     ax.set_ylabel(spec_yaxis_label_string)
+    plt.draw()
+    if savepdf and outpath:
+        fig.savefig(outpath + ".pdf", format='pdf', dpi=500)
+    if savepng and outpath:
+        fig.savefig(outpath + ".png", format='png', dpi=500)
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
     if return_fig:
         return fig
-    else:
-        plt.show()
     pass
 
 
-def calc_linear_terms(data_table, verbose=False):
+def calc_linear_terms(data_table, key = "fitflux", verbose=False):
     """
 
     :param data_table:
@@ -1332,11 +1366,11 @@ def calc_linear_terms(data_table, verbose=False):
     dx = data_table["lambda_eff"][0] - data_table["lambda_eff"][1]
     if verbose: print(dx)
     ## y1 - y2
-    dy = data_table["fitflux"][0] - data_table["fitflux"][1]
+    dy = data_table[key][0] - data_table[key][1]
     if verbose: print(dy)
     ##
     m_lower = dy / dx
-    c_lower = data_table["fitflux"][0] - m_lower * data_table["lambda_eff"][0]
+    c_lower = data_table[key][0] - m_lower * data_table["lambda_eff"][0]
     if verbose: print(m_lower, c_lower)
 
     ## Upper
@@ -1345,11 +1379,11 @@ def calc_linear_terms(data_table, verbose=False):
     dx = data_table["lambda_eff"][-2] - data_table["lambda_eff"][-1]
     if verbose: print(dx)
     ## y1 - y2
-    dy = data_table["fitflux"][-2] - data_table["fitflux"][-1]
+    dy = data_table[key][-2] - data_table[key][-1]
     if verbose: print(dy)
     ##
     m_upper = dy / dx
-    c_upper = data_table["fitflux"][-2] - m_upper * data_table["lambda_eff"][-2]
+    c_upper = data_table[key][-2] - m_upper * data_table["lambda_eff"][-2]
     if verbose: print(m_upper, c_upper)
 
-    return c_lower, m_lower, c_upper, m_upper
+    return [m_lower, c_lower], [m_upper, c_upper]

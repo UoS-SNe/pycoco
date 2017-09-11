@@ -472,16 +472,27 @@ def calculate_fluxes(data_table, S, verbose=False):
     return column
 
 
-def manglemin(params, SpectrumObject, data_table, verbose=False, *args, **kwargs):
+def manglemin(params, SpectrumObject, data_table, verbose=False, clamped=False, *args, **kwargs):
     """
     """
     MangledSpectrumObject = copy.deepcopy(SpectrumObject)
     paramlist = array([params[key].value for key in params.keys()])
 
-    weights = append(append(1.0, paramlist), 1.0)
+    # weights = append(append(1.0, paramlist), 1.0)
+    mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights")
+    data_table["weights"][0] = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
+    data_table["weights"][-1] = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
+    weights = data_table["weights"].data
+    #     print(weights)
+    data_table["weights"][data_table["mask"]] = paramlist
 
-    # SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights)
-    SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights, bc_type = "clamped")
+    data_table["mangledspec_filterflux"][0] = data_table["spec_filterflux"][0] * data_table["weights"][0]
+    data_table["mangledspec_filterflux"][-1] = data_table["spec_filterflux"][-1] * data_table["weights"][-1]
+
+    if clamped:
+        SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights, bc_type = "clamped")
+    else:
+        SplObj = interpolate.CubicSpline(data_table["lambda_eff"], weights)
 
     MangledSpectrumObject.flux = MangledSpectrumObject.flux * SplObj(MangledSpectrumObject.wavelength)
 
