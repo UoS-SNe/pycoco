@@ -1188,7 +1188,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
                     spl=False, spl_clamped=False, spl_wav=False, return_fig=False, m_upper=False, m_lower=False,
                     c_upper=False, c_lower=False, ylim=False, frameon=True, units=True, legend=True,
                     zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
-                    plot_anchors=True, plot_fitflux=True):
+                    plot_anchors=True, plot_anchor_fitflux=True):
     """
 
     :param S:
@@ -1236,9 +1236,12 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     ax.plot(S.wavelength, S.flux, zorder=0, label=r"$\textnormal{Spectrum}$")
 
     if plot_anchors:
-        if plot_fitflux:
+        if plot_anchor_fitflux:
             ax.scatter(data_table["lambda_eff"], data_table["fitflux"], color=data_table["knot_colours"], label=None,
                        marker="*", s=120)
+        else:
+            ax.scatter(data_table["lambda_eff"][data_table["mask"]], data_table["fitflux"][data_table["mask"]], color=data_table["knot_colours"][data_table["mask"]], label=None,
+                   marker="*", s=120)
 
         ax.scatter(data_table["lambda_eff"], data_table["spec_filterflux"], edgecolors=data_table["knot_colours"],
                    label=None)
