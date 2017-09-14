@@ -1314,7 +1314,9 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     default_ylims = ax1.get_ylim()
 
     # ax.set_ylim([0, default_axylims[1]])
-    ax.set_ylim([0, 7.01e-16])
+    # ax.set_ylim([0, 7.01e-16])
+    ax_uplim = np.nanmax(np.append(S.flux.data, np.nanmax([data_table["fitflux"],data_table["spec_filterflux"],data_table["mangledspec_filterflux"]])))
+    ax.set_ylim([-0.05*ax_uplim, 1.05*ax_uplim])
     ax1.set_ylim([0, default_ylims[1]])
     # ax.set_ylim([0.0, 7.01e-16])
     print(default_axylims[1])
