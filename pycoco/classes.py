@@ -205,7 +205,7 @@ class BaseSpectrumClass():
             pass
 
 
-    def load(self, filename, directory=False, fmt="ascii",
+    def load(self, filename, directory=False, abspath=False, fmt="ascii",
              wmin=1500 * u.angstrom, wmax=11000 * u.angstrom,
              names=("wavelength", "flux"), wavelength_u=u.angstrom,
              flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
@@ -220,21 +220,25 @@ class BaseSpectrumClass():
 
         StringWarning(filename)
 
-        if not directory:
-            ## Differentiate between the two child classes
-            if hasattr(self, 'data_directory'):
-                path = os.path.join(self.data_directory, filename)
-                if verbose: print("You didn't supply a directory, so using self.data_directory")
+        if abspath:
+            path = filename
 
-            if hasattr(self, 'recon_directory'):
-                path = os.path.join(self.recon_directory, filename)
-                if verbose: print("You didn't supply a directory, so using self.recon_directory")
         else:
-            StringWarning(directory)
-            check_dir_path(directory)
+            if not directory:
+                ## Differentiate between the two child classes
+                if hasattr(self, 'data_directory'):
+                    path = os.path.join(self.data_directory, filename)
+                    if verbose: print("You didn't supply a directory, so using self.data_directory")
 
-            path = os.path.join(directory, filename)
-            if verbose: print(path)
+                if hasattr(self, 'recon_directory'):
+                    path = os.path.join(self.recon_directory, filename)
+                    if verbose: print("You didn't supply a directory, so using self.recon_directory")
+            else:
+                StringWarning(directory)
+                check_dir_path(directory)
+
+                path = os.path.join(directory, filename)
+                if verbose: print(path)
 
         if os.path.isfile(path):
 

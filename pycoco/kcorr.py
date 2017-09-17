@@ -15,11 +15,12 @@ from __future__ import print_function
 import os
 import sys
 import copy
+from collections import OrderedDict
 
-from numpy import log10, linspace, ones, array_equal, zeros, append, array
+from numpy import log10, linspace, ones, array_equal, zeros, append, array, nan, logical_or, logical_and, nanmin, nanmax, where
 from scipy.integrate import simps
 from astropy import units as u
-from astropy.table import Table
+from astropy.table import Table, Column
 from astropy.constants import c as c
 from lmfit import minimize, Parameters, fit_report
 from scipy import interpolate
@@ -29,8 +30,8 @@ from matplotlib.ticker import MultipleLocator
 from .classes import *
 from .functions import *
 from .defaults import *
-from .utils import check_file_path, setup_plot_defaults, check_dir_path
-
+from .utils import check_file_path, setup_plot_defaults, check_dir_path, b
+from .colours import *
 __all__ = ["offset",
             # "convert_AB_to_Vega",
             # "convert_Vega_to_AB",
@@ -44,7 +45,8 @@ __all__ = ["offset",
             "calculate_fluxes",
             "manglemin",
             "plot_mangledata",
-            "manglemin",
+            "manglespec3",
+            "mangle"
            ]
 
 ## offset is calculated as m_AB - m_vega
@@ -359,14 +361,174 @@ def lambda_to_nu(wavelength):
 
 ## Mangling
 
-def manglespec3(SpectrumObject):
+def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=True):
+    """
+
+    :param sn:
+    :param S:
+    :return:
+    """
+
+    if hasattr(sn, "lcfit"):
+
+        rows = OrderedDict()
+        filter_dict = OrderedDict()
+
+        for i, f in enumerate(filters):
+            filter_dict[f] = load_filter(os.path.join(_default_filter_dir_path, f + ".dat"))
+            filter_dict[f].calculate_edges()
+            #     filter_dict[f].calculate_edges_zero()
+
+            fit_flux = sn.lcfit.spline[f](spec_mjd)
+
+            sn.phot.data_filters[f].resample_response(new_wavelength=S.wavelength)
+            S_filter_flux = calc_spectrum_filter_flux(filter_object=sn.phot.data_filters[f], spectrum_object=S)
+            S_filter_flux_no_area = calc_spectrum_filter_flux(filter_object=sn.phot.data_filters[f],
+                                                                  spectrum_object=S,
+                                                                  correct_for_area=False)
+            mS_filter_flux = nan
+
+            rows[f] = (fit_flux, S_filter_flux, S_filter_flux_no_area)
+            if i == 0:
+                data_table = Table(
+                    names=("filter", "fitflux", "spec_filterflux", "mangledspec_filterflux", "filter_object", "mask"),
+                    dtype=('S12', 'f4', 'f4', 'f4', object, bool))
+            data_table.add_row((f, fit_flux, S_filter_flux, mS_filter_flux, filter_dict[f], True))
+
+        for i, f in enumerate(data_table["filter_object"]):
+            ## Test extent
+            bool_uncontained = logical_or(f._lower_edge < S.min_wavelength, f._upper_edge > S.max_wavelength)
+            if verbose: print(bool_uncontained)
+            if bool_uncontained:
+                data_table = data_table[where(data_table["filter"] != b(f.filter_name))]
+
+        knot_colours = [j._plot_colour for j in data_table["filter_object"] if hasattr(j, "_plot_colour")]
+        data_table.add_column(Column(knot_colours, name="knot_colours"))
+        data_table["lambda_eff"] = [i.lambda_effective.value for i in data_table["filter_object"]]
+
+        if not staticfilter:
+            w = 0
+        else:
+            w = where(data_table["filter"] == staticfilter)
+
+
+        scale_factor = 1. / data_table[w]["fitflux"]
+        print("Scale Factor", scale_factor)
+        norm_factor = data_table[w]["fitflux"] / data_table[w]["spec_filterflux"]
+        print("norm factor", norm_factor)
+        data_table["fitflux"] = data_table["fitflux"] * scale_factor
+        # "spec flux"
+        data_table["spec_filterflux"] = data_table["spec_filterflux"] * scale_factor
+        print("scaled ", )
+        nS = copy.deepcopy(S)
+        S.flux = S.flux * scale_factor
+        S.flux = S.flux * norm_factor
+        S.scale_factor = scale_factor
+        S.norm_factor = norm_factor
+
+        data_table["spec_filterflux"] = data_table["spec_filterflux"] * norm_factor
+        # ## Lower
+        anchor_min_wavelength = nanmin([i._lower_edge for i in data_table["filter_object"]]) - 100
+        # ## Upper
+        anchor_max_wavelength = nanmax([i._upper_edge for i in data_table["filter_object"]]) + 100
+
+        mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="fitflux", verbose=True)
+        anchor_l = mc_l[0] * anchor_min_wavelength + mc_l[1]
+        anchor_u = mc_u[0] * anchor_max_wavelength + mc_u[1]
+
+
+        spl_wav = S.data['wavelength'][
+            logical_and(S.data['wavelength'] >= anchor_min_wavelength, S.data['wavelength'] <= anchor_max_wavelength)]
+
+        mc_spec_l, mc_spec_u = calc_linear_terms(data_table[data_table["mask"]], key="spec_filterflux", verbose=False)
+        anchor_spec_l = mc_spec_l[0] * anchor_min_wavelength + mc_spec_l[1]
+        anchor_spec_u = mc_spec_u[0] * anchor_max_wavelength + mc_spec_u[1]
+
+        data_table.add_row(("lower_anchor", anchor_spec_l, anchor_spec_l, anchor_spec_u, nan, False,
+                            hex["batman"], anchor_min_wavelength))
+        data_table.add_row(("upper_anchor", anchor_spec_u, anchor_spec_u, anchor_spec_u, nan, False,
+                            hex["batman"], anchor_max_wavelength))
+
+
+        orig_data_table = data_table
+
+        data_table.add_index("lambda_eff")
+        data_table.sort()
+
+        for i, f in enumerate(data_table["filter_object"]):
+            if isinstance(f, FilterClass):
+                mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
+                #         print(data_table["spec_filterflux"][i], mangledspec_filterflux)
+                data_table["mangledspec_filterflux"][i] = mangledspec_filterflux
+            else:
+                pass
+
+
+        wanted_flux = data_table[data_table["mask"]]["fitflux"].data
+        wanted_filters = data_table[data_table["mask"]]["filter_object"].data
+
+
+        fit_dict = manglespec3(S, spec_mjd, wanted_filters, wanted_flux, data_table)
+
+    return fit_dict
+
+
+def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_table):
     """
 
     :param SpectrumObject:
     :return:
     """
+    original_spectrum_flux = data_table[data_table["mask"]]["spec_filterflux"].data
+    scaled_spectrum_flux = data_table[data_table["mask"]]["mangledspec_filterflux"].data
 
-    pass
+    if len(scaled_spectrum_flux) == len(wanted_flux):
+        params = Parameters()
+        for i, flux_tuple in enumerate(zip(scaled_spectrum_flux, wanted_flux)):
+            params.add(wanted_filters[i].filter_name, value=flux_tuple[1] / flux_tuple[0])
+        else:
+            pass
+
+    paramlist = array([params[key].value for key in params.keys()])
+    data_table["weights"] = Column(append(1, append(paramlist, 1)), name="weights")
+
+    mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=True)
+    weight_l = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
+    weight_u = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
+
+    weights = append(append(weight_l, paramlist), weight_u)
+    data_table["weights"] = weights
+
+    ## Do the fit
+    out = minimize(manglemin, params, args=(SpectrumObject, data_table), kws=({"verbose": False}))
+    # out = minimize(manglemin, params, args=(SpectrumObject, data_table), epsfcn=1e-5)
+    print(fit_report(out))
+
+    paramlist = array([out.params[key].value for key in out.params.keys()])
+
+    mc_l, mc_u = calc_linear_terms(data_table, key="weights")
+    data_table["weights"][0] = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
+    data_table["weights"][-1] = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
+    weights = data_table["weights"].data
+    final_spl = interpolate.CubicSpline(data_table["lambda_eff"], data_table["weights"], bc_type="clamped")
+
+    SpectrumObject.flux = final_spl(SpectrumObject.wavelength) * SpectrumObject.flux / SpectrumObject.scale_factor
+
+    data_table["fitflux"] = data_table["fitflux"] / SpectrumObject.scale_factor
+    data_table["spec_filterflux"] = data_table["spec_filterflux"] / SpectrumObject.scale_factor
+
+    # data_table[0]["mangledspec_filterflux"] = data_table[0]["mangledspec_filterflux"] / SpectrumObject.scale_factor
+    # data_table[-1]["mangledspec_filterflux"] = data_table[-1]["mangledspec_filterflux"] / SpectrumObject.scale_factor
+
+    data_table["mangledspec_filterflux"] = data_table["mangledspec_filterflux"] / SpectrumObject.scale_factor
+
+    fit_dict = OrderedDict()
+
+    fit_dict["SpectrumObject"] = SpectrumObject
+    fit_dict["final_spl"] = final_spl
+    fit_dict["data_table"] = data_table
+
+    return fit_dict
 
 
 def save_mangle(mS, filename, orig_filename, path=False,
@@ -394,7 +556,7 @@ def save_mangle(mS, filename, orig_filename, path=False,
 
         outpath = os.path.join(path, filename)
 
-        pcc.check_dir_path(path)
+        check_dir_path(path)
 
         save_table = Table()
 

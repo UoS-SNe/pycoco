@@ -34,7 +34,8 @@ __all__ = ["setup_plot_defaults",
            "_get_current_filter_registry",
            "get_mjdmax",
            "get_mjdmax_flux",
-           "get_max_info"
+           "get_max_info",
+           "b"
            ]
 
 
