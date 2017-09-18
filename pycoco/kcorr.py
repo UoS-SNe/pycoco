@@ -199,7 +199,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         check_file_path(spectrum_path)
 
         spectrum_object = SpectrumClass()
-        spectrum_object.load(filename=spectrum_filename, path=spectrum_dir)
+        spectrum_object.load(filename=spectrum_filename)
 
     if not array_equal(filter_object.wavelength, spectrum_object.wavelength):
         filter_object.resample_response(new_wavelength = spectrum_object.wavelength)
@@ -329,7 +329,7 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
                      fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, )
 
     if filter_object:
-        if hasattr(filter_object):
+        if hasattr(filter_object, "zp_AB"):
             zp = filter_object.zp_AB
         else:
             filter_object.get_zeropoint()

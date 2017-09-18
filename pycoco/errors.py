@@ -18,7 +18,7 @@ class CustomValueError(ValueError):
     Raise when....
     """
     def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args)
 
 
 class PathError(Exception):
@@ -26,7 +26,7 @@ class PathError(Exception):
     Raise when a path is found to be invalid
     """
     def __init__(self, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
+        Exception.__init__(self, *args)
 
 
 class FilterMismatchError(ValueError):
@@ -34,7 +34,7 @@ class FilterMismatchError(ValueError):
     Raise when a Filter from filename doesn't match the one in the photfile
     """
     def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args)
 
 
 class TableReadError(ValueError):
@@ -42,7 +42,7 @@ class TableReadError(ValueError):
     Raise when something goes wrong with the table I/O
     """
     def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args, **kwargs)
+        ValueError.__init__(self, *args)
 
 
 def StringWarning(path):
