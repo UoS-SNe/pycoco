@@ -1,46 +1,35 @@
 """
+Workhorse classes for interacting/running the CoCo templates.
 
+author: Rob Firth; github.com/RobFirth ; University of Southampton SN Group
+        2017
 """
 
-from __future__ import print_function ## Force python3-like printing
+from __future__ import print_function  ## Force python3-like printing
 
 import os
-import warnings
 import re
-
-# import unittest
-# import httplib ## use http.client on python3 - not using at the mo
-# from urlparse import urlparse
-# import re
+import warnings
 from collections import OrderedDict
 
-import astropy as ap
 import astropy.units as u
+import numpy as np
 from astropy.constants import c
 from astropy.coordinates import SkyCoord, Distance
-from astropy.time import Time
 from astropy.table import Table, vstack, Row
-
-
-import numpy as np
+from astropy.time import Time
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from scipy.integrate import simps
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
-from scipy.integrate import simps
 
-from .extinction import *
 from .colours import *
-from .utils import *
-from .errors import *
 from .defaults import *
-from .kcorr import *
+from .errors import *
+from .extinction import *
 from .models import *
-# from .functions import *
-# from .coco_calls import *
-
-# warnings.resetwarnings()
-# warnings.simplefilter("error") ## Turn warnings into errors - good for debugging
+from .utils import *
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",

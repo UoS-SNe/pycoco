@@ -4,9 +4,8 @@
 
 import os
 
-import matplotlib.pyplot as plt
-
 import astropy.units as u
+import matplotlib.pyplot as plt
 
 __all__ = ["_default_data_dir_path",
            "_default_filter_dir_path",

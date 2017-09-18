@@ -7,15 +7,14 @@ date: 28-02-2016
 
 from __future__ import print_function
 
-import sys
 import os
+import sys
 import warnings
-import pycoco as pcc
-from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
-import matplotlib.pyplot as plt
 
-from astropy.table import Table, Column
+import matplotlib.pyplot as plt
 from astropy import units as u
+from astropy.table import Table, Column
+from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
 
 from .defaults import *
 from .errors import *

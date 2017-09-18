@@ -3,27 +3,26 @@
 """
 
 import os
-import warnings
 import re
-import numpy as np
 import subprocess
+import warnings
 
-from matplotlib import pyplot as plt
-from matplotlib.ticker import MultipleLocator
-
-# from scipy.optimize import leastsq
-from lmfit import minimize, Parameters, fit_report
-from scipy.interpolate import InterpolatedUnivariateSpline
-
+import numpy as np
+from astropy import units as u
 from astropy.table import Table, Column, vstack
 from astropy.time import Time
-from astropy import units as u
+# from scipy.optimize import leastsq
+from lmfit import minimize, Parameters, fit_report
+from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
+from scipy.interpolate import InterpolatedUnivariateSpline
 
+from .classes import *
+from .colours import *
 from .defaults import *
 from .errors import *
-from .classes import *
 from .utils import *
-from .colours import *
+
 ##
 #
 ##

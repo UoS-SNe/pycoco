@@ -1,19 +1,16 @@
-from __future__ import print_function ## Force python3-like printing
-
-import numpy as np
-
-from matplotlib import pyplot as plt
+from __future__ import print_function  ## Force python3-like printing
 
 import os
-from astropy.io import ascii
-from astropy.time import Time
-from astropy.table import Table, Column, vstack, MaskedColumn
-from astropy.constants import c
 from collections import OrderedDict
+
+import numpy as np
+from astropy.constants import c
+from astropy.io import ascii
+from astropy.table import Table, Column, vstack, MaskedColumn
+from astropy.time import Time
 
 from .classes import *
 from .functions import *
-
 
 __all__ = ["LitLightCurveClass",
            "JD_to_MJD",

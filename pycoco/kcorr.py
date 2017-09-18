@@ -12,26 +12,26 @@ Cohen et al. (2003).
 
 from __future__ import print_function
 
-import os
-import sys
 import copy
+import os
 from collections import OrderedDict
 
-from numpy import log10, linspace, ones, array_equal, zeros, append, array, nan, logical_or, logical_and, nanmin, nanmax, where
-from scipy.integrate import simps
 from astropy import units as u
-from astropy.table import Table, Column
 from astropy.constants import c as c
+from astropy.table import Table, Column
 from lmfit import minimize, Parameters, fit_report
-from scipy import interpolate
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MultipleLocator
+from numpy import log10, linspace, ones, array_equal, zeros, append, array, nan, logical_or, logical_and, nanmin, \
+    nanmax, where
+from scipy import interpolate
+from scipy.integrate import simps
 
 from .classes import *
-from .functions import *
-from .defaults import *
-from .utils import check_file_path, setup_plot_defaults, check_dir_path, b
 from .colours import *
+from .defaults import *
+from .functions import *
+from .utils import check_file_path, check_dir_path, b
+
 __all__ = ["offset",
             # "convert_AB_to_Vega",
             # "convert_Vega_to_AB",

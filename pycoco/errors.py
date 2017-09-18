@@ -2,8 +2,9 @@
 Error definitions
 """
 
-import numpy as np
 import warnings
+
+import numpy as np
 
 __all__ = ["CustomValueError", "PathError", "FilterMismatchError", "TableReadError", "StringWarning"]
 
