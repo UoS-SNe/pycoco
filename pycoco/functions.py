@@ -245,6 +245,7 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param verbose:
 
     """
     # regex = re.compile("^SN.*.dat")
@@ -309,6 +310,7 @@ def find_formatted_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param verbose:
 
     """
     # regex = re.compile("^SN.*.dat")
@@ -969,7 +971,9 @@ def run_LCfit(path, coco_dir = _default_coco_dir_path, verbose = True,):
 def run_LCfit_fileinput(listfile_path, coco_dir = _default_coco_dir_path, data_dir = _default_data_dir_path, verbose = True):
     """
 
-    :param listfile:
+    :param listfile_path:
+    :param coco_dir:
+    :param data_dir:
     :param verbose:
     :return:
     """
@@ -1190,6 +1194,15 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
                     plot_anchors=True, plot_anchor_fitflux=True):
     """
 
+    :param legend:
+    :param zero:
+    :param knot:
+    :param savepng:
+    :param savepdf:
+    :param outpath:
+    :param show:
+    :param plot_anchors:
+    :param plot_anchor_fitflux:
     :param S:
     :param data_table:
     :param mS:
@@ -1360,6 +1373,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
 def calc_linear_terms(data_table, key = "fitflux", verbose=False):
     """
 
+    :param key:
     :param data_table:
     :param verbose:
     :return:

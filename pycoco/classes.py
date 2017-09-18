@@ -3152,6 +3152,7 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param verbose:
 
     """
     # regex = re.compile("^SN.*.dat")

@@ -177,6 +177,10 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
     """
     returns flux in units of
 
+    :param filter_object:
+    :param spectrum_dir:
+    :param spectrum_filename:
+    :param correct_for_area:
     :param filter_name:
     :param spectrum_object:
     :param filter_path:
@@ -364,6 +368,10 @@ def lambda_to_nu(wavelength):
 def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=True):
     """
 
+    :param spec_mjd:
+    :param filters:
+    :param staticfilter:
+    :param verbose:
     :param sn:
     :param S:
     :return:
@@ -476,6 +484,10 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=True):
 def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_table):
     """
 
+    :param spec_mjd:
+    :param wanted_filters:
+    :param wanted_flux:
+    :param data_table:
     :param SpectrumObject:
     :return:
     """

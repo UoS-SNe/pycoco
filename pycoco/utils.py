@@ -217,6 +217,7 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
 def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'), remove_zero=False):
     """
 
+    :param remove_zero:
     :param out:
     :param mjdmax:
     :param filter_name:
