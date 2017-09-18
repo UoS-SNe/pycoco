@@ -185,7 +185,6 @@ def check_dir_path(path, verbose = False):
             return False
     except:
         raise PathError("The path '" + str(path) + "'is not a directory or doesn't exist.")
-        return False
 
 
 def check_file_path(path, verbose = False):
@@ -206,7 +205,6 @@ def check_file_path(path, verbose = False):
             return False
     except:
         raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
-        return False
 
 
 def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,

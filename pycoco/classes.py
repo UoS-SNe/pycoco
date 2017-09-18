@@ -1323,12 +1323,6 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def load_phot_ap_tables(self):
-        """
-
-        """
-
-        pass
 
 
     def load_phot_from_files(self, path = False, snname = False, prefix = 'SN',
@@ -2210,7 +2204,8 @@ class SNClass():
         return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
 
 
-    def _get_recon_directory(self):
+    @staticmethod
+    def _get_recon_directory():
         """
         Get the default path to the recon directory.
 
