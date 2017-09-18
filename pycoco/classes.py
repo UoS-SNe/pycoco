@@ -63,14 +63,14 @@ class CustomValueError(ValueError):
 
 
 class DummyClass():
-    '''
+    """
     Quick dummy class.
 
     Contains a test class variable and test class method that prints the
     variable.
 
     RF
-    '''
+    """
 
 
     def __init__(self):
@@ -82,14 +82,14 @@ class DummyClass():
 
 
 def dummy_function(verbose = True, *args, **kwargs):
-    '''
+    """
     Quick dummy function.
 
     Prints supplied **args and **kwargs
     Issues warnings if nothing passed
 
     RF
-    '''
+    """
     if verbose: print(__name__)
     warnings.simplefilter('always')
     print(args)

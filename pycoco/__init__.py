@@ -1,11 +1,11 @@
 #!/usr/bin env python
 
-'''
+"""
 This is the module for the CoCo python tools.
 
 author: Rob Firth, Southampton
 date: 06-12-2016
-'''
+"""
 
 from __future__ import print_function  ## Force python3-like printing
 
