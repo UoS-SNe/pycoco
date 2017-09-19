@@ -901,7 +901,7 @@ class BaseFilterClass():
 
         area_corr_integrated_flux = integrated_flux / self._effective_area
 
-        self.zp_AB = -2.5 * log10(area_corr_integrated_flux)
+        self.zp_AB = -2.5 * np.log10(area_corr_integrated_flux)
         pass
 
 

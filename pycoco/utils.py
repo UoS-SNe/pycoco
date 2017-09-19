@@ -257,7 +257,7 @@ def strictly_increasing(L):
     return all(x<y for x, y in zip(L, L[1:]))
 
 
-def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
+def check_list(path, mjd = True, phase = False, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
                specfiletype=".txt", verbose = True):
     """
 
@@ -266,20 +266,22 @@ def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
 
     listtable = read_list_file(path, names=names, verbose=verbose)
     phases = []
+    if mjd:
+        return strictly_increasing(listtable["mjd_obs"])
 
+    if phase:
+        for item in listtable["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+            phases.append(phase)
+            if verbose: print(phase)
 
-    for item in listtable["spec_path"]:
-        filename = item.split("/")[-1]
-        filename = filename.split("_")[1:][0]
-        filename = filename.strip(specfiletype)
-        try:
-            phase = float(filename)
-        except:
-            pass
-        phases.append(phase)
-        if verbose: print(phase)
-
-    return strictly_increasing(phases)
+        return strictly_increasing(phases)
 
 
 def check_all_lists(lists_dir, verbose=False):

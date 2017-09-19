@@ -233,6 +233,7 @@ class TestClass(unittest.TestCase):
     def test_coco_lists_phase_is_monotonic(self):
         checklist = pcc.utils.check_all_lists(pcc._default_list_dir_path)
         self.assertTrue(all(checklist))
+
 if __name__ is '__main__':
 
     # test = False
