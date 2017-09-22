@@ -245,6 +245,10 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param path:
+    :param snname:
+    :param prefix:
+    :param file_type:
     :param verbose:
 
     """
@@ -310,6 +314,10 @@ def find_formatted_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param path:
+    :param snname:
+    :param prefix:
+    :param file_type:
     :param verbose:
 
     """
@@ -1187,11 +1195,10 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coc
     pass
 
 
-def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=True,
-                    spl=False, spl_clamped=False, spl_wav=False, return_fig=False, m_upper=False, m_lower=False,
-                    c_upper=False, c_lower=False, ylim=False, frameon=True, units=True, legend=True,
-                    zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
-                    plot_anchors=True, plot_anchor_fitflux=True):
+def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=False,
+                    spl=False, spl_clamped=False, spl_wav=False, return_fig=False, ylim=False, frameon=True, units=True,
+                    legend=True, zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
+                    plot_anchors=True, plot_anchor_fitflux=True, normalise=False, verbose=False):
     """
 
     :param legend:
@@ -1245,7 +1252,13 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     ax1 = ax.twinx()
 
     #     ax.plot(S.data['wavelength'], S.data['flux'], zorder = 0, label=r"$\textnormal{Spectrum}$")
-    ax.plot(S.wavelength, S.flux, zorder=0, label=r"$\textnormal{Spectrum}$")
+
+    if normalise:
+        norm_factor = mS.norm_factor
+    else:
+        norm_factor = 1
+
+    ax.plot(S.wavelength, S.flux*norm_factor, zorder=0, label=r"$\textnormal{Spectrum}$")
 
     if plot_anchors:
         if plot_anchor_fitflux:
@@ -1285,12 +1298,13 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
                     s=100)
 
     if show_linear_extrap:
-        ax.plot(S.data['wavelength'].data, m_upper * S.data['wavelength'].data + c_upper, color=hex["batman"],
-                ls=":",
-                label=None)
-        ax.plot(S.data['wavelength'].data, m_lower * S.data['wavelength'].data + c_lower, color=hex["batman"],
-                ls=":",
-                label=None)
+        if "weights" in data_table.colnames:
+            mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
+
+            ax1.plot(S.data['wavelength'].data, mc_u[0] * S.data['wavelength'].data + mc_u[1], color=hex["batman"],
+                    ls=":", label=None)
+            ax1.plot(S.data['wavelength'].data, mc_l[0] * S.data['wavelength'].data + mc_l[1], color=hex["batman"],
+                    ls=":", label=None)
 
     for i, f in enumerate(data_table["filter_object"]):
         if isinstance(f, FilterClass):
@@ -1306,10 +1320,10 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
 
             if show_lims:
                 try:
-                    ax1.plot([f._upper_edge, f._upper_edge], [0, 2.5],
+                    ax1.plot([f._upper_edge, f._upper_edge], [0, 99.],
                              lw=1.5, alpha=0.5, ls=':',
                              color=f._plot_colour, zorder=0, )
-                    ax1.plot([f._lower_edge, f._lower_edge], [0, 2.5],
+                    ax1.plot([f._lower_edge, f._lower_edge], [0, 99.],
                              lw=1.5, alpha=0.5, ls=':',
                              color=f._plot_colour, zorder=0, )
                 except:
@@ -1327,13 +1341,23 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
 
     # ax.set_ylim([0, default_axylims[1]])
     # ax.set_ylim([0, 7.01e-16])
-    ax_uplim = np.nanmax(np.append(S.flux.data, np.nanmax([data_table["fitflux"],data_table["spec_filterflux"],data_table["mangledspec_filterflux"]])))
-    ax.set_ylim([-0.05*ax_uplim, 1.05*ax_uplim])
-    ax1.set_ylim([0, default_ylims[1]])
-    # ax.set_ylim([0.0, 7.01e-16])
-    print(default_axylims[1])
+    if mS:
+        ax_uplim = np.nanmax(np.append(mS.flux.data,np.append(S.flux.data*norm_factor, np.nanmax([data_table["fitflux"],data_table["spec_filterflux"]*norm_factor,data_table["mangledspec_filterflux"]]))))
+    else:
+        ax_uplim = np.nanmax(np.append(S.flux.data*norm_factor, np.nanmax([data_table["fitflux"],data_table["spec_filterflux"]*norm_factor,data_table["mangledspec_filterflux"]])))
+
+    if spl:
+        # ax1_uplim = np.nanmax(data_table["weights"]) * 1.25
+        ax1_yuplim = np.nanmax(spl(spl_wav))*1.5
+        ax1.set_ylim(0, ax1_yuplim)
+    else:
+        ax1.set_ylim([0, default_ylims[1]])
     if ylim:
         ax1.set_ylim(ylim)
+
+    ax.set_ylim([-0.05*ax_uplim, 1.05*ax_uplim])
+    # ax.set_ylim([0.0, 7.01e-16])
+    if verbose: print(default_axylims[1])
 
     ax1.set_xlabel(xaxis_label_string)
     ax.set_xlabel(xaxis_label_string)
@@ -1378,9 +1402,7 @@ def calc_linear_terms(data_table, key = "fitflux", verbose=False):
     :param verbose:
     :return:
     """
-    ## Lower
-    anchor_min_wavelength = np.nanmin([np.float64(i._lower_edge) for i in data_table["filter_object"][data_table["mask"]]]) - 100
-    ## x1-x2
+   ## x1-x2
     dx = data_table["lambda_eff"][0] - data_table["lambda_eff"][1]
     if verbose: print(dx)
     ## y1 - y2
@@ -1391,9 +1413,7 @@ def calc_linear_terms(data_table, key = "fitflux", verbose=False):
     c_lower = data_table[key][0] - m_lower * data_table["lambda_eff"][0]
     if verbose: print(m_lower, c_lower)
 
-    ## Upper
-    anchor_max_wavelength = np.nanmax([np.float64(i._upper_edge) for i in data_table["filter_object"][data_table["mask"]]]) + 100
-    ## x1-x2
+   ## x1-x2
     dx = data_table["lambda_eff"][-2] - data_table["lambda_eff"][-1]
     if verbose: print(dx)
     ## y1 - y2

@@ -34,7 +34,8 @@ __all__ = ["setup_plot_defaults",
            "get_mjdmax",
            "get_mjdmax_flux",
            "get_max_info",
-           "b"
+           "b",
+           "read_phasefile"
            ]
 
 
@@ -397,6 +398,7 @@ def get_mjdmax_flux(sn, filter_key):
                            0.001)
     return nanmax(f(mjd_spline))
 
+
 def get_max_info(sn, filter_key):
     """
 
@@ -430,3 +432,7 @@ def gaussian(x, g0, x0, sigma0):
 
     gauss = g0*(exp((-(x-x0)*(x-x0))/(2.0*sigma0*sigma0)))
     return gauss
+
+
+def read_phasefile(filepath):
+    return Table.read(filepath, format="ascii", names=("snname", "z_obs", "mu"))

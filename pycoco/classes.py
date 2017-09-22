@@ -505,6 +505,11 @@ class BaseSpectrumClass():
         pass
 
 
+    def set_infile(self, filename):
+        self.infile=filename
+        pass
+
+
 class BaseLightCurveClass():
     """
     Base class for handling Lightcurves.
@@ -805,6 +810,11 @@ class BaseLightCurveClass():
 
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def set_infile(self, filename):
+        self.infile=filename
         pass
 
 
@@ -2287,18 +2297,18 @@ class SNClass():
 
         phases = []
 
-        for item in listdata["spec_path"]:
-            filename = item.split("/")[-1]
-            filename = filename.split("_")[1:][0]
-            filename = filename.strip(specfiletype)
-            try:
-                phase = float(filename)
-            except:
-                pass
-
-            phases.append(phase)
-            if verbose: print(phase)
-        listdata["phase"] = phases
+        # for item in listdata["spec_path"]:
+        #     filename = item.split("/")[-1]
+        #     filename = filename.split("_")[1:][0]
+        #     filename = filename.strip(specfiletype)
+        #     try:
+        #         phase = float(filename)
+        #     except:
+        #         pass
+        #
+        #     phases.append(phase)
+        #     if verbose: print(phase)
+        # listdata["phase"] = phases
 
         self.list  = listdata
 
@@ -2334,6 +2344,7 @@ class SNClass():
                 self.spec[spec_filename] = SpectrumClass()
                 self.spec[spec_filename].load(spec_filename, directory = spec_dir_path,
                                               verbose = verbose)
+                self.spec[spec_filename].set_infile(spec_filename)
                 self.spec[spec_filename].set_MJD_obs(self.list['mjd_obs'][i])
                 # self.spec[spec_filename].data.add_index('wavelength')
 
@@ -3147,6 +3158,10 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
     -------
 
     phot_list :
+    :param path:
+    :param snname:
+    :param prefix:
+    :param file_type:
     :param verbose:
 
     """
