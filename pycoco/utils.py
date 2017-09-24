@@ -34,7 +34,8 @@ __all__ = ["setup_plot_defaults",
            "get_mjdmax",
            "get_mjdmax_flux",
            "get_max_info",
-           "b"
+           "b",
+           "read_phasefile"
            ]
 
 
@@ -257,7 +258,7 @@ def strictly_increasing(L):
     return all(x<y for x, y in zip(L, L[1:]))
 
 
-def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
+def check_list(path, mjd = True, phase = False, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
                specfiletype=".txt", verbose = True):
     """
 
@@ -266,20 +267,22 @@ def check_list(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'),
 
     listtable = read_list_file(path, names=names, verbose=verbose)
     phases = []
+    if mjd:
+        return strictly_increasing(listtable["mjd_obs"])
 
+    if phase:
+        for item in listtable["spec_path"]:
+            filename = item.split("/")[-1]
+            filename = filename.split("_")[1:][0]
+            filename = filename.strip(specfiletype)
+            try:
+                phase = float(filename)
+            except:
+                pass
+            phases.append(phase)
+            if verbose: print(phase)
 
-    for item in listtable["spec_path"]:
-        filename = item.split("/")[-1]
-        filename = filename.split("_")[1:][0]
-        filename = filename.strip(specfiletype)
-        try:
-            phase = float(filename)
-        except:
-            pass
-        phases.append(phase)
-        if verbose: print(phase)
-
-    return strictly_increasing(phases)
+        return strictly_increasing(phases)
 
 
 def check_all_lists(lists_dir, verbose=False):
@@ -395,6 +398,7 @@ def get_mjdmax_flux(sn, filter_key):
                            0.001)
     return nanmax(f(mjd_spline))
 
+
 def get_max_info(sn, filter_key):
     """
 
@@ -428,3 +432,7 @@ def gaussian(x, g0, x0, sigma0):
 
     gauss = g0*(exp((-(x-x0)*(x-x0))/(2.0*sigma0*sigma0)))
     return gauss
+
+
+def read_phasefile(filepath):
+    return Table.read(filepath, format="ascii", names=("snname", "z_obs", "mu"))
