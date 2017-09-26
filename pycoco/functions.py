@@ -949,11 +949,13 @@ def run_LCfit(path, coco_dir = _default_coco_dir_path, model = False,
         if model not in models:
             return False
         callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path, "-m", model]
+        print("running with", model)
     else:
         print("No Model supplied - running with default")
         callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path]
-
     if verbose: print("Running CoCo lcfit on " + path)
+    if verbose: print("callargs are ", callargs)
+
     cwd = os.getcwd()
     os.chdir(coco_dir)
     subprocess.call(callargs)
@@ -1047,7 +1049,53 @@ def test_specfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_specfit(path, coco_dir=_default_coco_dir_path, verbose = True):
+def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False, coco_dir=_default_coco_dir_path, verbose = True):
+    """
+    replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
+
+    Parameters
+    ----------
+    Returns
+    -------
+    """
+
+    if not wantedfilters:
+        wantedfilters = SNObject.phot.filter_names.data
+
+    outfile_log = []
+    if hasattr(SNObject, "spec") and hasattr(SNObject, "lcfit"):
+        for name, mS in SN.spec.items():
+            #     print(name, mS)
+
+            S = copy.deepcopy(mS)
+            fit_dict = mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
+            if plot:
+                pcc.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
+                                    show_linear_extrap=True, normalise=True)
+
+            outfile = snname + "_" + str(fit_dict["SpectrumObject"].mjd_obs).ljust(12, "0") + ".spec"
+
+            while outfile in outfile_log:
+                j = 1
+                outfile = snname + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
+                j += 1
+            print(outfile)
+            outfile_log.append(outfile)
+
+            if save:
+                save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile)
+    else:
+        print("SNObject needs lcfit and spectra")
+    # check_file_path(path)
+    # relist() ## Check filter file is up to date
+    # cwd = os.getcwd()
+    # os.chdir(coco_dir)
+    # if verbose: print("Running CoCo specfit on " + path)
+    # subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
+    # os.chdir(cwd)
+    pass
+
+def run_cocospecfit(path, coco_dir=_default_coco_dir_path, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path
 
@@ -1064,7 +1112,6 @@ def run_specfit(path, coco_dir=_default_coco_dir_path, verbose = True):
     subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
     os.chdir(cwd)
     pass
-
 
 def get_all_spec_lists(dirpath = _default_list_dir_path, verbose=False):
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
