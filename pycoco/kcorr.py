@@ -140,13 +140,13 @@ def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baselin
     reads in atmosphere from LSST_THROUGHPUTS, default is at airmass 1.2
     """
 
-    atmos = BaseFilterClass()
+    atmos = classes.BaseFilterClass()
     atmos.load(path, wavelength_u = u.nm, fmt = "ascii.commented_header")
 
     return atmos
 
 
-def calc_filter_area(filter_name = False, filter_object=False, filter_path = _default_filter_dir_path):
+def calc_filter_area(filter_name = False, filter_object=False, filter_path = defaults._default_filter_dir_path):
     """
 
     :param filter_name:
@@ -172,7 +172,7 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = _de
 
 
 def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_object=False,
-                              filter_path = _default_filter_dir_path, spectrum_dir=None, spectrum_filename=None,
+                              filter_path = defaults._default_filter_dir_path, spectrum_dir=None, spectrum_filename=None,
                               correct_for_area=True):
     """
     returns flux in units of
@@ -218,7 +218,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         return  integrated_flux
 
 
-def calc_AB_flux(filter_name, filter_path = _default_filter_dir_path, filter_object = False):
+def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, filter_object = False):
 
     AB = load_AB()
 
@@ -240,7 +240,7 @@ def calc_AB_zp(filter_name=False, filter_object = False):
 
     """
     if not filter_object and filter_name:
-        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
+        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
 
     integrated_flux = calc_AB_flux(filter_name, filter_object=filter_object)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
@@ -256,7 +256,7 @@ def calc_vega_flux(filter_name, filter_object = False,):
     vega = load_vega()
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
+        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
     # else if hasattr(filter_object, "wavelength"):
 
     filter_object.resample_response(new_wavelength = vega.wavelength)
@@ -274,7 +274,7 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(_default_filter_dir_path, filter_name + ".dat"))
+        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
 
     integrated_flux = calc_vega_flux(filter_name)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
@@ -384,7 +384,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
         filter_dict = OrderedDict()
 
         for i, f in enumerate(filters):
-            filter_dict[f] = load_filter(os.path.join(_default_filter_dir_path, f + ".dat"))
+            filter_dict[f] = load_filter(os.path.join(defaults._default_filter_dir_path, f + ".dat"))
             filter_dict[f].calculate_edges()
             #     filter_dict[f].calculate_edges_zero()
 
@@ -465,16 +465,16 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
         anchor_spec_u = mc_spec_u[0] * anchor_max_wavelength + mc_spec_u[1]
 
         data_table.add_row(("lower_anchor", anchor_spec_l, anchor_spec_l, anchor_spec_u, np.nan, False,
-                            hex["batman"], anchor_min_wavelength))
+                            colours.hex["batman"], anchor_min_wavelength))
         data_table.add_row(("upper_anchor", anchor_spec_u, anchor_spec_u, anchor_spec_u, np.nan, False,
-                            hex["batman"], anchor_max_wavelength))
+                            colours.hex["batman"], anchor_max_wavelength))
 
 
         data_table.add_index("lambda_eff")
         data_table.sort()
 
         for i, f in enumerate(data_table["filter_object"]):
-            if isinstance(f, FilterClass):
+            if isinstance(f, classes.FilterClass):
                 mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
                 #         print(data_table["spec_filterflux"][i], mangledspec_filterflux)
                 data_table["mangledspec_filterflux"][i] = mangledspec_filterflux
@@ -572,8 +572,8 @@ def save_mangle(mS, filename, orig_filename, path=False,
     if hasattr(mS, "data"):
         if verbose: print("has data")
         if not path:
-            if verbose: print("No directory specified, assuming " + _default_recon_dir_path)
-            path = _default_recon_dir_path
+            if verbose: print("No directory specified, assuming " + defaults._default_recon_dir_path)
+            path = defaults._default_recon_dir_path
         else:
             StringWarning(path)
 
@@ -647,7 +647,7 @@ def calculate_fluxes(data_table, S, verbose=False):
 
     for i, f in enumerate(data_table["filter_object"]):
 
-        if isinstance(f, FilterClass):
+        if isinstance(f, classes.FilterClass):
             mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
             if verbose: print(data_table["spec_filterflux"][i], mangledspec_filterflux)
             # data_table["mangledspec_filterflux"][i] = mangledspec_filterflux

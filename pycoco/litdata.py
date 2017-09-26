@@ -26,7 +26,7 @@ __all__ = ["LitLightCurveClass",
            "SN2009jf_read_ap"]
 
 
-class LitLightCurveClass(BaseLightCurveClass):
+class LitLightCurveClass(classes.BaseLightCurveClass):
     pass
 
 translation_dict = OrderedDict()

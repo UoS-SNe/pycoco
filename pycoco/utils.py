@@ -50,7 +50,7 @@ def _get_filter_directory():
              default datalocation: '../testdata/'.
     """
 
-    return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
+    return os.environ.get('PYCOCO_FILTER_DIR', defaults._default_filter_dir_path)
 
 
 def _get_filters(filter_dir=False):
@@ -298,7 +298,7 @@ def check_all_lists(lists_dir, verbose=False):
 
     for spec_listfile in master_list:
         if verbose: print(spec_listfile)
-        check_status = check_list(os.path.join(_default_list_dir_path, spec_listfile), verbose=verbose)
+        check_status = check_list(os.path.join(defaults._default_list_dir_path, spec_listfile), verbose=verbose)
         checklist.append(check_status)
         if check_status:
             print(spec_listfile, " passed")
@@ -314,7 +314,7 @@ def make_master_list(lists_dir):
     :return:
     """
     if not lists_dir:
-        l = os.listdir(os.path.join(_default_coco_dir_path, "lists/"))
+        l = os.listdir(os.path.join(defaults._default_coco_dir_path, "lists/"))
     else:
         check_dir_path(lists_dir)
         l = os.listdir(lists_dir)

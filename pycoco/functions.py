@@ -62,16 +62,16 @@ __all__ = ["load_filter",
            ]
 
 # def importtest():
-#     x = BaseSpectrumClass()
-#     x = BaseLightCurveClass()
-#     x = BaseFilterClass()
-#     x = PhotometryClass()
+#     x = classes.BaseSpectrumClass()
+#     x = classes.BaseLightCurveClass()
+#     x = classes.BaseFilterClass()
+#     x = classes.PhotometryClass()
 #     x = SpectrumClass()
-#     x = LCfitClass()
-#     x = specfitClass()
-#     x = SNClass()
-#     x = FilterClass()
-#     x = InfoClass()
+#     x = classes.LCfitClass()
+#     x = classes.specfitClass()
+#     x = classes.SNClass()
+#     x = classes.FilterClass()
+#     x = classes.InfoClass()
 #     pass
 
 #  #------------------------------------#  #
@@ -89,7 +89,7 @@ def load_filter(path, cmap = False, verbose = False):
     """
 
     if check_file_path(os.path.abspath(path)):
-        filter_object = FilterClass()
+        filter_object = classes.FilterClass()
         filter_object.read_filter_file(os.path.abspath(path), verbose = verbose)
 
         if cmap:
@@ -144,13 +144,13 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
 
 def load(path, format = "ascii", verbose = True):
-    pc = PhotometryClass()
+    pc = classes.PhotometryClass()
     pc.phot = load_formatted_phot(path, format = format, verbose = verbose)
     pc.unpack(verbose = verbose)
     return pc
 
 
-def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = True):
+def load_all_phot(path = defaults._default_data_dir_path, format = "ascii", verbose = True):
     """
     loads photometry into AstroPy Table.
 
@@ -180,7 +180,7 @@ def load_all_phot(path = _default_data_dir_path, format = "ascii", verbose = Tru
         warning.warn("Couldn't find any photometry")
 
 
-def find_filter_phot(path = _default_data_dir_path, snname = False,
+def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
@@ -249,7 +249,7 @@ def find_filter_phot(path = _default_data_dir_path, snname = False,
     return phot_list
 
 
-def find_formatted_phot(path = _default_data_dir_path, snname = False,
+def find_formatted_phot(path = defaults._default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
@@ -319,7 +319,7 @@ def find_formatted_phot(path = _default_data_dir_path, snname = False,
     return phot_list
 
 
-def find_recon_spec(snname, dir_path = _default_recon_dir_path, verbose = False):
+def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose = False):
     """
 
     Parameters
@@ -359,7 +359,7 @@ def find_recon_spec(snname, dir_path = _default_recon_dir_path, verbose = False)
         return False
 
 
-# def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+# def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path, file_type = ".spec", verbose = False):
 #     """
 #
 #     Parameters
@@ -469,7 +469,7 @@ def load_specfit(path):
     -------
     """
 
-    specfit = specfitClass()
+    specfit = classes.specfitClass()
 
     return specfit
 
@@ -742,7 +742,7 @@ def list_lcfits(verbose = False):
     :param verbose:
     :return:
     """
-    fits_in_recon = [i for i in os.listdir(_default_recon_dir_path) if i[-4:] == ".dat"]
+    fits_in_recon = [i for i in os.listdir(defaults._default_recon_dir_path) if i[-4:] == ".dat"]
     if verbose: print(fits_in_recon)
     return fits_in_recon
 
@@ -753,12 +753,12 @@ def list_lcs(verbose = False):
     :param verbose:
     :return:
     """
-    lcs_in_data_dir = [i for i in os.listdir(os.path.join(_default_data_dir_path, "lc")) if i[-4:] == ".dat"]
+    lcs_in_data_dir = [i for i in os.listdir(os.path.join(defaults._default_data_dir_path, "lc")) if i[-4:] == ".dat"]
     if verbose: print(lcs_in_data_dir)
     return lcs_in_data_dir
 
 
-def read_sndist_file(path = _default_sn_dist_path, format = "ascii"):
+def read_sndist_file(path = defaults._default_sn_dist_path, format = "ascii"):
     """
 
     :param path:
@@ -796,7 +796,7 @@ def load_info(path = _default_info_path, verbose = False):
     :return:
     """
     if verbose: print(path)
-    i = InfoClass()
+    i = classes.InfoClass()
     i.load(path)
 
     return i
@@ -885,7 +885,7 @@ def data_residual(params, data1, data2):
 #  #------------------------------------#  #
 
 
-def test_LCfit(snname, coco_dir = _default_coco_dir_path,
+def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
                verbose = True):
     """
     Check to see if a fit has been done. Does this by
@@ -898,7 +898,7 @@ def test_LCfit(snname, coco_dir = _default_coco_dir_path,
 
     # try:
     #     if not coco_dir:
-    #         coco_dir = _default_coco_dir_path
+    #         coco_dir = defaults._default_coco_dir_path
     #
     # except:
     #     warnings.warn("Something funky with your input")
@@ -929,7 +929,7 @@ def test_LCfit(snname, coco_dir = _default_coco_dir_path,
     return boolflag
 
 
-def run_LCfit(path, coco_dir = _default_coco_dir_path, model = False,
+def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
               verbose = True,):
     """
 
@@ -944,15 +944,15 @@ def run_LCfit(path, coco_dir = _default_coco_dir_path, model = False,
     relist() ## Check filter file is up to date
 
     if model:
-        models = np.unique([i.split(".")[0] for i in os.listdir(os.path.join(_default_coco_dir_path, "src/models"))])
+        models = np.unique([i.split(".")[0] for i in os.listdir(os.path.join(defaults._default_coco_dir_path, "src/models"))])
 
         if model not in models:
             return False
-        callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path, "-m", model]
+        callargs = [os.path.join(defaults._default_coco_dir_path, "lcfit"), path, "-m", model]
         print("running with", model)
     else:
         print("No Model supplied - running with default")
-        callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path]
+        callargs = [os.path.join(defaults._default_coco_dir_path, "lcfit"), path]
     if verbose: print("Running CoCo lcfit on " + path)
     if verbose: print("callargs are ", callargs)
 
@@ -964,7 +964,7 @@ def run_LCfit(path, coco_dir = _default_coco_dir_path, model = False,
     pass
 
 
-def run_LCfit_fileinput(listfile_path, coco_dir = _default_coco_dir_path, data_dir = _default_data_dir_path,
+def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_path, data_dir = defaults._default_data_dir_path,
                         verbose = True):
     """
 
@@ -1016,7 +1016,7 @@ def test_specfit(snname, coco_dir = False,
 
     try:
         if not coco_dir:
-            coco_dir = _default_coco_dir_path
+            coco_dir = defaults._default_coco_dir_path
 
     except:
         warnings.warn("Something funky with your input")
@@ -1049,7 +1049,7 @@ def test_specfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False, coco_dir=_default_coco_dir_path, verbose = True):
+def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False, coco_dir=defaults._default_coco_dir_path, verbose = True):
     """
     replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
 
@@ -1091,11 +1091,11 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
     # cwd = os.getcwd()
     # os.chdir(coco_dir)
     # if verbose: print("Running CoCo specfit on " + path)
-    # subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
+    # subprocess.call([os.path.join(defaults._default_coco_dir_path, "./specfit"), path])
     # os.chdir(cwd)
     pass
 
-def run_cocospecfit(path, coco_dir=_default_coco_dir_path, verbose = True):
+def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path
 
@@ -1109,11 +1109,11 @@ def run_cocospecfit(path, coco_dir=_default_coco_dir_path, verbose = True):
     cwd = os.getcwd()
     os.chdir(coco_dir)
     if verbose: print("Running CoCo specfit on " + path)
-    subprocess.call([os.path.join(_default_coco_dir_path, "./specfit"), path])
+    subprocess.call([os.path.join(defaults._default_coco_dir_path, "./specfit"), path])
     os.chdir(cwd)
     pass
 
-def get_all_spec_lists(dirpath = _default_list_dir_path, verbose=False):
+def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False):
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
     check_dir_path(dirpath)
@@ -1127,7 +1127,7 @@ def get_all_spec_lists(dirpath = _default_list_dir_path, verbose=False):
     return fullpath_list
 
 
-def specfit_all(verbose=True, dirpath=_default_list_dir_path):
+def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
 
     fullpath_list = get_all_spec_lists(dirpath)
 
@@ -1157,8 +1157,8 @@ def specfit_sn(snname, verbose = True):
     """
 
     ## Need to look for the recon lc files for snname
-    # sn = SNClass(snname)
-    lcfit = LCfitClass()
+    # sn = classes.SNClass(snname)
+    lcfit = classes.LCfitClass()
 
     path = os.path.join(lcfit.recon_directory, snname+".dat")
     lcfit.load_formatted_phot(path)
@@ -1184,13 +1184,13 @@ def specfit_sn(snname, verbose = True):
 
     # lcfit.
     ## Need to change the listfile to one that has snname matches the new lc file
-    listpath = os.path.join(_default_coco_dir_path, "lists", snname + ".list")
+    listpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + ".list")
 
     origlist = read_list_file(listpath)
     origlist.rename_column('snname', 'snname_nomangle')
     origlist["snname"] = [j+"_m" for j in origlist["snname_nomangle"]]
 
-    newlistpath = os.path.join(_default_coco_dir_path, "lists", snname + "_m.list")
+    newlistpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + "_m.list")
     newlist = origlist["spec_path", "snname", "mjd_obs", "z"]
     # newlist.write(newlistpath, format = "ascii.fast_commented_header", overwrite = True)
     newlist.write(newlistpath, format = "ascii.fast_commented_header")
@@ -1203,7 +1203,7 @@ def specfit_sn(snname, verbose = True):
     pass
 
 
-def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coco_dir_path, verbose = True):
+def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=defaults._default_coco_dir_path, verbose = True):
     """
     runs CoCo specphase.
 
@@ -1224,12 +1224,12 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coc
     cwd = os.getcwd()
     os.chdir(coco_dir)
     # if verbose: print("Running CoCo specfit on " + path)
-    subprocess.call([os.path.join(_default_coco_dir_path, "./specphase"), phase_path, filtername])
+    subprocess.call([os.path.join(defaults._default_coco_dir_path, "./specphase"), phase_path, filtername])
     os.chdir(cwd)
     pass
 
 
-def check_specphase(snname, spectra_dir="spectra/", coco_dir=_default_coco_dir_path, absolute_path=False):
+def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_coco_dir_path, absolute_path=False):
     """
 
     :param snname:
@@ -1358,13 +1358,13 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
         if "weights" in data_table.colnames:
             mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
 
-            ax1.plot(S.data['wavelength'].data, mc_u[0] * S.data['wavelength'].data + mc_u[1], color=hex["batman"],
+            ax1.plot(S.data['wavelength'].data, mc_u[0] * S.data['wavelength'].data + mc_u[1], color=colours.hex["batman"],
                     ls=":", label=None)
-            ax1.plot(S.data['wavelength'].data, mc_l[0] * S.data['wavelength'].data + mc_l[1], color=hex["batman"],
+            ax1.plot(S.data['wavelength'].data, mc_l[0] * S.data['wavelength'].data + mc_l[1], color=colours.hex["batman"],
                     ls=":", label=None)
 
     for i, f in enumerate(data_table["filter_object"]):
-        if isinstance(f, FilterClass):
+        if isinstance(f, classes.FilterClass):
             filter_label_string = r'$\textnormal{' + f.filter_name.replace("_", " ") + '}$'
             #             filter_label_string = r'$\textnormal{' + f.filter_name.decode().replace("_", " ") + '}$'
 
@@ -1390,7 +1390,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     default_axylims = ax.get_ylim()
 
     if zero:
-        ax1.plot(default_xlims, [0, 0], color=hex["black"], ls=":")
+        ax1.plot(default_xlims, [0, 0], color=colours.hex["black"], ls=":")
 
     ax1.set_xlim(default_xlims)
     ax1.set_xlim(S.min_wavelength * 0.95, S.max_wavelength * 1.05)

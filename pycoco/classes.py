@@ -140,7 +140,7 @@ class BaseSpectrumClass():
         """
 
         ## Initialise the class variables
-        self._default_list_dir_path = os.path.join(_default_coco_dir_path, "lists/")
+        self._default_list_dir_path = os.path.join(defaults._default_coco_dir_path, "lists/")
         #
         # ## Initialise using class methods
         self.set_list_directory(self._get_list_directory())
@@ -1005,10 +1005,10 @@ class BaseFilterClass():
                 try:
                     ax1.plot([self._upper_edge, self._upper_edge], [0,1] ,
                              lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
+                             color = colours.hex['batman'], zorder = 0, )
                     ax1.plot([self._lower_edge, self._lower_edge], [0,1] ,
                              lw = 1.5, alpha = 0.5, ls = ':',
-                             color = hex['batman'], zorder = 0, )
+                             color = colours.hex['batman'], zorder = 0, )
                 except:
                     print("Failed")
 
@@ -1145,8 +1145,8 @@ class BaseFilterClass():
         if hasattr(self, "wavelength") and hasattr(self, "throughput"): ## enables resampling and wavelength conversion to be easily saved
             if verbose: print("has data")
             if not path:
-                if verbose: print("No directory specified, assuming " + _default_filter_dir_path)
-                path = _default_filter_dir_path
+                if verbose: print("No directory specified, assuming " + defaults._default_filter_dir_path)
+                path = defaults._default_filter_dir_path
             else:
                 StringWarning(path)
 
@@ -1202,8 +1202,8 @@ class PhotometryClass(BaseLightCurveClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, 'lc/')
-        self._default_filter_dir_path = _default_filter_dir_path
+        self._default_data_dir_path = os.path.join(defaults._default_data_dir_path, 'lc/')
+        self._default_filter_dir_path = defaults._default_filter_dir_path
         self.data = OrderedDict()
         self.data_filters = OrderedDict()
 
@@ -1477,8 +1477,8 @@ class PhotometryClass(BaseLightCurveClass):
             for i, filter_key in enumerate(filters):
                 if verbose: print(i, self.data[filter_key].__dict__)
                 plot_label_string = r'$\rm{' + self.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
-                if filter_key in hex.keys():
-                    self.data_filters[filter_key]._plot_colour = hex[filter_key]
+                if filter_key in colours.hex.keys():
+                    self.data_filters[filter_key]._plot_colour = colours.hex[filter_key]
                 else:
                     warnings.warn("Cannot find filter in the pycoco colours registry")
                     self.data_filters[filter_key]._plot_colour = "C0"
@@ -1486,7 +1486,7 @@ class PhotometryClass(BaseLightCurveClass):
                 ax1.errorbar(self.data[filter_key]['MJD'], self.data[filter_key]['flux'],
                              yerr = self.data[filter_key]['flux_err'],
                              capsize = 0, fmt = 'o', color = self.data_filters[filter_key]._plot_colour,
-                             label = plot_label_string, ecolor = hex['batman'], mec = hex["batman"],
+                             label = plot_label_string, ecolor = colours.hex['batman'], mec = colours.hex["batman"],
                              *args, **kwargs)
 
             if legend:
@@ -1594,7 +1594,7 @@ class SpectrumClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_data_dir_path = os.path.join(_default_data_dir_path, "spec/")
+        self._default_data_dir_path = os.path.join(defaults._default_data_dir_path, "spec/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -1658,8 +1658,8 @@ class LCfitClass(BaseLightCurveClass):
     def __init__(self):
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
-        self._default_filter_dir_path = _default_filter_dir_path
+        self._default_recon_dir_path = os.path.join(defaults._default_coco_dir_path, "recon/")
+        self._default_filter_dir_path = defaults._default_filter_dir_path
 
         ## Initialise using class methods
         self.set_recon_directory(self._get_recon_directory())
@@ -1848,7 +1848,7 @@ class specfitClass(BaseSpectrumClass):
         """
 
         ## Initialise the class variables
-        self._default_recon_dir_path = os.path.join(_default_coco_dir_path, "recon/")
+        self._default_recon_dir_path = os.path.join(defaults._default_coco_dir_path, "recon/")
         # self._default_list_dir_path = self._default_data_dir_path
 
         ## Initialise using class methods
@@ -2105,7 +2105,7 @@ class FilterClass(BaseFilterClass):
         """
 
         if not hasattr(self, "_colourmap"):
-            self._colourmap = plt.get_cmap(_colourmap_name)
+            self._colourmap = plt.get_cmap(defaults._colourmap_name)
 
         if hasattr(self, 'lambda_effective'):
 
@@ -2137,9 +2137,9 @@ class FilterClass(BaseFilterClass):
 
             try:
                 if verbose:
-                    if self.filter_name in hex.keys:
-                        print(hex[self.filter_name])
-                self._plot_colour = hex[self.filter_name]
+                    if self.filter_name in colours.hex.keys:
+                        print(colours.hex[self.filter_name])
+                self._plot_colour = colours.hex[self.filter_name]
             except:
                 if verbose: print("Nope")
                 self.calculate_plot_colour(verbose = verbose)
@@ -2211,7 +2211,7 @@ class SNClass():
                  default CoCo location: '~/Code/CoCo/', with appended.
         """
 
-        return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(_default_coco_dir_path)))
+        return os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.abspath(defaults._default_coco_dir_path)))
 
 
     @staticmethod
@@ -2226,7 +2226,7 @@ class SNClass():
                  default datalocation: '../testdata/', with '/spec/' appended.
         """
 
-        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(_default_recon_dir_path, os.pardir))), "recon/")
+        return os.path.join(os.path.abspath(os.environ.get('COCO_ROOT_DIR', os.path.join(defaults._default_recon_dir_path, os.pardir))), "recon/")
 
 
     def set_recon_directory(self, recon_dir_path = '', verbose = False):
@@ -2393,7 +2393,7 @@ class SNClass():
         pass
 
 
-    def load_sndist(self, path = _default_sn_dist_path, format = "ascii"):
+    def load_sndist(self, path = defaults._default_sn_dist_path, format = "ascii"):
         """
         based on read_sndist_file and load_sndist
         """
@@ -2476,15 +2476,15 @@ class SNClass():
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
                     plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
-                    if filter_key in hex.keys():
-                        self.phot.data_filters[filter_key]._plot_colour = hex[filter_key]
+                    if filter_key in colours.hex.keys():
+                        self.phot.data_filters[filter_key]._plot_colour = colours.hex[filter_key]
                     else:
                         warnings.warn("Cannot find filter in the pycoco colours registry")
                         self.phot.data_filters[filter_key]._plot_colour = "C0"
                     ax1.errorbar(self.phot.data[filter_key]['MJD'], self.phot.data[filter_key]['flux'],
                                  yerr = self.phot.data[filter_key]['flux_err'],
                                  capsize = 0, fmt = 'o', color = self.phot.data_filters[filter_key]._plot_colour,
-                                 label = plot_label_string, ecolor = hex['batman'], mec = hex["batman"],
+                                 label = plot_label_string, ecolor = colours.hex['batman'], mec = colours.hex["batman"],
                                  alpha = alpha,
                                  *args, **kwargs)
 
@@ -2497,8 +2497,8 @@ class SNClass():
                     if simplespecphot and hasattr (self, "simplespecphot"):
                         ax1.errorbar(self.simplespecphot.data[filter_key]['MJD'], self.simplespecphot.data[filter_key]['flux'],
                                      yerr = self.simplespecphot.data[filter_key]['flux_err'],
-                                     capsize = 0, fmt = 'o', color = hex["batman"],
-                                     ecolor = hex['batman'], mec = hex["batman"], label = r"$\textnormal{SpecPhot}$",
+                                     capsize = 0, fmt = 'o', color = colours.hex["batman"],
+                                     ecolor = colours.hex['batman'], mec = colours.hex["batman"], label = r"$\textnormal{SpecPhot}$",
                                      *args, **kwargs)
 
                     if legend:
@@ -2533,7 +2533,7 @@ class SNClass():
                             if not too_red and not too_blue:
                                 ax1.plot([self.spec[spec_key].mjd_obs, self.spec[spec_key].mjd_obs],
                                          [0.0, np.nanmax(self.phot.phot['flux'])*1.5],
-                                         ls = ':', color = hex['batman'], zorder = 0)
+                                         ls = ':', color = colours.hex['batman'], zorder = 0)
 
                     if enforce_zero:
                         ## Use ap table groups instead? - can't; no support for mixin columns.
@@ -2620,7 +2620,7 @@ class SNClass():
                 plot_label_string = r'$\rm{' + self.spec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
-                v_eff = 5436.87 ##Angstrom
+                v_eff = 5436.87 ##Angstrom - TODO ???
                 w = np.logical_and(self.spec[spec_key].data['wavelength'] > (v_eff-100.),self.spec[spec_key].data['wavelength'] < v_eff+100.)
 
                 if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.spec[spec_key].data['wavelength']), len(self.spec[spec_key].data['flux']), len(self.spec[spec_key].flux))
@@ -2629,7 +2629,7 @@ class SNClass():
                     flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
 
                     ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
-                                 label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                                 label = plot_label_string, color = defaults._spec_colourmap(cmap_indices[i]),
                                  *args, **kwargs)
 
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
@@ -2658,7 +2658,7 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = colours.hex['batman'])
                         # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
                         #                horizontalalignment = 'right', verticalalignment = 'center')
                         txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.spec[spec_key].mjd_obs) + '$',
@@ -2741,7 +2741,7 @@ class SNClass():
                     flux_norm = self.mangledspec[spec_key].flux / np.nanmean(self.mangledspec[spec_key].flux[w])
 
                     ax1.plot(self.mangledspec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
-                                 label = plot_label_string, color = spec_colourmap(cmap_indices[i]),
+                                 label = plot_label_string, color = defaults._spec_colourmap(cmap_indices[i]),
                                  *args, **kwargs)
 
                     maxspecxdata = np.nanmax(self.mangledspec[spec_key].data['wavelength'])
@@ -2770,7 +2770,7 @@ class SNClass():
                     if add_mjd:
                         # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
                         # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = hex['batman'])
+                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = colours.hex['batman'])
                         # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
                         #                horizontalalignment = 'right', verticalalignment = 'center')
                         txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
@@ -2865,7 +2865,7 @@ class SNClass():
                     warning.warn("Doesn't look like you have loaded a filter into the object")
 
             default_xlims = ax1.get_xlim()
-            ax1.plot(default_xlims, [0,0], color = hex["black"], ls = ":")
+            ax1.plot(default_xlims, [0,0], color = colours.hex["black"], ls = ":")
             ax1.set_xlim(default_xlims)
 
             ax1.set_xlabel(xaxis_label_string)
@@ -3087,7 +3087,7 @@ class InfoClass():
 
 ## FUNCTIONS THAT ITS A PAIN TO SHIFT
 
-def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_type = ".spec", verbose = False):
+def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path, file_type = ".spec", verbose = False):
     """
 
     Parameters
@@ -3133,7 +3133,7 @@ def find_specphase_spec(snname, dir_path = _default_specphase_dir_path, file_typ
         return False
 
 
-def find_filter_phot(path = _default_data_dir_path, snname = False,
+def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
               verbose = True):
     """
