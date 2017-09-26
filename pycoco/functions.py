@@ -117,19 +117,6 @@ def get_filter_from_filename(path, snname, file_type):
     return filter_string
 
 
-# def _get_filter_directory():
-#     """
-#     Get the default path to the filter directory.
-#
-#     Looks for the filter directory set as environment variable
-#     $PYCOCO_FILTER_DIR. if not found, returns default.
-#
-#     returns: Absolute path in environment variable $PYCOCO_DATA_DIR, or
-#              default datalocation: '../testdata/'.
-#     """
-#
-#     return os.environ.get('PYCOCO_FILTER_DIR', _default_filter_dir_path)
-
 
 def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
               format = 'ascii', verbose = True):
@@ -154,33 +141,6 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
 
     return phot_table
-
-#
-# def load_formatted_phot(path, format = "ascii", names = False,
-#                         verbose = True):
-#     """
-#     Loads a single photometry file.
-#
-#     Parameters
-#     ----------
-#     Returns
-#     -------
-#     """
-#
-#     StringWarning(path)
-#
-#     if names:
-#         phot_table = Table.read(path, format = format, names = names)
-#     else:
-#         phot_table = Table.read(path, format = format)
-#
-#     phot_table.meta = {"filename" : path}
-#
-#     phot_table["MJD"].unit = u.day
-#     phot_table["flux"].unit = u.cgs.erg / u.si.angstrom / u.si.cm ** 2 / u.si.s
-#     phot_table["flux_err"].unit =  phot_table["flux"].unit
-#
-#     return phot_table
 
 
 def load(path, format = "ascii", verbose = True):
@@ -779,11 +739,8 @@ def filter_within_spec(filter_obj, spec_obj):
 def list_lcfits(verbose = False):
     """
 
-    Parameters
-    ----------
-
-    Returns
-    -------
+    :param verbose:
+    :return:
     """
     fits_in_recon = [i for i in os.listdir(_default_recon_dir_path) if i[-4:] == ".dat"]
     if verbose: print(fits_in_recon)
@@ -793,11 +750,8 @@ def list_lcfits(verbose = False):
 def list_lcs(verbose = False):
     """
 
-    Parameters
-    ----------
-
-    Returns
-    -------
+    :param verbose:
+    :return:
     """
     lcs_in_data_dir = [i for i in os.listdir(os.path.join(_default_data_dir_path, "lc")) if i[-4:] == ".dat"]
     if verbose: print(lcs_in_data_dir)
@@ -807,11 +761,9 @@ def list_lcs(verbose = False):
 def read_sndist_file(path = _default_sn_dist_path, format = "ascii"):
     """
 
-    Parameters
-    ----------
-
-    Returns
-    -------
+    :param path:
+    :param format:
+    :return:
     """
     check_file_path(path)
     table = Table.read(path, format = format)
@@ -821,11 +773,10 @@ def read_sndist_file(path = _default_sn_dist_path, format = "ascii"):
 def load_sndist(snname, *args, **kwargs):
     """
 
-    Parameters
-    ----------
-
-    Returns
-    -------
+    :param snname:
+    :param args:
+    :param kwargs:
+    :return:
     """
     sndistlist = read_sndist_file(*args, **kwargs)
 
@@ -840,6 +791,9 @@ def load_sndist(snname, *args, **kwargs):
 def load_info(path = _default_info_path, verbose = False):
     """
 
+    :param path:
+    :param verbose:
+    :return:
     """
     if verbose: print(path)
     i = InfoClass()
@@ -849,6 +803,17 @@ def load_info(path = _default_info_path, verbose = False):
 
 
 def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False, showplot=False):
+    """
+
+    :param s1:
+    :param s2:
+    :param wmin:
+    :param wmax:
+    :param scale:
+    :param report:
+    :param showplot:
+    :return:
+    """
     ## Check the bluer one is first?
 
     s1_overlap = SpectrumClass()
@@ -901,6 +866,13 @@ def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False, showplot=Fals
 
 
 def data_residual(params, data1, data2):
+    """
+
+    :param params:
+    :param data1:
+    :param data2:
+    :return:
+    """
     scale = params["scale"]
 
     res = data1 - scale * data2
@@ -957,26 +929,41 @@ def test_LCfit(snname, coco_dir = _default_coco_dir_path,
     return boolflag
 
 
-def run_LCfit(path, coco_dir = _default_coco_dir_path, verbose = True,):
+def run_LCfit(path, coco_dir = _default_coco_dir_path, model = False,
+              verbose = True,):
     """
-    Parameters
-    ----------
-    Returns
-    -------
+
+    :param path:
+    :param coco_dir:
+    :param model:
+    :param verbose:
+    :return:
     """
+
     check_file_path(path)
     relist() ## Check filter file is up to date
+
+    if model:
+        models = np.unique([i.split(".")[0] for i in os.listdir(os.path.join(_default_coco_dir_path, "src/models"))])
+
+        if model not in models:
+            return False
+        callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path, "-m", model]
+    else:
+        print("No Model supplied - running with default")
+        callargs = [os.path.join(_default_coco_dir_path, "lcfit"), path]
 
     if verbose: print("Running CoCo lcfit on " + path)
     cwd = os.getcwd()
     os.chdir(coco_dir)
-    subprocess.call([os.path.join(_default_coco_dir_path, "lcfit"), path])
+    subprocess.call(callargs)
     os.chdir(cwd)
     if verbose: print("Fit complete")
     pass
 
 
-def run_LCfit_fileinput(listfile_path, coco_dir = _default_coco_dir_path, data_dir = _default_data_dir_path, verbose = True):
+def run_LCfit_fileinput(listfile_path, coco_dir = _default_coco_dir_path, data_dir = _default_data_dir_path,
+                        verbose = True):
     """
 
     :param listfile_path:
@@ -1216,12 +1203,18 @@ def check_specphase(snname, spectra_dir="spectra/", coco_dir=_default_coco_dir_p
     return dir_list
 
 
+#  #------------------------------------#  #
+#  # Mangling                           #  #
+#  #------------------------------------#  #
+
 def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=False,
                     spl=False, spl_clamped=False, spl_wav=False, return_fig=False, ylim=False, frameon=True, units=True,
                     legend=True, zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
                     plot_anchors=True, plot_anchor_fitflux=True, normalise=False, verbose=False):
     """
 
+    :param normalise:
+    :param verbose:
     :param legend:
     :param zero:
     :param knot:
@@ -1242,10 +1235,6 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     :param spl_clamped:
     :param spl_wav:
     :param return_fig:
-    :param m_upper:
-    :param m_lower:
-    :param c_upper:
-    :param c_lower:
     :param ylim:
     :param frameon:
     :param units:

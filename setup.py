@@ -53,7 +53,9 @@ setup(# package information
     #             ],
           packages=[packageName,
                     ],
-      package_dir={packageName:'pycoco'}#,
+      package_dir={packageName:'pycoco'},
+      install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
+
     #   include_package_data = True,
     #   data_files = data_files
       )

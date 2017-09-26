@@ -368,6 +368,7 @@ def lambda_to_nu(wavelength):
 def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_distance=100):
     """
 
+    :param anchor_distance:
     :param spec_mjd:
     :param filters:
     :param staticfilter:
@@ -492,6 +493,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
 def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_table, verbose = False):
     """
 
+    :param verbose:
     :param spec_mjd:
     :param wanted_filters:
     :param wanted_flux:
@@ -608,6 +610,7 @@ def save_mangle(mS, filename, orig_filename, path=False,
 def applymangle(params, SpectrumObject, verbose = False):
     """
 
+    :param verbose:
     :param params:
     :param SpectrumObject:
     :return:
