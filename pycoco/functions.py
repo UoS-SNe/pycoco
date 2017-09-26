@@ -1195,6 +1195,27 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=_default_coc
     pass
 
 
+def check_specphase(snname, spectra_dir="spectra/", coco_dir=_default_coco_dir_path, absolute_path=False):
+    """
+
+    :param snname:
+    :param spectra_dir:
+    :param coco_dir:
+    :param absolute_path:
+    :return:
+    """
+    if not absolute_path:
+        spectra_dir = os.path.join(coco_dir, spectra_dir)
+
+    check_dir_path(spectra_dir)
+
+    dir_list = [spec for spec in os.listdir(spectra_dir) if spec[:len(snname)] == snname]
+    if verbose:
+        print(len(dir_list), "files found matching", snname)
+        print(dir_list)
+    return dir_list
+
+
 def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, show_lims=True, show_linear_extrap=False,
                     spl=False, spl_clamped=False, spl_wav=False, return_fig=False, ylim=False, frameon=True, units=True,
                     legend=True, zero=False, knot = True, savepng=False, savepdf=False, outpath="mangle", show=True,
