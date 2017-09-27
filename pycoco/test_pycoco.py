@@ -85,23 +85,23 @@ class TestClass(unittest.TestCase):
         self.assertRaises(pcc.errors.PathError, pcc.functions.find_filter_phot, "Zoidberg!")
 
     def test_check_dir_path_finds_pycoco_dir(self):
-        self.assertEqual(pcc.check_dir_path(pcc.defaults._default_data_dir_path), True)
+        self.assertEqual(pcc.utils.check_dir_path(pcc.defaults._default_data_dir_path), True)
 
     def test_check_dir_path_raises_PathError_for_None(self):
-        self.assertRaises(pcc.errors.PathError, pcc.check_dir_path, None)
+        self.assertRaises(pcc.errors.PathError, pcc.utils.check_dir_path, None)
 
     def test_check_dir_path_raises_PathError_for_file(self):
-        # self.assertEqual(pcc.check_dir_path(__file__), False)
-        self.assertRaises(pcc.errors.PathError, pcc.check_dir_path, __file__)
+        # self.assertEqual(pcc.utils.check_dir_path(__file__), False)
+        self.assertRaises(pcc.errors.PathError, pcc.utils.check_dir_path, __file__)
 
     def test_check_file_path_finds_SN2005bf(self):
-        self.assertEqual(pcc.check_file_path(os.path.join(pcc.defaults._default_data_dir_path, 'lc/SN2005bf.dat')), True)
+        self.assertEqual(pcc.utils.check_file_path(os.path.join(pcc.defaults._default_data_dir_path, 'lc/SN2005bf.dat')), True)
 
     def test_check_file_path_raises_PathError_for_None(self):
-        self.assertRaises(pcc.errors.PathError, pcc.check_file_path, None)
+        self.assertRaises(pcc.errors.PathError, pcc.utils.check_file_path, None)
 
     def test_check_file_path_raises_PathError_for_dir(self):
-        self.assertRaises(pcc.errors.PathError, pcc.check_file_path, pcc.defaults._default_data_dir_path)
+        self.assertRaises(pcc.errors.PathError, pcc.utils.check_file_path, pcc.defaults._default_data_dir_path)
 
     def test_find_specphase_spec_raises_PathError_for_None(self):
         self.assertRaises(pcc.errors.PathError, pcc.classes.find_specphase_spec, None)

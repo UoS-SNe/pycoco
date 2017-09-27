@@ -30,7 +30,7 @@ from .utils import *
 __all__ = ["load_filter",
            "get_filter_from_filename",
            "load_phot",
-        #    "load_formatted_phot",
+        #    "utils.load_formatted_phot",
            "load",
            "load_all_phot",
            "find_filter_phot",
@@ -38,7 +38,7 @@ __all__ = ["load_filter",
            "find_recon_spec",
         #    "find_specphase_spec",
         #    "setup_plot_defaults",
-        #    "read_list_file",
+        #    "utils.read_list_file",
            "load_specfit",
            "compare_spec",
            "filter_within_spec",
@@ -88,7 +88,7 @@ def load_filter(path, cmap = False, verbose = False):
     -------
     """
 
-    if check_file_path(os.path.abspath(path)):
+    if utils.check_file_path(os.path.abspath(path)):
         filter_object = classes.FilterClass()
         filter_object.read_filter_file(os.path.abspath(path), verbose = verbose)
 
@@ -145,7 +145,7 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
 
 def load(path, format = "ascii", verbose = True):
     pc = classes.PhotometryClass()
-    pc.phot = load_formatted_phot(path, format = format, verbose = verbose)
+    pc.phot = utils.load_formatted_phot(path, format = format, verbose = verbose)
     pc.unpack(verbose = verbose)
     return pc
 
@@ -215,7 +215,7 @@ def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
     # regex = re.compile("^SN.*.dat")
 
     errors.StringWarning(path)
-    if not check_dir_path(path):
+    if not utils.check_dir_path(path):
         # return False
         raise errors.PathError
 
@@ -284,7 +284,7 @@ def find_formatted_phot(path = defaults._default_data_dir_path, snname = False,
     # regex = re.compile("^SN.*.dat")
 
     errors.StringWarning(path)
-    if not check_dir_path(path):
+    if not utils.check_dir_path(path):
         return False
 
     try:
@@ -330,7 +330,7 @@ def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose
     """
     file_type = ".spec"
     errors.StringWarning(dir_path)
-    if not check_dir_path(dir_path):
+    if not utils.check_dir_path(dir_path):
         return False
 
     try:
@@ -374,8 +374,8 @@ def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose
 #     if type(snname) is not str and type(snname) is not np.string_:
 #         raise(errors.PathError)
 #
-#     if not check_dir_path(dir_path):
-#         print("check_dir_path failed")
+#     if not utils.check_dir_path(dir_path):
+#         print("utils.check_dir_path failed")
 #         return False
 #
 #     try:
@@ -450,7 +450,7 @@ def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose
 #     Returns
 #     -------
 #     """
-#     check_file_path(path)
+#     utils.check_file_path(path)
 #     #
 #     # ifile = open(path, 'r')
 #     #
@@ -493,7 +493,7 @@ def compare_spec(orig_spec, specfit,
                 orig_spec_flux = orig_spec.flux
                 mangled_spec_flux = specfit.flux
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -563,7 +563,7 @@ def plot_mangle(orig_spec, specfit,
 
             mangle = mangled_spec_flux/orig_spec_flux
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -765,7 +765,7 @@ def read_sndist_file(path = defaults._default_sn_dist_path, format = "ascii"):
     :param format:
     :return:
     """
-    check_file_path(path)
+    utils.check_file_path(path)
     table = Table.read(path, format = format)
     return table
 
@@ -903,7 +903,7 @@ def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
     # except:
     #     warnings.warn("Something funky with your input")
 
-    check_dir_path(coco_dir)
+    utils.check_dir_path(coco_dir)
 
     if verbose: print(coco_dir)
 
@@ -940,8 +940,8 @@ def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
     :return:
     """
 
-    check_file_path(path)
-    relist() ## Check filter file is up to date
+    utils.check_file_path(path)
+    utils.relist() ## Check filter file is up to date
 
     if model:
         models = np.unique([i.split(".")[0] for i in os.listdir(os.path.join(defaults._default_coco_dir_path, "src/models"))])
@@ -975,7 +975,7 @@ def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_pat
     :return:
     """
 
-    check_file_path(listfile_path)
+    utils.check_file_path(listfile_path)
 
     if verbose: print("Reading ", listfile_path)
 
@@ -1021,7 +1021,7 @@ def test_specfit(snname, coco_dir = False,
     except:
         warnings.warn("Something funky with your input")
 
-    check_dir_path(coco_dir)
+    utils.check_dir_path(coco_dir)
 
     if verbose: print(coco_dir)
 
@@ -1086,8 +1086,8 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
                 kcorr.save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile)
     else:
         print("SNObject needs lcfit and spectra")
-    # check_file_path(path)
-    # relist() ## Check filter file is up to date
+    # utils.check_file_path(path)
+    # utils.relist() ## Check filter file is up to date
     # cwd = os.getcwd()
     # os.chdir(coco_dir)
     # if verbose: print("Running CoCo specfit on " + path)
@@ -1104,8 +1104,8 @@ def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = Tr
     Returns
     -------
     """
-    check_file_path(path)
-    relist() ## Check filter file is up to date
+    utils.check_file_path(path)
+    utils.relist() ## Check filter file is up to date
     cwd = os.getcwd()
     os.chdir(coco_dir)
     if verbose: print("Running CoCo specfit on " + path)
@@ -1116,7 +1116,7 @@ def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = Tr
 def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False):
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
-    check_dir_path(dirpath)
+    utils.check_dir_path(dirpath)
 
     if verbose: print(dirpath)
 
@@ -1186,7 +1186,7 @@ def specfit_sn(snname, verbose = True):
     ## Need to change the listfile to one that has snname matches the new lc file
     listpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + ".list")
 
-    origlist = read_list_file(listpath)
+    origlist = utils.read_list_file(listpath)
     origlist.rename_column('snname', 'snname_nomangle')
     origlist["snname"] = [j+"_m" for j in origlist["snname_nomangle"]]
 
@@ -1212,15 +1212,15 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=defaults._de
     Returns
     -------
     """
-    filters = _get_current_filter_registry()
+    filters = utils._get_current_filter_registry()
 
     if filtername+filetype not in filters:
         warnings.warn("Filtername not recognised")
         return False
 
-    check_file_path(phase_path)
+    utils.check_file_path(phase_path)
 
-    relist() ## Check filter file is up to date
+    utils.relist() ## Check filter file is up to date
     cwd = os.getcwd()
     os.chdir(coco_dir)
     # if verbose: print("Running CoCo specfit on " + path)
@@ -1241,7 +1241,7 @@ def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_c
     if not absolute_path:
         spectra_dir = os.path.join(coco_dir, spectra_dir)
 
-    check_dir_path(spectra_dir)
+    utils.check_dir_path(spectra_dir)
 
     dir_list = [spec for spec in os.listdir(spectra_dir) if spec[:len(snname)] == snname]
     if verbose:
@@ -1288,7 +1288,7 @@ def plot_mangledata(S, data_table, mS=False, xminorticks=250, yminorticks=0.1, s
     :return:
     """
 
-    setup_plot_defaults()
+    utils.setup_plot_defaults()
     xaxis_label_string = r'$\textnormal{Wavelength, Angstrom (\AA)}$'
     yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 

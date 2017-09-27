@@ -30,7 +30,7 @@ from .classes import *
 from .colours import *
 from .defaults import *
 from .functions import *
-from .utils import check_file_path, check_dir_path, b
+from .utils import utils.check_file_path, utils.check_dir_path, b
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -162,7 +162,7 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = def
             filter_object.calculate_filter_area()
             return filter_object._effective_area
     else:
-        check_file_path(os.path.join(filter_path, filter_name + ".dat"))
+        utils.check_file_path(os.path.join(filter_path, filter_name + ".dat"))
 
         filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
         filter_object.calculate_effective_wavelength()
@@ -187,7 +187,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
     :return:
     """
     if not filter_object:
-        check_file_path(os.path.join(filter_path, filter_name + ".dat"))
+        utils.check_file_path(os.path.join(filter_path, filter_name + ".dat"))
 
         filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
         if not hasattr(filter_object, "lambda_effective"):
@@ -196,7 +196,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
     if not spectrum_object:
         spectrum_path=os.path.join(spectrum_dir, spectrum_filename)
 
-        check_file_path(spectrum_path)
+        utils.check_file_path(spectrum_path)
 
         spectrum_object = SpectrumClass()
         spectrum_object.load(filename=spectrum_filename)
@@ -579,7 +579,7 @@ def save_mangle(mS, filename, orig_filename, path=False,
 
         outpath = os.path.join(path, filename)
 
-        check_dir_path(path)
+        utils.check_dir_path(path)
 
         save_table = Table()
 

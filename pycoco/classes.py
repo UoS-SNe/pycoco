@@ -224,7 +224,7 @@ class BaseSpectrumClass():
                     if verbose: print("You didn't supply a directory, so using self.recon_directory")
             else:
                 errors.StringWarning(directory)
-                check_dir_path(directory)
+                utils.check_dir_path(directory)
 
                 path = os.path.join(directory, filename)
                 if verbose: print(path)
@@ -320,7 +320,7 @@ class BaseSpectrumClass():
 
         if hasattr(self, "data"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.95,
@@ -479,7 +479,7 @@ class BaseSpectrumClass():
 
             outpath = os.path.join(path, filename)
 
-            check_dir_path(path)
+            utils.check_dir_path(path)
 
             if os.path.isfile(outpath):
                 if squash:
@@ -645,7 +645,7 @@ class BaseLightCurveClass():
 
                 # def load_filter(path, cmap = False, verbose = False):
                 #
-                if check_file_path(os.path.abspath(path_to_filter)):
+                if utils.check_file_path(os.path.abspath(path_to_filter)):
                     filter_object = FilterClass()
                     filter_object.read_filter_file(os.path.abspath(path_to_filter), verbose = verbose)
                     filter_object.calculate_AB_zp()
@@ -790,7 +790,7 @@ class BaseLightCurveClass():
             else:
                 errors.StringWarning(path)
 
-            check_dir_path(path)
+            utils.check_dir_path(path)
 
             outpath = os.path.join(path, filename)
 
@@ -963,7 +963,7 @@ class BaseFilterClass():
         ## Check if there is something in the class to plot
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
             if hasattr(self._wavelength_units, "format"):
                 if "latex" in self._wavelength_units.format:
                     xaxis_label_string = r'$\textnormal{Wavelength, ' + self._wavelength_units.name + ' (}' + self._wavelength_units._format['latex'] +')$'
@@ -1073,7 +1073,7 @@ class BaseFilterClass():
         """
 
 
-        if check_file_path(os.path.abspath(path), verbose = verbose):
+        if utils.check_file_path(os.path.abspath(path), verbose = verbose):
 
             self.data = Table.read(path, format = fmt, names = names)
 
@@ -1152,7 +1152,7 @@ class BaseFilterClass():
 
             outpath = os.path.join(path, filename)
 
-            check_dir_path(path)
+            utils.check_dir_path(path)
 
             if os.path.isfile(outpath):
                 warnings.warn("Found existing file matching " + path + ". Run with squash = True to overwrite")
@@ -1270,7 +1270,7 @@ class PhotometryClass(BaseLightCurveClass):
         """
         errors.StringWarning(path)
         try:
-            phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
+            phot_table = self._utils.load_formatted_phot(path, names = names, format = format, verbose = verbose)
             self.phot = phot_table
             self.unpack()
 
@@ -1280,7 +1280,7 @@ class PhotometryClass(BaseLightCurveClass):
             raise Exception
 
 
-    def _load_formatted_phot(self, path, format = "ascii", names = False,
+    def _utils.load_formatted_phot(self, path, format = "ascii", names = False,
                             verbose = True):
         """
         Loads a single photometry file.
@@ -1466,7 +1466,7 @@ class PhotometryClass(BaseLightCurveClass):
                 filters = self.data_filters
             if type(filters) == str:
                 filters = [filters]
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.93,
@@ -1536,7 +1536,7 @@ class PhotometryClass(BaseLightCurveClass):
         """
         if hasattr(self, "data_filters"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, (\AA)}$'
             yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
             yminorLocator = MultipleLocator(yminorticks)
@@ -1718,7 +1718,7 @@ class LCfitClass(BaseLightCurveClass):
             pass
 
 
-    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+    def utils.load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
                   format = 'ascii', verbose = True):
         """
 
@@ -1726,7 +1726,7 @@ class LCfitClass(BaseLightCurveClass):
         errors.StringWarning(path)
 
         try:
-            phot_table = load_formatted_phot(path, format = format, names = names,
+            phot_table = utils.load_formatted_phot(path, format = format, names = names,
                                              verbose = verbose)
             self.phot = phot_table
 
@@ -1753,7 +1753,7 @@ class LCfitClass(BaseLightCurveClass):
 
         if hasattr(self, "data"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -1936,7 +1936,7 @@ class specfitClass(BaseSpectrumClass):
 
         if hasattr(self, "data"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 4])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -2009,7 +2009,7 @@ class FilterClass(BaseFilterClass):
         """
         Assumes Response function is fractional rather than %.
         """
-        if check_file_path(os.path.abspath(path), verbose = verbose):
+        if utils.check_file_path(os.path.abspath(path), verbose = verbose):
             self.data = Table.read(path, format = fmt, names = names)
             self.wavelength = self.data["wavelength"] * wavelength_u
             if verbose: print("1", np.nanmax(self.wavelength))
@@ -2292,7 +2292,7 @@ class SNClass():
         Returns
         -------
         """
-        listdata = read_list_file(path, verbose=verbose)
+        listdata = utils.read_list_file(path, verbose=verbose)
         listdata.sort('mjd_obs')
 
         phases = []
@@ -2403,7 +2403,7 @@ class SNClass():
             # self.z = sndist["z"].data[0]
             # self.distmod = sndist["mu"].data[0]
 
-            check_file_path(path)
+            utils.check_file_path(path)
             sndistlist = Table.read(path, format = format)
 
             try:
@@ -2444,7 +2444,7 @@ class SNClass():
             if type(filters) == str:
                 filters = [filters]
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
             if not multiplot:
                 fig = plt.figure(figsize=[8, 4])
             else:
@@ -2603,7 +2603,7 @@ class SNClass():
         """
         if hasattr(self, "spec"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 10])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -2713,7 +2713,7 @@ class SNClass():
         """
         if hasattr(self, "mangledspec"):
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
 
             fig = plt.figure(figsize=[8, 10])
             fig.subplots_adjust(left = 0.09, bottom = 0.13, top = 0.99,
@@ -2825,7 +2825,7 @@ class SNClass():
             if not filters:
                 filters = self.phot.data_filters
 
-            setup_plot_defaults()
+            utils.setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, Angstrom }(\AA)$'
             yaxis_label_string = r'$\textnormal{Fractional Throughput}$'
 
@@ -2890,7 +2890,7 @@ class SNClass():
         """
         errors.StringWarning(path)
         self.lcfit = LCfitClass()
-        self.lcfit.load_formatted_phot(path)
+        self.lcfit.utils.load_formatted_phot(path)
         self.lcfit.unpack()
         self.lcfit._sort_phot()
         self.lcfit.get_fit_splines()
@@ -3102,8 +3102,8 @@ def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path,
     if type(snname) is not str and type(snname) is not np.string_:
         raise(errors.PathError)
 
-    if not check_dir_path(dir_path):
-        print("check_dir_path failed")
+    if not utils.check_dir_path(dir_path):
+        print("utils.check_dir_path failed")
         return False
 
     try:
@@ -3168,7 +3168,7 @@ def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
     # regex = re.compile("^SN.*.dat")
 
     errors.StringWarning(path)
-    if not check_dir_path(path):
+    if not utils.check_dir_path(path):
         # return False
         raise errors.PathError
 
