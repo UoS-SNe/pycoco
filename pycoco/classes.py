@@ -1314,7 +1314,7 @@ class PhotometryClass(BaseLightCurveClass):
         """
         errors.StringWarning(path)
         try:
-            # phot_table = load_phot(path, names = names, format = format, verbose = verbose)
+            # phot_table = functions.load_phot(path, names = names, format = format, verbose = verbose)
                 # phot_table = ap.table.Table.read(path, format = format, names = names)
             phot_table = Table.read(path, format = format, names = names)
 
@@ -1371,7 +1371,7 @@ class PhotometryClass(BaseLightCurveClass):
 
                     full_phot_table = vstack([full_phot_table, phot_table])
 
-                    filter_string = get_filter_from_filename(phot_file, snname, file_type)
+                    filter_string = functions.get_filter_from_filename(phot_file, snname, file_type)
                     phot_table.meta = {"filename" : phot_file,
                                        "filter" : filter_string,
                                        "filter_filename": filter_string + filter_file_type}
@@ -1395,7 +1395,7 @@ class PhotometryClass(BaseLightCurveClass):
                     self.data[filter_key] = phot_table
 
                     path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
-                    self.data_filters[filter_key] = load_filter(path_to_filter)
+                    self.data_filters[filter_key] = functions.load_filter(path_to_filter)
 
 
                 ## NOTE doing it this way because vstack doesn't like mixin columns (see above comment)
@@ -2365,7 +2365,7 @@ class SNClass():
         if not snname:
             snname = self.name
 
-        # self._mangledspeclist = find_recon_spec(snname)
+        # self._mangledspeclist = functions.find_recon_spec(snname)
         self._mangledspeclist = find_specphase_spec(self.name)
         self.mangledspec = OrderedDict()
         if verbose: print("loading mangledspec")
@@ -2395,7 +2395,7 @@ class SNClass():
 
     def load_sndist(self, path = defaults._default_sn_dist_path, format = "ascii"):
         """
-        based on read_sndist_file and load_sndist
+        based on functions.read_sndist and load_sndist
         """
 
         if hasattr(self, "name"):
@@ -2909,7 +2909,7 @@ class SNClass():
         self.specfit = OrderedDict()
 
         if hasattr(self, "name"):
-            specfit_list = find_recon_spec(self.recon_directory, self.name, verbose = verbose)
+            specfit_list = functions.find_recon_spec(self.recon_directory, self.name, verbose = verbose)
             # if verbose: print(specfit_list)
 
             for i, specfit_file in enumerate(specfit_list):
@@ -3007,7 +3007,7 @@ class SNClass():
     def check_overlaps(self, verbose = False):
         """
         Checks the filters that the spectrum overlaps with.
-        originally used filter_within_spec
+        originally used functions.filter_within_spec
 
         Parameters
         ----------

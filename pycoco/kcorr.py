@@ -164,7 +164,7 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = def
     else:
         check_file_path(os.path.join(filter_path, filter_name + ".dat"))
 
-        filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
         filter_object.calculate_effective_wavelength()
         filter_area = simps(filter_object.throughput, filter_object.wavelength)
 
@@ -189,7 +189,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
     if not filter_object:
         check_file_path(os.path.join(filter_path, filter_name + ".dat"))
 
-        filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
         if not hasattr(filter_object, "lambda_effective"):
             filter_object.calculate_effective_wavelength()
 
@@ -223,7 +223,7 @@ def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, f
     AB = load_AB()
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(filter_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
 
     filter_object.calculate_effective_wavelength()
     filter_object.resample_response(new_wavelength = AB.wavelength)
@@ -240,7 +240,7 @@ def calc_AB_zp(filter_name=False, filter_object = False):
 
     """
     if not filter_object and filter_name:
-        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
 
     integrated_flux = calc_AB_flux(filter_name, filter_object=filter_object)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
@@ -256,7 +256,7 @@ def calc_vega_flux(filter_name, filter_object = False,):
     vega = load_vega()
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
     # else if hasattr(filter_object, "wavelength"):
 
     filter_object.resample_response(new_wavelength = vega.wavelength)
@@ -274,7 +274,7 @@ def calc_vega_zp(filter_name, filter_object = False, vega_Vmag = 0.03):
     """
 
     if not filter_object:
-        filter_object = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
+        filter_object = functions.load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
 
     integrated_flux = calc_vega_flux(filter_name)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
@@ -384,7 +384,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
         filter_dict = OrderedDict()
 
         for i, f in enumerate(filters):
-            filter_dict[f] = load_filter(os.path.join(defaults._default_filter_dir_path, f + ".dat"))
+            filter_dict[f] = functions.load_filter(os.path.join(defaults._default_filter_dir_path, f + ".dat"))
             filter_dict[f].calculate_edges()
             #     filter_dict[f].calculate_edges_zero()
 
@@ -452,7 +452,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
 
             return fit_dict
 
-        mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="fitflux", verbose=verbose)
+        mc_l, mc_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="fitflux", verbose=verbose)
         anchor_l = mc_l[0] * anchor_min_wavelength + mc_l[1]
         anchor_u = mc_u[0] * anchor_max_wavelength + mc_u[1]
 
@@ -460,7 +460,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
         spl_wav = S.data['wavelength'][
             np.logical_and(S.data['wavelength'] >= anchor_min_wavelength, S.data['wavelength'] <= anchor_max_wavelength)]
 
-        mc_spec_l, mc_spec_u = calc_linear_terms(data_table[data_table["mask"]], key="spec_filterflux", verbose=verbose)
+        mc_spec_l, mc_spec_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="spec_filterflux", verbose=verbose)
         anchor_spec_l = mc_spec_l[0] * anchor_min_wavelength + mc_spec_l[1]
         anchor_spec_u = mc_spec_u[0] * anchor_max_wavelength + mc_spec_u[1]
 
@@ -515,7 +515,7 @@ def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_tabl
     paramlist = np.array([params[key].value for key in params.keys()])
     data_table["weights"] = Column(np.append(1, np.append(paramlist, 1)), name="weights")
 
-    mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
+    mc_l, mc_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
     weight_l = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
     weight_u = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
 
@@ -529,7 +529,7 @@ def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_tabl
 
     paramlist = np.array([out.params[key].value for key in out.params.keys()])
 
-    mc_l, mc_u = calc_linear_terms(data_table, key="weights")
+    mc_l, mc_u = functions.calc_linear_terms(data_table, key="weights")
     data_table["weights"][0] = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
     data_table["weights"][-1] = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
     weights = data_table["weights"].data
@@ -665,7 +665,7 @@ def manglemin(params, SpectrumObject, data_table, verbose=False, clamped=False, 
     paramlist = np.array([params[key].value for key in params.keys()])
 
     # weights = np.append(np.append(1.0, paramlist), 1.0)
-    mc_l, mc_u = calc_linear_terms(data_table[data_table["mask"]], key="weights")
+    mc_l, mc_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="weights")
     data_table["weights"][0] = mc_l[0] * data_table["lambda_eff"][0] + mc_l[1]
     data_table["weights"][-1] = mc_u[0] * data_table["lambda_eff"][-1] + mc_u[1]
     weights = data_table["weights"].data

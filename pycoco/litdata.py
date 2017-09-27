@@ -327,7 +327,7 @@ def SN2009jf_read_ap(format = "ascii", names = ('MJD', 'flux', 'flux_err', 'filt
     # return jfdict
     for i, phot_filter in enumerate(jfdict.keys()):
         filter_path = os.path.join(filter_dir, phot_filter + ".dat")
-        FilterObj = load_filter(filter_path)
+        FilterObj = functions.load_filter(filter_path)
         FilterObj.calculate_frequency()
         FilterObj.calculate_effective_frequency()
 

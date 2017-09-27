@@ -51,7 +51,7 @@ class TestClass(unittest.TestCase):
     #     self.assertEqual(x._get_data_directory(), pcc.defaults._default_data_dir_path)
 
     def test_load_all_phot_returns_PathError_for_None(self):
-        self.assertRaises(pcc.errors.PathError, pcc.load_all_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.functions.load_all_phot, None)
 
     # def test_find_filter_phot_finds_5_SN2005bf(self):
     #     directory_path_to_search = os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "lc"))
@@ -62,27 +62,27 @@ class TestClass(unittest.TestCase):
 
     def test_find_formatted_phot_finds_SN2005bf(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "lc"))
-        phot_path = pcc.find_formatted_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")[0]
+        phot_path = pcc.functions.find_formatted_phot(directory_path_to_search, snname = "SN2005bf", verbose = False, prefix = "")[0]
         phot_filename = phot_path.split('/')[-1]
         self.assertEqual(phot_filename, 'SN2005bf.dat')
 
     def test_find_filter_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "lc"))
-        self.assertEqual(len(pcc.find_filter_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
+        self.assertEqual(len(pcc.functions.find_filter_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
     def test_find_formatted_phot_finds_no_SN2011fe_data(self):
         directory_path_to_search = os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "lc"))
-        self.assertEqual(len(pcc.find_formatted_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
+        self.assertEqual(len(pcc.functions.find_formatted_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
     def test_find_formatted_phot_throws_path_error_for_None(self):
-        self.assertRaises(pcc.errors.PathError, pcc.find_formatted_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.functions.find_formatted_phot, None)
 
     def test_find_formatted_phot_throws_path_error_for_None(self):
-        self.assertRaises(pcc.errors.PathError, pcc.find_formatted_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.functions.find_formatted_phot, None)
 
     def test_find_phot_returns_PathError_for_zoidberg(self):
         # self.assertEqual(pcc.find_filter_phot('Zoidberg!'), False)
-        self.assertRaises(pcc.errors.PathError, pcc.find_filter_phot, "Zoidberg!")
+        self.assertRaises(pcc.errors.PathError, pcc.functions.find_filter_phot, "Zoidberg!")
 
     def test_check_dir_path_finds_pycoco_dir(self):
         self.assertEqual(pcc.check_dir_path(pcc.defaults._default_data_dir_path), True)
@@ -113,11 +113,11 @@ class TestClass(unittest.TestCase):
         self.assertTrue(len(pcc.classes.find_specphase_spec("SN2006aj")) == 18)
 
     def test_load_info_finds_and_loads_default(self):
-        i = pcc.load_info()
+        i = pcc.functions.load_info()
         self.assertTrue(i.table.meta["success"])
 
     def test_load_info_finds_default(self):
-        i = pcc.load_info()
+        i = pcc.functions.load_info()
         self.assertEqual(len(i.table), 28)
 
 
@@ -158,31 +158,31 @@ class TestClass(unittest.TestCase):
     def test_filter_name_parsed_OK(self):
         filter_filename = "BessellB.dat"
         path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), filter_filename)
-        B = pcc.load_filter(path_to_filter)
+        B = pcc.functions.load_filter(path_to_filter)
         self.assertEqual(B.filter_name, "BessellB")
 
     def test_filter_default_colour(self):
         filter_filename = "BessellB.dat"
         path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), filter_filename)
-        B = pcc.load_filter(path_to_filter)
+        B = pcc.functions.load_filter(path_to_filter)
         self.assertEqual(B._plot_colour, "#0000ff")
 
     def test_filter_default_wavelength_units(self):
         filter_filename = "BessellV.dat"
         path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), filter_filename)
-        V = pcc.load_filter(path_to_filter)
+        V = pcc.functions.load_filter(path_to_filter)
         self.assertEqual(V._wavelength_units, u.Angstrom)
 
     def test_filter_default_frequency_units(self):
         filter_filename = "BessellV.dat"
         path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), filter_filename)
-        V = pcc.load_filter(path_to_filter)
+        V = pcc.functions.load_filter(path_to_filter)
         self.assertEqual(V._frequency_units, u.Hertz)
 
     def test_filter_edge_calc(self):
         filter_filename = "BessellB.dat"
         path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), filter_filename)
-        B = pcc.load_filter(path_to_filter)
+        B = pcc.functions.load_filter(path_to_filter)
         self.assertEqual(round(float(B._upper_edge), 2), 5203.28)
         self.assertEqual(round(float(B._lower_edge), 2), 3784.99)
 
@@ -198,7 +198,7 @@ class TestClass(unittest.TestCase):
         for LSST_filter_name in LSST_filter_list:
             path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), LSST_filter_name + ".dat")
             try:
-                F = pcc.load_filter(path_to_filter)
+                F = pcc.functions.load_filter(path_to_filter)
                 success.append(1)
             except:
                 success.append(0)
