@@ -9,8 +9,10 @@ from astropy.io import ascii
 from astropy.table import Table, Column, vstack, MaskedColumn
 from astropy.time import Time
 
-from .classes import *
-from .functions import *
+# from .classes import *
+# from .functions import *
+from . import classes
+from . import functions
 
 __all__ = ["LitLightCurveClass",
            "JD_to_MJD",

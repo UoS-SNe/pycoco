@@ -140,11 +140,11 @@ class TestClass(unittest.TestCase):
     # SpectrumClass
 
     def test_SpectrumClass_get_data_dir_returns_default(self):
-        x = pcc.SpectrumClass()
+        x = pcc.classes.SpectrumClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc.defaults._default_data_dir_path))
 
     def test_SpectrumClass_get_data_dir_returns_default_spec_dir(self):
-        x = pcc.SpectrumClass()
+        x = pcc.classes.SpectrumClass()
         self.assertEqual(os.path.abspath(x._get_data_directory()), os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "spec/")))
 
     # specfitClass
@@ -217,7 +217,7 @@ class TestClass(unittest.TestCase):
 
     def test_kcorr_load_dark_sky_spectrum(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
-        darksky = pcc.SpectrumClass()
+        darksky = pcc.classes.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
         self.assertEqual(darksky.success, True)
 

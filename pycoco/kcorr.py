@@ -26,11 +26,16 @@ import numpy as np
 from scipy import interpolate
 from scipy.integrate import simps
 
-from .classes import *
-from .colours import *
-from .defaults import *
-from .functions import *
-from .utils import utils.check_file_path, utils.check_dir_path, b
+# from .classes import *
+# from .colours import *
+# from .defaults import *
+# from .functions import *
+# from .utils import utils.check_file_path, utils.check_dir_path, b
+from . import classes
+from . import colours
+from . import defaults
+from . import functions
+from . import utils
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -97,7 +102,7 @@ def load_vega(path = os.path.join(defaults._default_kcorr_data_path, "alpha_lyr_
     """
     returns spectrum of Vega as a SpectrumClass instance
     """
-    vega = SpectrumClass()
+    vega = classes.SpectrumClass()
     vega.load(path, wmin = wmin, *args, **kwargs)
 
     return vega
@@ -107,7 +112,7 @@ def load_AB(path = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospe
     """
     returns 'spectrum' as a SpectrumClass instance
     """
-    AB = SpectrumClass()
+    AB = classes.SpectrumClass()
     AB.load(path, wmin = wmin, *args, **kwargs)
 
     return AB
@@ -198,7 +203,7 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
 
         utils.check_file_path(spectrum_path)
 
-        spectrum_object = SpectrumClass()
+        spectrum_object = classes.SpectrumClass()
         spectrum_object.load(filename=spectrum_filename)
 
     if not np.array_equal(filter_object.wavelength, spectrum_object.wavelength):
@@ -304,7 +309,7 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     setenv LSST_THROUGHPUTS_BASELINE ${LSST_THROUGHPUTS}/baseline
     """
     dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
-    darksky = SpectrumClass()
+    darksky = classes.SpectrumClass()
     darksky.load(dark_sky_path, wavelength_u = u.nm, flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
                  fmt = "ascii.commented_header", wmin = wmin, wmax = wmax, *args, **kwargs)
 
@@ -324,7 +329,7 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
     """
     if not dark_sky:
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
-        darksky = SpectrumClass()
+        darksky = classes.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u=u.nm, flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
                      fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, )
 
@@ -334,13 +339,16 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
         else:
             filter_object.get_zeropoint()
             zp = filter_object.zp_AB
+        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_object=filter_object, spectrum_object=darksky)) - zp
+
     else:
         if vega:
             zp = calc_vega_zp(filter_name)
         else:
             zp = calc_AB_zp(filter_name)
 
-    return -2.5 * np.log10(calc_spectrum_filter_flux(filter_name, darksky)) - zp
+        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_name=filter_name, spectrum_object=darksky)) - zp
+
 
 
 def nu_to_lambda(freq):

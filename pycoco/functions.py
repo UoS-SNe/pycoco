@@ -17,11 +17,16 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from scipy.interpolate import InterpolatedUnivariateSpline
 
-from .classes import *
-from .colours import *
-from .defaults import *
-from .errors import *
-from .utils import *
+# from .classes import *
+# from .colours import *
+# from .defaults import *
+# from .errors import *
+# from .utils import *
+from . import classes
+from . import colours
+from . import defaults
+from . import errors
+from . import utils
 
 ##
 #

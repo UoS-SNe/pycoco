@@ -24,12 +24,18 @@ from scipy.integrate import simps
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
-from .colours import *
-from .defaults import *
-from .errors import *
-from .extinction import *
-from .models import *
-from .utils import *
+#  from .colours import *
+# from .defaults import *
+# from .errors import *
+# from .extinction import *
+# from .models import *
+# from .utils import *
+from . import colours
+from . import defaults
+from . import errors
+from . import extinction
+from . import models
+from . import utils
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
@@ -1280,7 +1286,7 @@ class PhotometryClass(BaseLightCurveClass):
             raise Exception
 
 
-    def _utils.load_formatted_phot(self, path, format = "ascii", names = False,
+    def load_formatted_phot(self, path, format = "ascii", names = False,
                             verbose = True):
         """
         Loads a single photometry file.
@@ -1595,11 +1601,11 @@ class SpectrumClass(BaseSpectrumClass):
 
         ## Initialise the class variables
         self._default_data_dir_path = os.path.join(defaults._default_data_dir_path, "spec/")
-        # self._default_list_dir_path = self._default_data_dir_path
+        self._default_list_dir_path = defaults._default_list_dir_path
 
         ## Initialise using class methods
         self.set_data_directory(self._default_data_dir_path)
-
+        self.set_list_directory(self._get_list_directory())
         pass
 
 
@@ -1718,7 +1724,7 @@ class LCfitClass(BaseLightCurveClass):
             pass
 
 
-    def utils.load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
+    def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
                   format = 'ascii', verbose = True):
         """
 

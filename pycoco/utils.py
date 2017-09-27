@@ -16,8 +16,10 @@ from astropy import units as u
 from astropy.table import Table, Column
 from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
 
-from .defaults import *
-from .errors import *
+# from .defaults import *
+# from .errors import *
+from . import defaults
+from . import errors
 
 __all__ = ["setup_plot_defaults",
            "relist",
