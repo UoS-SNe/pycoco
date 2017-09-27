@@ -890,7 +890,7 @@ class BaseFilterClass():
             self._effective_area = simps(self.throughput, self.wavelength)
 
 
-    def calculate_AB_zp(self, ABpath = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom, wmax=25000 * u.angstrom):
+    def calculate_AB_zp(self, ABpath = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom, wmax=25000 * u.angstrom):
         """
         """
 
@@ -2109,8 +2109,8 @@ class FilterClass(BaseFilterClass):
 
         if hasattr(self, 'lambda_effective'):
 
-            relative_lambda = self.lambda_effective - _colour_lower_lambda_limit
-            relative_lambda = relative_lambda / _colour_lower_lambda_limit
+            relative_lambda = self.lambda_effective - defaults._colour_upper_lambda_limit
+            relative_lambda = relative_lambda / defaults._colour_upper_lambda_limit
 
             if verbose: print("relative_lambda = ", relative_lambda)
 
@@ -3050,7 +3050,7 @@ class InfoClass():
 
     def load(self, path = False):
         if not path:
-            path = _default_info_path
+            path = defaults._default_info_path
 
         self._data = Table.read(path, format = "ascii.commented_header")
 

@@ -93,7 +93,7 @@ offset = {
 #     return phot_table
 
 
-def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
+def load_vega(path = os.path.join(defaults._default_kcorr_data_path, "alpha_lyr_stis_002.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
     """
     returns spectrum of Vega as a SpectrumClass instance
     """
@@ -103,7 +103,7 @@ def load_vega(path = os.path.join(_default_kcorr_data_path, "alpha_lyr_stis_002.
     return vega
 
 
-def load_AB(path = os.path.join(_default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
+def load_AB(path = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
     """
     returns 'spectrum' as a SpectrumClass instance
     """
@@ -135,7 +135,7 @@ def generate_AB_pseudospectrum(fnu = False):
     return table
 
 
-def load_atmosphere(path = os.path.join(_default_lsst_throughputs_path, "baseline/atmos_std.dat")):
+def load_atmosphere(path = os.path.join(defaults._default_lsst_throughputs_path, "baseline/atmos_std.dat")):
     """
     reads in atmosphere from LSST_THROUGHPUTS, default is at airmass 1.2
     """
