@@ -413,7 +413,7 @@ class BaseSpectrumClass():
             if hasattr(self, "EBV") and not EBV_MW:
                 EBV_MW = self.EBV
 
-            self.flux_dered = deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
+            self.flux_dered = extinction.deredden(self.wavelength, self.flux, z, EBV_MW = EBV_MW, EBV_host=EBV_host)
             self.data["flux_dered"] = self.flux_dered
 
         else:
