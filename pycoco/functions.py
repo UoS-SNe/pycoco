@@ -129,7 +129,7 @@ def load_phot(path, names = ('MJD', 'flux', 'flux_err', 'filter'),
     -------
     """
 
-    StringWarning(path)
+    errors.StringWarning(path)
 
     # phot_table = ap.table.Table.read(path, format = format, names = names)
     phot_table = Table.read(path, format = format, names = names)
@@ -164,7 +164,7 @@ def load_all_phot(path = defaults._default_data_dir_path, format = "ascii", verb
     #         warnings.warn(os.path.abspath(data_dir_path) +
     #         " is not a valid directory. Returning 'False'.")
     # except:
-    #     raise PathError("The data directory '" + path + "' doesn't exist.")
+    #     raise errors.PathError("The data directory '" + path + "' doesn't exist.")
     phot_list = find_filter_phot(path = path)
 
     if len(phot_list) > 0:
@@ -214,10 +214,10 @@ def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
     """
     # regex = re.compile("^SN.*.dat")
 
-    StringWarning(path)
+    errors.StringWarning(path)
     if not check_dir_path(path):
         # return False
-        raise PathError
+        raise errors.PathError
 
 
     try:
@@ -283,7 +283,7 @@ def find_formatted_phot(path = defaults._default_data_dir_path, snname = False,
     """
     # regex = re.compile("^SN.*.dat")
 
-    StringWarning(path)
+    errors.StringWarning(path)
     if not check_dir_path(path):
         return False
 
@@ -329,7 +329,7 @@ def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose
     -------
     """
     file_type = ".spec"
-    StringWarning(dir_path)
+    errors.StringWarning(dir_path)
     if not check_dir_path(dir_path):
         return False
 
@@ -369,10 +369,10 @@ def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose
 #     -------
 #     """
 #     if verbose: print(dir_path)
-#     StringWarning(dir_path)
-#     StringWarning(snname)
+#     errors.StringWarning(dir_path)
+#     errors.StringWarning(snname)
 #     if type(snname) is not str and type(snname) is not np.string_:
-#         raise(PathError)
+#         raise(errors.PathError)
 #
 #     if not check_dir_path(dir_path):
 #         print("check_dir_path failed")

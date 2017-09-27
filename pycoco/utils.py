@@ -178,14 +178,14 @@ def check_dir_path(path, verbose = False):
             return True
         elif os.path.isfile(os.path.abspath(path)):
             if verbose: print("is file")
-            raise PathError
+            raise errors.PathError
         else:
         #     if verbose: print("bar")
             warnings.warn(os.path.abspath(path) +
             " is not a valid directory. Returning 'False'.")
             return False
     except:
-        raise PathError("The path '" + str(path) + "'is not a directory or doesn't exist.")
+        raise errors.PathError("The path '" + str(path) + "'is not a directory or doesn't exist.")
 
 
 def check_file_path(path, verbose = False):
@@ -199,13 +199,13 @@ def check_file_path(path, verbose = False):
 
         elif os.path.isdir(os.path.abspath(path)):
             if verbose: print("is dir")
-            raise PathError
+            raise errors.PathError
         else:
             warnings.warn(os.path.abspath(path) +
             " is not a valid file. Returning 'False'.")
             return False
     except:
-        raise PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
+        raise errors.PathError("The data file '" + str(path) + "' doesn't exist or is a directory.")
 
 
 def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
@@ -351,7 +351,7 @@ def load_formatted_phot(path, format = "ascii", names = False,
     -------
     """
 
-    StringWarning(path)
+    errors.StringWarning(path)
 
     if names:
         phot_table = Table.read(path, format = format, names = names)

@@ -51,7 +51,7 @@ class TestClass(unittest.TestCase):
     #     self.assertEqual(x._get_data_directory(), pcc.defaults._default_data_dir_path)
 
     def test_load_all_phot_returns_PathError_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.load_all_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.load_all_phot, None)
 
     # def test_find_filter_phot_finds_5_SN2005bf(self):
     #     directory_path_to_search = os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "lc"))
@@ -75,36 +75,36 @@ class TestClass(unittest.TestCase):
         self.assertEqual(len(pcc.find_formatted_phot(directory_path_to_search, snname = "SN2011fe", verbose = False)), 0)
 
     def test_find_formatted_phot_throws_path_error_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.find_formatted_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.find_formatted_phot, None)
 
     def test_find_formatted_phot_throws_path_error_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.find_formatted_phot, None)
+        self.assertRaises(pcc.errors.PathError, pcc.find_formatted_phot, None)
 
     def test_find_phot_returns_PathError_for_zoidberg(self):
         # self.assertEqual(pcc.find_filter_phot('Zoidberg!'), False)
-        self.assertRaises(pcc.PathError, pcc.find_filter_phot, "Zoidberg!")
+        self.assertRaises(pcc.errors.PathError, pcc.find_filter_phot, "Zoidberg!")
 
     def test_check_dir_path_finds_pycoco_dir(self):
         self.assertEqual(pcc.check_dir_path(pcc.defaults._default_data_dir_path), True)
 
     def test_check_dir_path_raises_PathError_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.check_dir_path, None)
+        self.assertRaises(pcc.errors.PathError, pcc.check_dir_path, None)
 
     def test_check_dir_path_raises_PathError_for_file(self):
         # self.assertEqual(pcc.check_dir_path(__file__), False)
-        self.assertRaises(pcc.PathError, pcc.check_dir_path, __file__)
+        self.assertRaises(pcc.errors.PathError, pcc.check_dir_path, __file__)
 
     def test_check_file_path_finds_SN2005bf(self):
         self.assertEqual(pcc.check_file_path(os.path.join(pcc.defaults._default_data_dir_path, 'lc/SN2005bf.dat')), True)
 
     def test_check_file_path_raises_PathError_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.check_file_path, None)
+        self.assertRaises(pcc.errors.PathError, pcc.check_file_path, None)
 
     def test_check_file_path_raises_PathError_for_dir(self):
-        self.assertRaises(pcc.PathError, pcc.check_file_path, pcc.defaults._default_data_dir_path)
+        self.assertRaises(pcc.errors.PathError, pcc.check_file_path, pcc.defaults._default_data_dir_path)
 
     def test_find_specphase_spec_raises_PathError_for_None(self):
-        self.assertRaises(pcc.PathError, pcc.classes.find_specphase_spec, None)
+        self.assertRaises(pcc.errors.PathError, pcc.classes.find_specphase_spec, None)
 
     def test_find_specphase_spec_returns_empty_array_for_zoidberg(self):
         self.assertEqual(pcc.classes.find_specphase_spec("Zoidberg"), [])

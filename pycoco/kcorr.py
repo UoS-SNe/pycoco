@@ -575,7 +575,7 @@ def save_mangle(mS, filename, orig_filename, path=False,
             if verbose: print("No directory specified, assuming " + defaults._default_recon_dir_path)
             path = defaults._default_recon_dir_path
         else:
-            StringWarning(path)
+            errors.StringWarning(path)
 
         outpath = os.path.join(path, filename)
 

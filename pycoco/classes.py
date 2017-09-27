@@ -52,14 +52,14 @@ __all__ = ["BaseSpectrumClass",
 #  #  DUMMY CODE                        #  #
 #  #------------------------------------#  #
 
-class CustomValueError(ValueError):
-    """
-    Raise when....
-    """
-
-
-    def __init__(self, *args, **kwargs):
-        ValueError.__init__(self, *args)
+# class CustomValueError(ValueError):
+#     """
+#     Raise when....
+#     """
+#
+#
+#     def __init__(self, *args, **kwargs):
+#         ValueError.__init__(self, *args)
 
 
 class DummyClass():
@@ -182,13 +182,13 @@ class BaseSpectrumClass():
 
                 if not os.path.isdir(self.list_directory):
                     if verbose: print(os.path.isdir(self.list_directory))
-                    raise PathError("The default list directory '" + self.list_directory
+                    raise errors.PathError("The default list directory '" + self.list_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default list directory '" + self._default_list_dir_path
+            raise errors.PathError("The default list directory '" + self._default_list_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_list_dir_path?")
             pass
@@ -207,7 +207,7 @@ class BaseSpectrumClass():
         -------
         """
 
-        StringWarning(filename)
+        errors.StringWarning(filename)
 
         if abspath:
             path = filename
@@ -223,7 +223,7 @@ class BaseSpectrumClass():
                     path = os.path.join(self.recon_directory, filename)
                     if verbose: print("You didn't supply a directory, so using self.recon_directory")
             else:
-                StringWarning(directory)
+                errors.StringWarning(directory)
                 check_dir_path(directory)
 
                 path = os.path.join(directory, filename)
@@ -475,7 +475,7 @@ class BaseSpectrumClass():
                 if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
                 path = self._default_data_dir_path
             else:
-                StringWarning(path)
+                errors.StringWarning(path)
 
             outpath = os.path.join(path, filename)
 
@@ -557,13 +557,13 @@ class BaseLightCurveClass():
 
                 if not os.path.isdir(self.filter_directory):
                     if verbose: print(os.path.isdir(self.filter_directory))
-                    raise PathError("The default data directory '" + self.filter_directory
+                    raise errors.PathError("The default data directory '" + self.filter_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default filter directory '" + self._default_filter_dir_path
+            raise errors.PathError("The default filter directory '" + self._default_filter_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_filter_dir_path?")
             pass
@@ -640,7 +640,7 @@ class BaseLightCurveClass():
                 filter_key = np.unique(phot_table["filter"])[0]
 
                 if len(np.unique(phot_table["filter"])) > 1 or filter_key != filter_name:
-                    raise FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
+                    raise errors.FilterMismatchError("There is a more than one filterdata in here! or there is a mismatch with filename")
                 path_to_filter = os.path.join(self.filter_directory, phot_table.meta['filter_filename'])
 
                 # def load_filter(path, cmap = False, verbose = False):
@@ -673,7 +673,7 @@ class BaseLightCurveClass():
         Returns
         -------
         """
-        # StringWarning(path)
+        # errors.StringWarning(path)
         try:
             self.phot = phot_table
             self.unpack(verbose=verbose)
@@ -788,7 +788,7 @@ class BaseLightCurveClass():
                 if verbose: print("No directory specified, assuming " + self._default_data_dir_path)
                 path = self._default_data_dir_path
             else:
-                StringWarning(path)
+                errors.StringWarning(path)
 
             check_dir_path(path)
 
@@ -1148,7 +1148,7 @@ class BaseFilterClass():
                 if verbose: print("No directory specified, assuming " + defaults._default_filter_dir_path)
                 path = defaults._default_filter_dir_path
             else:
-                StringWarning(path)
+                errors.StringWarning(path)
 
             outpath = os.path.join(path, filename)
 
@@ -1246,13 +1246,13 @@ class PhotometryClass(BaseLightCurveClass):
 
                 if not os.path.isdir(self.data_directory):
                     if verbose: print(os.path.isdir(self.data_directory))
-                    raise PathError("The default data directory '" + self.data_directory
+                    raise errors.PathError("The default data directory '" + self.data_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_data_dir_path
+            raise errors.PathError("The default data directory '" + self._default_data_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_data_dir_path?")
             pass
@@ -1268,7 +1268,7 @@ class PhotometryClass(BaseLightCurveClass):
         Returns
         -------
         """
-        StringWarning(path)
+        errors.StringWarning(path)
         try:
             phot_table = self._load_formatted_phot(path, names = names, format = format, verbose = verbose)
             self.phot = phot_table
@@ -1291,7 +1291,7 @@ class PhotometryClass(BaseLightCurveClass):
         -------
         """
 
-        StringWarning(path)
+        errors.StringWarning(path)
 
         if names:
             phot_table = Table.read(path, format = format, names = names)
@@ -1312,7 +1312,7 @@ class PhotometryClass(BaseLightCurveClass):
         """
         For single filter data
         """
-        StringWarning(path)
+        errors.StringWarning(path)
         try:
             # phot_table = load_phot(path, names = names, format = format, verbose = verbose)
                 # phot_table = ap.table.Table.read(path, format = format, names = names)
@@ -1389,7 +1389,7 @@ class PhotometryClass(BaseLightCurveClass):
                     if verbose: print(len(np.unique(phot_table["filter"])) , phot_table.meta["filter"], filter_key)
 
                     if len(np.unique(phot_table["filter"])) > 1 or filter_key != phot_table.meta["filter"]:
-                        raise FilterMismatchError("There is a mismatch between the filter filename and that in the "
+                        raise errors.FilterMismatchError("There is a mismatch between the filter filename and that in the "
                                                    + "photometry file")
 
                     self.data[filter_key] = phot_table
@@ -1637,13 +1637,13 @@ class SpectrumClass(BaseSpectrumClass):
 
                 if not os.path.isdir(self.data_directory):
                     if verbose: print(os.path.isdir(self.data_directory))
-                    raise PathError("The default data directory '" + self.data_directory
+                    raise errors.PathError("The default data directory '" + self.data_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_data_dir_path
+            raise errors.PathError("The default data directory '" + self._default_data_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_data_dir_path?")
             pass
@@ -1706,13 +1706,13 @@ class LCfitClass(BaseLightCurveClass):
 
                 if not os.path.isdir(self.recon_directory):
                     if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default recon directory '" + self.recon_directory
+                    raise errors.PathError("The default recon directory '" + self.recon_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default recon directory '" + self._default_recon_dir_path
+            raise errors.PathError("The default recon directory '" + self._default_recon_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_recon_dir_path?")
             pass
@@ -1723,7 +1723,7 @@ class LCfitClass(BaseLightCurveClass):
         """
 
         """
-        StringWarning(path)
+        errors.StringWarning(path)
 
         try:
             phot_table = load_formatted_phot(path, format = format, names = names,
@@ -1891,13 +1891,13 @@ class specfitClass(BaseSpectrumClass):
 
                 if not os.path.isdir(self.recon_directory):
                     if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default data directory '" + self.recon_directory
+                    raise errors.PathError("The default data directory '" + self.recon_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_recon_dir_path
+            raise errors.PathError("The default data directory '" + self._default_recon_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_recon_dir_path?")
             pass
@@ -2249,13 +2249,13 @@ class SNClass():
 
                 if not os.path.isdir(self.recon_directory):
                     if verbose: print(os.path.isdir(self.recon_directory))
-                    raise PathError("The default data directory '" + self.recon_directory
+                    raise errors.PathError("The default data directory '" + self.recon_directory
                      + "' doesn't exist. Or isn't a directory. Or can't be located.")
                 else:
                     pass
         except:
             if verbose: print("foo")
-            raise PathError("The default data directory '" + self._default_recon_dir_path
+            raise errors.PathError("The default data directory '" + self._default_recon_dir_path
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_recon_dir_path?")
             pass
@@ -2888,7 +2888,7 @@ class SNClass():
         Returns
         -------
         """
-        StringWarning(path)
+        errors.StringWarning(path)
         self.lcfit = LCfitClass()
         self.lcfit.load_formatted_phot(path)
         self.lcfit.unpack()
@@ -3097,10 +3097,10 @@ def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path,
     -------
     """
     if verbose: print(dir_path)
-    StringWarning(dir_path)
-    StringWarning(snname)
+    errors.StringWarning(dir_path)
+    errors.StringWarning(snname)
     if type(snname) is not str and type(snname) is not np.string_:
-        raise(PathError)
+        raise(errors.PathError)
 
     if not check_dir_path(dir_path):
         print("check_dir_path failed")
@@ -3167,10 +3167,10 @@ def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
     """
     # regex = re.compile("^SN.*.dat")
 
-    StringWarning(path)
+    errors.StringWarning(path)
     if not check_dir_path(path):
         # return False
-        raise PathError
+        raise errors.PathError
 
 
     try:
