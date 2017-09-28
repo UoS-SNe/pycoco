@@ -269,9 +269,9 @@ class BaseSpectrumClass():
                     spec_table["flux_err"] = spec_table["flux_err"].to(convert_flux_u)
 
                 flux_u = convert_flux_u
-
+            if wmin.unit == spec_table["wavelength"].unit:
             # enforce wmin and wmax
-            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
+            spec_table = spec_table[np.bitwise_and(spec_table['wavelength'].data > wmin.value, spec_table['wavelength'].data < wmax.value)]
             self.min_wavelength = np.nanmin(spec_table["wavelength"])
             self.max_wavelength = np.nanmax(spec_table["wavelength"])
 
