@@ -318,7 +318,7 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     return darksky
 
 
-def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=abspath):
+def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False):
     """
 
     :param filter_name:
