@@ -24,8 +24,8 @@ install:
   - pip install --only-binary=astropy astropy
   - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
   - git clone https://github.com/lsst/throughputs.git ../throughputs
+  - mkdir ../Dust
   - mkdir ../Dust/sfddata-master
-  - mkdir ../Dust/
   - pwd
   - python setup.py install
 script:
