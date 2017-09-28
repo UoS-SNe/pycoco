@@ -1,7 +1,7 @@
 # pycoco
 ___
 
-## v0.7.2
+## v0.8.0
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
 ___
@@ -13,6 +13,13 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
 
+ * Dependancies now handled in setup.py
+
+ * Calling all parts of CoCo from pycoco now operational
+
+ * Migrated to better, and clearer code structure and sub-modules
+
+ * Mangling now done within python, rather than C++ in CoCo
 
  * File I/O and interaction with `CoCo LCfit` output now operational - 11/01/17
 
