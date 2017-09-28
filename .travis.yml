@@ -3,12 +3,14 @@ python:
 #  - "2.7"
   - "3.6"
   - "nightly"
-cache:
-  - pip
+#cache:
+#  - pip
 # command to install dependencies
 install:
 #  - pip install -r requirements.txt
 # command to run tests
+  - pip install --upgrade pip setuptools wheel
+  - pip install --only-binary=numpy,scipy numpy
   - python setup.py install
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
