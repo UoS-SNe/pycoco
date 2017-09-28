@@ -257,7 +257,7 @@ def read_list_file(path, names = ('spec_path', 'snname', 'mjd_obs', 'z'), verbos
 
 def strictly_increasing(L):
     """https://stackoverflow.com/a/4983359"""
-    return all(x<y for x, y in zip(L, L[1:]))
+    return all(x<=y for x, y in zip(L, L[1:]))
 
 
 def check_list(path, mjd = True, phase = False, names = ('spec_path', 'snname', 'mjd_obs', 'z'),

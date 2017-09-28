@@ -318,7 +318,7 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     return darksky
 
 
-def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False):
+def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False):
     """
 
     :param filter_name:
@@ -331,7 +331,7 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
         darksky = classes.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u=u.nm, flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
-                     fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, )
+                     fmt="ascii.commented_header", wmin=3500 * u.angstrom, wmax=11000 * u.angstrom, abspath=abspath)
 
     if filter_object:
         if hasattr(filter_object, "zp_AB"):

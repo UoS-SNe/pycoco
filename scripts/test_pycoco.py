@@ -26,23 +26,43 @@ class TestClass(unittest.TestCase):
     """
 
     ## Environment Variable Tests
-    def test_COCO_ROOT_DIR_environment_variable_exisst(self):
+    def test_COCO_ROOT_DIR_environment_variable_exists(self):
         self.assertTrue("COCO_ROOT_DIR" in os.environ)
 
-    def test_PYCOCO_FILTER_DIR_environment_variable_exisst(self):
+    def test_PYCOCO_FILTER_DIR_environment_variable_exists(self):
         self.assertTrue("PYCOCO_FILTER_DIR" in os.environ)
 
-    def test_PYCOCO_DATA_DIR_environment_variable_exisst(self):
+    def test_PYCOCO_DATA_DIR_environment_variable_exists(self):
         self.assertTrue("PYCOCO_DATA_DIR" in os.environ)
 
-    def test_SFD_DIR_environment_variable_exisst(self):
+    def test_SFD_DIR_environment_variable_exists(self):
         self.assertTrue("SFD_DIR" in os.environ)
 
-    def test_LSST_THROUGHPUTS_environment_variable_exisst(self):
+    def test_LSST_THROUGHPUTS_environment_variable_exists(self):
         self.assertTrue("LSST_THROUGHPUTS" in os.environ)
 
-    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exisst(self):
+    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exists(self):
         self.assertTrue("LSST_THROUGHPUTS_BASELINE" in os.environ)
+
+    ##
+
+    def test_COCO_ROOT_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_coco_dir_path))
+
+    def test_PYCOCO_FILTER_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_filter_dir_path))
+
+    def test_PYCOCO_DATA_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_data_dir_path))
+
+    def test_SFD_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_dust_dir))
+
+    def test_LSST_THROUGHPUTS_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_lsst_throughputs_path))
+
+    def test_LSST_THROUGHPUTS_BASELINE_DIR_exists(self):
+        self.assertTrue(os.path.isdir(os.path.abspath(os.environ["LSST_THROUGHPUTS_BASELINE"])))
 
     ## Tests
 
@@ -109,8 +129,8 @@ class TestClass(unittest.TestCase):
     def test_find_specphase_spec_returns_empty_array_for_zoidberg(self):
         self.assertEqual(pcc.classes.find_specphase_spec("Zoidberg"), [])
 
-    def test_find_specphase_spec_returns_16_for_SN2006aj(self):
-        self.assertTrue(len(pcc.classes.find_specphase_spec("SN2006aj")) == 18)
+    def test_find_specphase_spec_returns_19_for_SN2006aj(self):
+        self.assertEqual(len(pcc.classes.find_specphase_spec("SN2006aj")), 19)
 
     def test_load_info_finds_and_loads_default(self):
         i = pcc.functions.load_info()
@@ -196,7 +216,10 @@ class TestClass(unittest.TestCase):
         success = []
 
         for LSST_filter_name in LSST_filter_list:
+            print("loading", LSST_filter_name )
             path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), LSST_filter_name + ".dat")
+            print("from", path_to_filter)
+            print("file exists? ", os.path.isfile(path_to_filter))
             try:
                 F = pcc.functions.load_filter(path_to_filter)
                 success.append(1)
@@ -215,14 +238,23 @@ class TestClass(unittest.TestCase):
         Vegaspec = pcc.kcorr.load_vega()
         self.assertEqual(Vegaspec.success, True)
 
+
+    def test_dark_sky_spectrum_exists(self):
+        dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
+        print(dark_sky_path)
+        print("file exists?", os.path.isfile(dark_sky_path))
+        self.assertTrue(os.path.isfile(dark_sky_path))
+
+
     def test_kcorr_load_dark_sky_spectrum(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+
         darksky = pcc.classes.SpectrumClass()
-        darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
+        darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header", abspath=True)
         self.assertEqual(darksky.success, True)
 
     def test_kcorr_calc_m_darksky(self):
-        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV")
+        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV", abspath=True)
         self.assertAlmostEqual(21.717677839340244, m_darkskyV, 2)
     ###
 

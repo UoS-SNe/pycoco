@@ -1,15 +1,34 @@
 language: python
+branches:
+  only:
+  - dev
+  - master
+env:
+  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/"
 python:
-  - "2.7"
+#  - "2.7"
   - "3.6"
-  - "nightly"
-cache:
-  - pip
+sudo:
+  - true
+#cache:
+#  - pip
 # command to install dependencies
 install:
 #  - pip install -r requirements.txt
 # command to run tests
+#  - sudo apt-get install -qq python-numpy python-scipy
+  - pip install --upgrade pip setuptools wheel
+  - pip install --only-binary=numpy numpy
+  - pip install --only-binary=scipy scipy
+  - pip install --only-binary=pandas pandas
+  - pip install --only-binary=astropy astropy
+  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
+  - git clone https://github.com/lsst/throughputs.git ../throughputs
+  - mkdir ../Dust
+  - mkdir ../Dust/sfddata-master
+  - pwd
   - python setup.py install
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
-  - python ./scripts/test_pycoco.py
+#  - pip list
+  - python -m unittest scripts/test_pycoco.py
