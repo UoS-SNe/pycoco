@@ -254,7 +254,7 @@ class TestClass(unittest.TestCase):
         self.assertEqual(darksky.success, True)
 
     def test_kcorr_calc_m_darksky(self):
-        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV")
+        m_darkskyV = pcc.kcorr.calc_m_darksky("BessellV", )
         self.assertAlmostEqual(21.717677839340244, m_darkskyV, 2)
     ###
 
