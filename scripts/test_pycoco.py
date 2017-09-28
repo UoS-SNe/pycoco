@@ -250,7 +250,7 @@ class TestClass(unittest.TestCase):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
 
         darksky = pcc.classes.SpectrumClass()
-        darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
+        darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header", abspath=True)
         self.assertEqual(darksky.success, True)
 
     def test_kcorr_calc_m_darksky(self):
