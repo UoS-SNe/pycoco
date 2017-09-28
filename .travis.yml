@@ -1,6 +1,6 @@
 language: python
 env:
-  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/"
+  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/"
 python:
 #  - "2.7"
   - "3.6"
@@ -18,6 +18,7 @@ install:
   - pip install --only-binary=scipy scipy
   - pip install --only-binary=pandas pandas
   - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
+  - git clone https://github.com/lsst/throughputs.git ../throughputs
   - pwd
   - python setup.py install
 script:
