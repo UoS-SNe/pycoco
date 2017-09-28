@@ -241,11 +241,14 @@ class TestClass(unittest.TestCase):
 
     def test_dark_sky_spectrum_exists(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
+        print(dark_sky_path)
+        print("file exists?", os.path.isfile(dark_sky_path))
         self.assertTrue(os.path.isfile(dark_sky_path))
 
 
     def test_kcorr_load_dark_sky_spectrum(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+
         darksky = pcc.classes.SpectrumClass()
         darksky.load(dark_sky_path, wavelength_u = u.nm, fmt = "ascii.commented_header")
         self.assertEqual(darksky.success, True)
