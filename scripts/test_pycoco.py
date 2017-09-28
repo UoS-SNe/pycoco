@@ -110,7 +110,7 @@ class TestClass(unittest.TestCase):
         self.assertEqual(pcc.classes.find_specphase_spec("Zoidberg"), [])
 
     def test_find_specphase_spec_returns_16_for_SN2006aj(self):
-        self.assertTrue(len(pcc.classes.find_specphase_spec("SN2006aj")) == 18)
+        self.assertEqual(len(pcc.classes.find_specphase_spec("SN2006aj")), 16)
 
     def test_load_info_finds_and_loads_default(self):
         i = pcc.functions.load_info()
