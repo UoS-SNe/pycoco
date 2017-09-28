@@ -138,7 +138,7 @@ class TestClass(unittest.TestCase):
 
     def test_load_info_finds_default(self):
         i = pcc.functions.load_info()
-        self.assertEqual(len(i.table), 28)
+        self.assertEqual(len(i.table), 30)
 
 
     ## CLASS TESTS ##
