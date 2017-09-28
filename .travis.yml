@@ -21,6 +21,7 @@ install:
   - pip install --only-binary=numpy numpy
   - pip install --only-binary=scipy scipy
   - pip install --only-binary=pandas pandas
+  - pip install --only-binary=astropy astropy
   - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
   - git clone https://github.com/lsst/throughputs.git ../throughputs
   - mkdir ../Dust/sfddata-master
