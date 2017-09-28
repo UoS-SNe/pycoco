@@ -1,4 +1,8 @@
 language: python
+env :
+  - PYCOCO_DATA_DIR="./testdata/"
+  - PYCOCO_FILTER_DIR="../CoCo/data/filters/"
+  - COCO_ROOT_DIR="../CoCo/"
 python:
 #  - "2.7"
   - "3.6"
@@ -16,7 +20,7 @@ install:
   - pip install --only-binary=numpy numpy
   - pip install --only-binary=scipy scipy
   - pip install --only-binary=pandas pandas
-  - git clone https://github.com/UoS-SNe/CoCo.git
+  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
   - pwd
   - python setup.py install
 script:
