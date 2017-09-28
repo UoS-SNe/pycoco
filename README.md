@@ -3,7 +3,7 @@ ___
 
 ## v0.8.0
 ___
-[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
+[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.com/RobFirth/pycoco.svg?token=WBeKoYyfLUkeCHqmrDyb&branch=master)](https://travis-ci.com/RobFirth/pycoco)
 ___
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
 (my fork is currently https://github.com/RobFirth/CoCo).
