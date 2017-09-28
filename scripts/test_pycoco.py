@@ -219,7 +219,7 @@ class TestClass(unittest.TestCase):
             print("loading", LSST_filter_name )
             path_to_filter = os.path.join(os.path.abspath(pcc.defaults._default_filter_dir_path), LSST_filter_name + ".dat")
             print("from", path_to_filter)
-            print("file exists? ", os.path.isfile(path_to_filter)
+            print("file exists? ", os.path.isfile(path_to_filter))
             try:
                 F = pcc.functions.load_filter(path_to_filter)
                 success.append(1)
