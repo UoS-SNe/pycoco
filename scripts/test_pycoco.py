@@ -26,23 +26,43 @@ class TestClass(unittest.TestCase):
     """
 
     ## Environment Variable Tests
-    def test_COCO_ROOT_DIR_environment_variable_exisst(self):
+    def test_COCO_ROOT_DIR_environment_variable_exists(self):
         self.assertTrue("COCO_ROOT_DIR" in os.environ)
 
-    def test_PYCOCO_FILTER_DIR_environment_variable_exisst(self):
+    def test_PYCOCO_FILTER_DIR_environment_variable_exists(self):
         self.assertTrue("PYCOCO_FILTER_DIR" in os.environ)
 
-    def test_PYCOCO_DATA_DIR_environment_variable_exisst(self):
+    def test_PYCOCO_DATA_DIR_environment_variable_exists(self):
         self.assertTrue("PYCOCO_DATA_DIR" in os.environ)
 
-    def test_SFD_DIR_environment_variable_exisst(self):
+    def test_SFD_DIR_environment_variable_exists(self):
         self.assertTrue("SFD_DIR" in os.environ)
 
-    def test_LSST_THROUGHPUTS_environment_variable_exisst(self):
+    def test_LSST_THROUGHPUTS_environment_variable_exists(self):
         self.assertTrue("LSST_THROUGHPUTS" in os.environ)
 
-    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exisst(self):
+    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exists(self):
         self.assertTrue("LSST_THROUGHPUTS_BASELINE" in os.environ)
+
+    ##
+
+    def test_COCO_ROOT_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_coco_dir_path))
+
+    def test_PYCOCO_FILTER_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_filter_dir_path))
+
+    def test_PYCOCO_DATA_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_data_dir_path))
+
+    def test_SFD_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_dust_dir))
+
+    def test_LSST_THROUGHPUTS_DIR_exists(self):
+        self.assertTrue(os.path.isdir(pcc.defaults._default_lsst_throughputs_path))
+
+    def test_LSST_THROUGHPUTS_BASELINE_DIR_exists(self):
+        self.assertTrue(os.path.isdir(os.path.abspath(os.environ["LSST_THROUGHPUTS_BASELINE"])))
 
     ## Tests
 

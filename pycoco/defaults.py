@@ -28,6 +28,7 @@ __all__ = ["_default_data_dir_path",
 
 COCO_ROOT_DIR = os.environ["COCO_ROOT_DIR"]
 LSST_THROUGHPUTS_ROOT = os.environ["LSST_THROUGHPUTS"]
+SFD_DIR = os.environ["SFD_DIR"]
 
 _default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
 _default_filter_dir_path = os.path.join(COCO_ROOT_DIR, "data/filters/")
@@ -40,6 +41,8 @@ _default_lcsim_path = os.path.join(COCO_ROOT_DIR, "sim/")
 _default_info_path = os.path.join(_default_data_dir_path, "info/info.dat")
 _default_kcorr_data_path = os.path.join(os.path.abspath(os.path.join(__file__, os.pardir)), 'kcorr_data/')
 _default_lsst_throughputs_path = os.path.abspath(LSST_THROUGHPUTS_ROOT)
+_default_dust_dir = os.path.abspath(SFD_DIR)
+
 # _colormap_name = 'jet'
 # _colourmap_name = 'rainbow'
 _spec_colourmap_name = 'viridis'
