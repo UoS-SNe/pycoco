@@ -129,8 +129,8 @@ class TestClass(unittest.TestCase):
     def test_find_specphase_spec_returns_empty_array_for_zoidberg(self):
         self.assertEqual(pcc.classes.find_specphase_spec("Zoidberg"), [])
 
-    def test_find_specphase_spec_returns_16_for_SN2006aj(self):
-        self.assertEqual(len(pcc.classes.find_specphase_spec("SN2006aj")), 16)
+    def test_find_specphase_spec_returns_19_for_SN2006aj(self):
+        self.assertEqual(len(pcc.classes.find_specphase_spec("SN2006aj")), 19)
 
     def test_load_info_finds_and_loads_default(self):
         i = pcc.functions.load_info()
@@ -237,6 +237,12 @@ class TestClass(unittest.TestCase):
     def test_kcorr_load_vega_pseudospectrum(self):
         Vegaspec = pcc.kcorr.load_vega()
         self.assertEqual(Vegaspec.success, True)
+
+
+    def test_dark_sky_spectrum_exists(self):
+        dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "darksky.dat")
+        self.assertTrue(os.path.isfile(dark_sky_path))
+
 
     def test_kcorr_load_dark_sky_spectrum(self):
         dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
