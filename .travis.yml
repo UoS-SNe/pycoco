@@ -4,7 +4,7 @@ branches:
   - dev
   - master
 env:
-  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR = "../Dust/sfddata-master/"
+  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/"
 python:
 #  - "2.7"
   - "3.6"
