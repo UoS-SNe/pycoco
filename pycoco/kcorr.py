@@ -417,7 +417,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_d
             bool_uncontained = np.logical_or(f._lower_edge < S.min_wavelength, f._upper_edge > S.max_wavelength)
             if verbose: print(bool_uncontained)
             if bool_uncontained:
-                data_table = data_table[np.where(data_table["filter"] != b(f.filter_name))]
+                data_table = data_table[np.where(data_table["filter"] != utils.b(f.filter_name))]
 
         knot_colours = [j._plot_colour for j in data_table["filter_object"] if hasattr(j, "_plot_colour")]
         data_table.add_column(Column(knot_colours, name="knot_colours"))

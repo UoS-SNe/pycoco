@@ -1276,7 +1276,7 @@ class PhotometryClass(BaseLightCurveClass):
         """
         errors.StringWarning(path)
         try:
-            phot_table = self._utils.load_formatted_phot(path, names = names, format = format, verbose = verbose)
+            phot_table = self.load_formatted_phot(path, names = names, format = format, verbose = verbose)
             self.phot = phot_table
             self.unpack()
 
@@ -2635,7 +2635,7 @@ class SNClass():
                     flux_norm = self.spec[spec_key].flux / np.nanmean(self.spec[spec_key].flux[w])
 
                     ax1.plot(self.spec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
-                                 label = plot_label_string, color = defaults._spec_colourmap(cmap_indices[i]),
+                                 label = plot_label_string, color = defaults.spec_colourmap(cmap_indices[i]),
                                  *args, **kwargs)
 
                     maxspecxdata = np.nanmax(self.spec[spec_key].data['wavelength'])
@@ -2896,7 +2896,7 @@ class SNClass():
         """
         errors.StringWarning(path)
         self.lcfit = LCfitClass()
-        self.lcfit.utils.load_formatted_phot(path)
+        self.lcfit.load_formatted_phot(path)
         self.lcfit.unpack()
         self.lcfit._sort_phot()
         self.lcfit.get_fit_splines()
