@@ -24,4 +24,4 @@ install:
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
   - pip list
-  - python ./scripts/test_pycoco.py
+  - python -m unittest ./scripts/test_pycoco.py
