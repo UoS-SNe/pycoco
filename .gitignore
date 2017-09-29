@@ -136,3 +136,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+/scripts/sort_phot.py
+/scripts/test_SN2009jf_sim.py
+/scripts/run.py
+/scripts/reformat_sn_phot.py
+/scripts/demo_tex.py
+pycoco/test.py
