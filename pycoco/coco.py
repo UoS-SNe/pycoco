@@ -6,12 +6,15 @@ import os
 import sys
 import warnings
 import subprocess
+import copy
 
-from numpy import asarray
+import numpy as np
 
 from . import classes
 from . import defaults
+from . import functions
 from . import utils
+from . import kcorr
 
 __all__ = [
             "test_LCfit",
@@ -213,20 +216,20 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
 
     outfile_log = []
     if hasattr(SNObject, "spec") and hasattr(SNObject, "lcfit"):
-        for name, mS in SN.spec.items():
+        for name, mS in SNObject.spec.items():
             #     print(name, mS)
 
             S = copy.deepcopy(mS)
-            fit_dict = mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
+            fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
             if plot:
-                pcc.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
+                functions.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
                                     show_linear_extrap=True, normalise=True)
 
-            outfile = snname + "_" + str(fit_dict["SpectrumObject"].mjd_obs).ljust(12, "0") + ".spec"
+            outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs).ljust(12, "0") + ".spec"
 
             while outfile in outfile_log:
                 j = 1
-                outfile = snname + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
+                outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
                 j += 1
             print(outfile)
             outfile_log.append(outfile)
@@ -383,6 +386,7 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=defaults._de
 def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_coco_dir_path, absolute_path=False, verbose = False):
     """
 
+    :param verbose:
     :param snname:
     :param spectra_dir:
     :param coco_dir:
