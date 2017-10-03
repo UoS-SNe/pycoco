@@ -42,11 +42,13 @@ def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
     """
     Check to see if a fit has been done. Does this by
     looking for reconstructed LC files
-    Parameters
-    ----------
-    Returns
-    -------
+    
+    :param snname:
+    :param coco_dir:
+    :param verbose:
+    :return:
     """
+
 
     # try:
     #     if not coco_dir:
@@ -105,6 +107,7 @@ def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
     else:
         print("No Model supplied - running with default")
         callargs = [os.path.join(defaults._default_coco_dir_path, "lcfit"), path]
+
     if verbose: print("Running CoCo lcfit on " + path)
     if verbose: print("callargs are ", callargs)
 
@@ -152,6 +155,7 @@ def run_all_SNe_LCfit(verbose = True):
     :param verbose:
     :return:
     """
+    ## TODO
     pass
 
 
@@ -159,11 +163,12 @@ def test_specfit(snname, coco_dir = False,
                verbose = True):
     """
     Check to see if a fit has been done. Does this by
-    looking for reconstructed .spec filess
-    Parameters
-    ----------
-    Returns
-    -------
+    looking for reconstructed .spec files
+
+    :param snname:
+    :param coco_dir:
+    :param verbose:
+    :return:
     """
 
     try:
@@ -205,10 +210,14 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
     """
     replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
 
-    Parameters
-    ----------
-    Returns
-    -------
+    :param SNObject:
+    :param wantedfilters:
+    :param anchor_distance:
+    :param save:
+    :param plot:
+    :param coco_dir:
+    :param verbose:
+    :return:
     """
 
     if not wantedfilters:
@@ -252,10 +261,10 @@ def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = Tr
     """
     runs CoCo specfit on the listfile supplied in path
 
-    Parameters
-    ----------
-    Returns
-    -------
+    :param path:
+    :param coco_dir:
+    :param verbose:
+    :return:
     """
     utils.check_file_path(path)
     utils.relist() ## Check filter file is up to date
@@ -268,6 +277,12 @@ def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = Tr
 
 
 def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False):
+    """
+
+    :param dirpath:
+    :param verbose:
+    :return:
+    """
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
     utils.check_dir_path(dirpath)
@@ -282,6 +297,12 @@ def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False)
 
 
 def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
+    """
+
+    :param verbose:
+    :param dirpath:
+    :return:
+    """
 
     fullpath_list = get_all_spec_lists(dirpath)
 
@@ -300,14 +321,9 @@ def specfit_sn(snname, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path.
 
-    Parameters
-    ----------
-
-    snname -
-
-    Returns
-    -------
-
+    :param snname:
+    :param verbose:
+    :return:
     """
 
     ## Need to look for the recon lc files for snname
@@ -334,6 +350,8 @@ def specfit_sn(snname, verbose = True):
     filename = snname + "_m.dat"
     outpath = lcfit.recon_directory
 
+    if verbose: print(outpath, filename)
+
     lcfit.save(filename, path = outpath, filters = manglefilters, squash = True)
 
     # lcfit.
@@ -357,15 +375,34 @@ def specfit_sn(snname, verbose = True):
     pass
 
 
-def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=defaults._default_coco_dir_path, verbose = True):
+def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaults._default_coco_dir_path, verbose = True, model=False, test=True):
     """
     runs CoCo specphase.
 
-    Parameters
-    ----------
-    Returns
-    -------
+    :param filtername:
+    :param phase_path:
+    :param filetype:
+    :param coco_dir:
+    :param verbose:
+    :param model:
+    :return:
     """
+    if not phase_path:
+        phase_path=os.path.join(defaults._default_coco_dir_path, "examples/phase.list")
+
+    if model:
+        models = np.unique([i.split(".")[0] for i in os.listdir(os.path.join(defaults._default_coco_dir_path, "src/models"))])
+
+        if model not in models:
+            print("Model", model, "not recognised.")
+            return False
+
+        callargs = [os.path.join(defaults._default_coco_dir_path, "./specphase"), phase_path, filtername, "-m", model]
+        if verbose: print("running with", model)
+    else:
+        if verbose: print("No Model supplied - running with default")
+        callargs = [os.path.join(defaults._default_coco_dir_path, "./specphase"), phase_path, filtername]
+
     filters = utils._get_current_filter_registry()
 
     if filtername+filetype not in filters:
@@ -378,7 +415,10 @@ def run_specphase(filtername, phase_path, filetype=".dat", coco_dir=defaults._de
     cwd = os.getcwd()
     os.chdir(coco_dir)
     # if verbose: print("Running CoCo specfit on " + path)
-    subprocess.call([os.path.join(defaults._default_coco_dir_path, "./specphase"), phase_path, filtername])
+    if verbose:
+        print(callargs)
+
+    subprocess.call(callargs)
     os.chdir(cwd)
     pass
 
