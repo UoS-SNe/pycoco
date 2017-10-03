@@ -3,7 +3,6 @@
 """
 
 import os
-import sys
 import warnings
 import subprocess
 import copy
@@ -42,7 +41,7 @@ def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
     """
     Check to see if a fit has been done. Does this by
     looking for reconstructed LC files
-    
+
     :param snname:
     :param coco_dir:
     :param verbose:
