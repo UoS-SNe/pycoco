@@ -2431,14 +2431,36 @@ class SNClass():
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
                 lock_axis = False, xextent = False, filter_uncertainty = 10,
                 savepng = False, savepdf = False, outpath = False, showsnname = False,
-                verbose = False, *args, **kwargs):
+                verbose = False, extra_phot=False, extra_phot_label=r"$\textnormal{Spectrophotometry}$",
+                *args, **kwargs):
         """
-        Parameters
-        ----------
 
-        Returns
-        -------
+        :param filters:
+        :param legend:
+        :param xminorticks:
+        :param mark_spectra:
+        :param simplespecphot:
+        :param fade:
+        :param xlims:
+        :param insidelegend:
+        :param fit:
+        :param enforce_zero:
+        :param multiplot:
+        :param yaxis_lim_multiplier:
+        :param lock_axis:
+        :param xextent:
+        :param filter_uncertainty:
+        :param savepng:
+        :param savepdf:
+        :param outpath:
+        :param showsnname:
+        :param verbose:
+        :param extra_phot:
+        :param args:
+        :param kwargs:
+        :return:
         """
+
         if hasattr(self.phot, "data"):
             if not fade:
                 alpha = 1.0
@@ -2506,6 +2528,16 @@ class SNClass():
                                      capsize = 0, fmt = 'o', color = colours.hex["batman"],
                                      ecolor = colours.hex['batman'], mec = colours.hex["batman"], label = r"$\textnormal{SpecPhot}$",
                                      *args, **kwargs)
+
+                    if extra_phot:
+                        if hasattr(extra_phot, "data") and filter_key in extra_phot.data:
+                            ax1.errorbar(extra_phot.data[filter_key]['MJD'], extra_phot.data[filter_key]['flux'],
+                                         yerr=extra_phot.data[filter_key]['flux_err'],
+                                         capsize=0, fmt='x', color=self.phot.data_filters[filter_key]._plot_colour,
+                                         label=extra_phot_label, ecolor="C1",
+                                         mec="C1", alpha=alpha, zorder=99,
+                                         *args, **kwargs)
+
 
                     if legend:
                         if multiplot or insidelegend:
