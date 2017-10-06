@@ -2388,7 +2388,7 @@ class SNClass():
                 orig_specname = orig_specpath
                 print(orig_specpath)
                 w = np.where(self.list["spec_path"] == orig_specpath)
-                if verbose: print(w[0])
+                if verbose: print(w[0], len(w[0]))
 
                 if len(w[0]) > 0:
                     self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
@@ -2759,64 +2759,66 @@ class SNClass():
 
             ax1 = fig.add_subplot(111)
 
-            cmap_indices = np.linspace(0,1, len(self.spec))
+            cmap_indices = np.linspace(0,1, len(self.mangledspec))
+            if verbose: print(len(cmap_indices))
 
             j = 0
             for i, spec_key in enumerate(self.mangledspec):
-                # if verbose: print(self.spec[spec_key].data.__dict__)
+                if hasattr(self.mangledspec[spec_key], "mjd_obs"):
+                    # if verbose: print(self.spec[spec_key].data.__dict__)
 
-                plot_label_string = r'$\rm{' + self.mangledspec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
-
-
-                v_eff = 5436.87 ##Angstrom
-                w = np.logical_and(self.mangledspec[spec_key].data['wavelength'] > (v_eff-100.),self.mangledspec[spec_key].data['wavelength'] < v_eff+100.)
-
-                if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.mangledspec[spec_key].data['wavelength']), len(self.mangledspec[spec_key].data['flux']), len(self.mangledspec[spec_key].flux))
-                if len(w[np.where(w == True)]) > 0:
-
-                    if verbose: print(len(w), 'Foo')
-
-                    flux_norm = self.mangledspec[spec_key].flux / np.nanmean(self.mangledspec[spec_key].flux[w])
-
-                    ax1.plot(self.mangledspec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
-                                 label = plot_label_string, color = defaults._spec_colourmap(cmap_indices[i]),
-                                 *args, **kwargs)
-
-                    maxspecxdata = np.nanmax(self.mangledspec[spec_key].data['wavelength'])
-                    minspecxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
-
-                    w = np.where(self.mangledspec[spec_key].data['wavelength'] >=  maxspecxdata - 200)
-                    yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
-                    w = np.where(self.mangledspec[spec_key].data['wavelength'] <=  minspecxdata + 200)
-                    yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
-                    if verbose: print(yatminspecxdata)
-                    # if i == 0:
-                    if j == 0:
-                        maxplotydata = np.nanmax(flux_norm - 0.5*j)
-                        # minplotydata = np.nanmin(flux_norm - 0.5*j)
-                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
+                    plot_label_string = r'$\rm{' + self.mangledspec[spec_key].data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
 
 
-                        maxplotxdata = maxspecxdata
-                        minplotxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
+                    v_eff = 5436.87 ##Angstrom
+                    w = np.logical_and(self.mangledspec[spec_key].data['wavelength'] > (v_eff-100.),self.mangledspec[spec_key].data['wavelength'] < v_eff+100.)
+
+                    if verbose: print(i, len(w[np.where(w == True)]), spec_key, len(self.mangledspec[spec_key].data['wavelength']), len(self.mangledspec[spec_key].data['flux']), len(self.mangledspec[spec_key].flux))
+                    if len(w[np.where(w == True)]) > 0:
+
+                        if verbose: print(len(w), 'Foo')
+
+                        flux_norm = self.mangledspec[spec_key].flux / np.nanmean(self.mangledspec[spec_key].flux[w])
+
+                        ax1.plot(self.mangledspec[spec_key].data['wavelength'], flux_norm - 0.5*j, lw = 2,
+                                     label = plot_label_string, color = defaults.spec_colourmap(cmap_indices[j]),
+                                     *args, **kwargs)
+
+                        maxspecxdata = np.nanmax(self.mangledspec[spec_key].data['wavelength'])
+                        minspecxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
+
+                        w = np.where(self.mangledspec[spec_key].data['wavelength'] >=  maxspecxdata - 200)
+                        yatmaxspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                        w = np.where(self.mangledspec[spec_key].data['wavelength'] <=  minspecxdata + 200)
+                        yatminspecxdata = np.nanmean((flux_norm - 0.5*j)[w])
+                        if verbose: print(yatminspecxdata)
+                        # if i == 0:
+                        if j == 0:
+                            maxplotydata = np.nanmax(flux_norm - 0.5*j)
+                            # minplotydata = np.nanmin(flux_norm - 0.5*j)
+                            minplotydata = 0. - 0.5*j ## Assumes always positive flux
+
+
+                            maxplotxdata = maxspecxdata
+                            minplotxdata = np.nanmin(self.mangledspec[spec_key].data['wavelength'])
+                        else:
+                            maxplotydata = np.nanmax(np.append(maxplotydata, np.append(yatminspecxdata, yatminspecxdata)))
+                            # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
+                            minplotydata = 0. - 0.5*j ## Assumes always positive flux
+                            maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.mangledspec[spec_key].data['wavelength'])))
+                            minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.mangledspec[spec_key].data['wavelength'])))
+                        if add_mjd:
+                            # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
+                            # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
+                            ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = colours.hex['batman'])
+                            # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
+                            #                horizontalalignment = 'right', verticalalignment = 'center')
+                            txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
+                                           horizontalalignment = 'right', verticalalignment = 'center')
+                            # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
+                        j = j + 1
                     else:
-                        maxplotydata = np.nanmax(np.append(maxplotydata, np.append(yatminspecxdata, yatminspecxdata)))
-                        # minplotydata = np.nanmin(np.append(minplotydata, flux_norm - 0.5*j))
-                        minplotydata = 0. - 0.5*j ## Assumes always positive flux
-                        maxplotxdata = np.nanmax(np.append(maxplotxdata, np.nanmax(self.mangledspec[spec_key].data['wavelength'])))
-                        minplotxdata = np.nanmin(np.append(minplotxdata, np.nanmin(self.mangledspec[spec_key].data['wavelength'])))
-                    if add_mjd:
-                        # ax1.plot([maxspecxdata, 11000],[1 - 0.5*j, 1 - 0.5*j], ls = '--', color = hex['batman'])
-                        # ax1.plot([maxspecxdata, 11000],[yatmaxspecxdata, yatmaxspecxdata], ls = '--', color = hex['batman'])
-                        ax1.plot([2000, minspecxdata],[1 - 0.5*j, yatminspecxdata], ls = '--', color = colours.hex['batman'])
-                        # txt = ax1.text(1500, yatminspecxdata, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
-                        #                horizontalalignment = 'right', verticalalignment = 'center')
-                        txt = ax1.text(2000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$',
-                                       horizontalalignment = 'right', verticalalignment = 'center')
-                        # ax1.text(1000, 1 - 0.5*j, r'$' + str(self.mangledspec[spec_key].mjd_obs) + '$', horizontalalignment = 'right')
-                    j = j + 1
-                else:
-                    if verbose: print("Not enough data to normalise")
+                        if verbose: print("Not enough data to normalise")
             if legend:
 
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
