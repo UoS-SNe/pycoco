@@ -223,9 +223,9 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         return  integrated_flux
 
 
-def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, filter_object = False):
+def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, abpath = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), filter_object = False):
 
-    AB = load_AB()
+    AB = load_AB(path=abpath)
 
     if not filter_object:
         filter_object = functions.load_filter(os.path.join(filter_path, filter_name + ".dat"))
@@ -240,14 +240,14 @@ def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, f
     return integrated_flux
 
 
-def calc_AB_zp(filter_name=False, filter_object = False):
+def calc_AB_zp(filter_name=False, filter_object = False, abpath=os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat")):
     """
 
     """
     if not filter_object and filter_name:
         filter_object = functions.load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
 
-    integrated_flux = calc_AB_flux(filter_name, filter_object=filter_object)
+    integrated_flux = calc_AB_flux(filter_name, filter_object=filter_object, abpath=abpath)
     area_corr_integrated_flux = integrated_flux / calc_filter_area(filter_name)
 
     return -2.5 * np.log10(area_corr_integrated_flux)

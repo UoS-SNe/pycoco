@@ -2153,7 +2153,7 @@ class FilterClass(BaseFilterClass):
         pass
 
 
-    def get_zeropoint(self):
+    def get_zeropoint(self, abpath=os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat")):
         """
 
         :return:
@@ -2161,7 +2161,7 @@ class FilterClass(BaseFilterClass):
 
         if hasattr(self, "filter_name"):
             # self.zp_AB = self.calculate_AB_zp()
-            self.calculate_AB_zp()
+            self.calculate_AB_zp(ABpath=abpath)
             # self.zp_vega = self.calc_vega_zp(filter_name)
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
