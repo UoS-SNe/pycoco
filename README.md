@@ -101,6 +101,7 @@ ___
 * numpy
 * scipy
 * astropy
+* lmfit
 * sfdmap (https://github.com/kbarbary/sfdmap)
 
 # additionally
