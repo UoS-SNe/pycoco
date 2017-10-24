@@ -828,6 +828,53 @@ class BaseLightCurveClass():
         pass
 
 
+    def nightaverage(self, filters=False, verbose=True):
+        """
+
+        :param verbose:
+        :return:
+        """
+        if hasattr(self, "phot") and hasattr(self, "data"):
+
+            if not filters:
+                filters = self.data_filters
+            if type(filters) == str:
+                filters = [filters]
+
+            for i, filter_key in enumerate(filters):
+
+                if verbose: print(i, self.data[filter_key].__dict__)
+
+                dt = self.data[filter_key]
+
+                dt["Night"] = list(map(lambda x: np.round(x), dt["MJD"]))
+
+                dt.add_index("Night")
+                dt_grouped = dt.group_by("Night")
+                dt_grouped["weights"] = 1.0 / ((dt_grouped["flux_err"]) * (dt_grouped["flux_err"]))
+
+                if i == 0:
+                    na_table = Table(names=("MJD", "flux", "flux_err", "filter"),
+                                     dtype=(dt["MJD"].dtype, dt["flux"].dtype, dt["flux_err"].dtype, dt["filter"].dtype))
+                    for j, col in enumerate(na_table.columns):
+                        if verbose: print(j, col)
+                        na_table[col].unit = dt[col].unit
+                for group in dt_grouped.groups:
+                    wmean = np.average(group["flux"], weights=group["weights"])
+                    wmean_err = np.sqrt(1. / np.sum(1. / (group["flux_err"] * group["flux_err"])))
+                    print(np.mean(group["MJD"]), wmean, wmean_err)
+                    na_table.add_row((np.mean(group["MJD"]), wmean, wmean_err, filter_key))
+
+            if verbose: print("loading into phot object...")
+
+            self.load_table(phot_table=na_table)
+
+
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.phot)")
+        pass
+
+
 class BaseLCModelClass():
     """
 
@@ -1344,8 +1391,6 @@ class PhotometryClass(BaseLightCurveClass):
             raise Exception
 
         pass
-
-
 
 
     def load_phot_from_files(self, path = False, snname = False, prefix = 'SN',

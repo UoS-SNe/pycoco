@@ -37,7 +37,8 @@ __all__ = ["setup_plot_defaults",
            "get_mjdmax_flux",
            "get_max_info",
            "b",
-           "read_phasefile"
+           "read_phasefile",
+           "weighted_mean"
            ]
 
 
@@ -438,3 +439,16 @@ def gaussian(x, g0, x0, sigma0):
 
 def read_phasefile(filepath):
     return Table.read(filepath, format="ascii", names=("snname", "z_obs", "mu"))
+
+
+def weighted_mean(values, sigma, weights=False, correct=False):
+    """
+    from sullivanweighted_mean.pro
+    """
+    weights = 1. / (sigma * sigma)
+    invsum = 1. / np.sum(weights)
+    weights *= invsum
+
+    wmean = np.sum(weights * values)
+    wmean_err = np.sqrt(invsum)
+    return wmean, wmean_err
