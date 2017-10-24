@@ -306,6 +306,7 @@ class BaseSpectrumClass():
 
     def plot(self, xminorticks = 250, legend = True,
              verbose = False, compare_red = True,
+             return_figure=False,
              *args, **kwargs):
         """
         Plots spec.
@@ -374,6 +375,9 @@ class BaseSpectrumClass():
             ax1.xaxis.set_minor_locator(xminorLocator)
 
             plt.show()
+
+            if return_figure:
+                return fig
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
@@ -954,7 +958,7 @@ class BaseFilterClass():
 
 
     def plot(self, xminorticks = 250, yminorticks = 0.1,
-             show_lims = False, small = False, cumulative = False,
+             show_lims = False, small = False, cumulative = False, return_figure=False,
              *args, **kwargs):
         """
         Plots filter throughput, so you can double check it.
@@ -1027,6 +1031,9 @@ class BaseFilterClass():
             ax1.xaxis.set_minor_locator(xminorLocator)
 
             ax1.legend(loc = 0)
+
+            if return_figure:
+                return fig
 
             plt.show()
             pass
@@ -1455,7 +1462,8 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def plot(self, filters=False, legend=True, xminorticks=5, enforce_zero = True,
-             verbose=False, xlim=False, yaxis_max_factor=1.02, *args, **kwargs):
+             verbose=False, xlim=False, yaxis_max_factor=1.02, return_figure=False,
+             *args, **kwargs):
         """
         Plots phot.
 
@@ -1523,7 +1531,10 @@ class PhotometryClass(BaseLightCurveClass):
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
+            if return_figure:
+                return fig
             plt.show()
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
@@ -1745,7 +1756,7 @@ class LCfitClass(BaseLightCurveClass):
         pass
 
 
-    def plot(self, legend = True, xminorticks = 5,
+    def plot(self, legend = True, xminorticks = 5, return_figure=False,
              verbose = False, *args, **kwargs):
         """
         Plots phot.
@@ -1804,6 +1815,9 @@ class LCfitClass(BaseLightCurveClass):
 
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
+
+            if return_figure:
+                return fig
 
             plt.show()
         else:
@@ -1928,7 +1942,7 @@ class specfitClass(BaseSpectrumClass):
 
     def plot_comparison(self, SpectrumClassInstance,
                          xminorticks=250, legend=True,
-                         verbose=True, twoaxes=True,
+                         verbose=True, twoaxes=True, return_figure=False,
                          *args, **kwargs):
         """
         Plots spec.
@@ -1993,6 +2007,8 @@ class specfitClass(BaseSpectrumClass):
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
+            if return_figure:
+                return fig
             plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
@@ -2429,7 +2445,7 @@ class SNClass():
     def plot_lc(self, filters = False, legend = True, xminorticks = 10, mark_spectra = True,
                 simplespecphot = False, fade = False, xlims = False, insidelegend = True,
                 fit = True, enforce_zero = True, multiplot = True, yaxis_lim_multiplier = 1.1,
-                lock_axis = False, xextent = False, filter_uncertainty = 10,
+                lock_axis = False, xextent = False, filter_uncertainty = 10, return_figure=False,
                 savepng = False, savepdf = False, outpath = False, showsnname = False,
                 verbose = False, extra_phot=False, extra_phot_label=r"$\textnormal{Spectrophotometry}$",
                 *args, **kwargs):
@@ -2616,19 +2632,22 @@ class SNClass():
             else:
                 fig.text(0.0, 0.5, yaxis_label_string, va = 'center', ha = 'left', rotation = 'vertical')
 
-
-            if savepdf and outpath:
-                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
-            if savepng and outpath:
-                fig.savefig(outpath + ".png", format = 'png', dpi=500)
-            plt.show()
+            if return_figure:
+                warnings.warn("Returning figure, saveargs will be ignored")
+                return fig
+            else:
+                if savepdf and outpath:
+                    fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+                if savepng and outpath:
+                    fig.savefig(outpath + ".png", format = 'png', dpi=500)
+                plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
     def plot_spec(self, xminorticks = 250, legend = True,
-                  wmin = 3500,
+                  wmin = 3500, return_figure=False,
                   savepng = False, savepdf = False, outpath = False,
                   verbose = False, add_mjd = True,
                   *args, **kwargs):
@@ -2726,19 +2745,23 @@ class SNClass():
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
-            if savepdf and outpath:
-                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
-            if savepng and outpath:
-                fig.savefig(outpath + ".png", format = 'png', dpi=500)
+            if return_figure:
+                warnings.warn("Returning figure, saveargs will be ignored")
+                return fig
+            else:
+                if savepdf and outpath:
+                    fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+                if savepng and outpath:
+                    fig.savefig(outpath + ".png", format = 'png', dpi=500)
 
-            plt.show()
+                plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
     def plot_mangledspec(self, xminorticks = 250, legend = True,
-                  wmin = 3500,
+                  wmin = 3500, return_figure=False,
                   savepng = False, savepdf = False, outpath = False,
                   verbose = False, add_mjd = True,
                   *args, **kwargs):
@@ -2840,19 +2863,23 @@ class SNClass():
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
-            if savepdf and outpath:
-                fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
-            if savepng and outpath:
-                fig.savefig(outpath + ".png", format = 'png', dpi=500)
+            if return_figure:
+                warnings.warn("Returning figure, saveargs will be ignored")
+                return fig
+            else:
+                if savepdf and outpath:
+                    fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
+                if savepng and outpath:
+                    fig.savefig(outpath + ".png", format = 'png', dpi=500)
 
-            plt.show()
+                plt.show()
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
 
     def plot_filters(self, filters = False, xminorticks = 250, yminorticks = 0.1,
-                     show_lims = False,
+                     show_lims = False, return_figure=False,
                      *args, **kwargs):
         """
         Parameters
@@ -2915,6 +2942,9 @@ class SNClass():
             ax1.xaxis.set_minor_locator(xminorLocator)
 
             ax1.legend(loc = 0)
+
+            if return_figure:
+                return fig
 
             plt.show()
         pass

@@ -14,7 +14,7 @@ import unittest
 
 import pycoco as pcc
 import astropy.units as u
-
+import matplotlib as mpl
 
 #  #------------------------------------#  #
 #  #  TESTING                           #  #
@@ -147,6 +147,24 @@ class TestClass(unittest.TestCase):
     def test_PhotometryClass_get_data_dir_returns_default(self):
         x = pcc.classes.PhotometryClass()
         self.assertEqual(os.path.abspath(os.path.join(x._get_data_directory(), os.pardir)), os.path.abspath(pcc.defaults._default_data_dir_path))
+
+    def test_PhotometryClass_get_1993J(self):
+        x = pcc.classes.PhotometryClass()
+        x.load(os.path.join(pcc.defaults._default_data_dir_path, "lc/SN1993J.dat"))
+
+        self.assertTrue(hasattr(x, "phot"))
+
+    def test_PhotometryClass_1993J_phot_size(self):
+        x = pcc.classes.PhotometryClass()
+        x.load(os.path.join(pcc.defaults._default_data_dir_path, "lc/SN1993J.dat"))
+
+        self.assertEqual(len(x.phot), 607)
+
+    def test_PhotometryClass_get_and_plot_1993J(self):
+        x = pcc.classes.PhotometryClass()
+        x.load(os.path.join(pcc.defaults._default_data_dir_path, "lc/SN1993J.dat"))
+        fig = x.plot(return_figure=True)
+        self.assertIsInstance(fig, mpl.figure.Figure)
 
     # def LOAD FROM FILE
 
