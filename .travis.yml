@@ -4,7 +4,7 @@ branches:
   - dev
   - master
 env:
-  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/" DISPLAY=":0.0"
+  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/"
 python:
 #  - "2.7"
   - "3.6"
@@ -12,6 +12,10 @@ sudo:
   - true
 #cache:
 #  - pip
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3
 # command to install dependencies
 install:
 #  - pip install -r requirements.txt
