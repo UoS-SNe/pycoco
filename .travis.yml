@@ -1,6 +1,7 @@
 language: python
 branches:
   only:
+  - travis
   - dev
   - master
 env:
@@ -26,7 +27,7 @@ install:
   - pip install --only-binary=scipy scipy
   - pip install --only-binary=pandas pandas
   - pip install --only-binary=astropy astropy
-  - pip install --only-binary=matplotlib matplolib
+  - pip install --only-binary=matplotlib matplotlib
   - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
   - git clone https://github.com/lsst/throughputs.git ../throughputs
   - mkdir ../Dust
