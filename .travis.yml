@@ -1,6 +1,7 @@
 language: python
 branches:
   only:
+  - travis
   - dev
   - master
 env:
