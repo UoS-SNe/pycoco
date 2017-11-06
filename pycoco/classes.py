@@ -304,7 +304,7 @@ class BaseSpectrumClass():
         self.flux = spec_table["flux"]
         pass
 
-    def plot(self, xminorticks = 250, legend = True,
+    def plot(self, xminorticks = 250, legend = True, plot_filters=True,
              verbose = False, compare_red = True,
              return_figure=False,
              *args, **kwargs):
@@ -361,6 +361,8 @@ class BaseSpectrumClass():
                 plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
+
+
             ax1.set_ylim(minplotydata*0.98, maxplotydata*1.02)
 
             ## Label the axes
@@ -374,10 +376,11 @@ class BaseSpectrumClass():
             xminorLocator = MultipleLocator(xminorticks)
             ax1.xaxis.set_minor_locator(xminorLocator)
 
-            plt.show()
 
             if return_figure:
                 return fig
+            plt.show()
+
         else:
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
@@ -759,7 +762,8 @@ class BaseLightCurveClass():
     #     return save_table
 
 
-    def _phot_format_for_save(self, names = ('MJD', 'flux', 'flux_err', 'filter'), filters = False, verbose = False, sort=False):
+    def _phot_format_for_save(self, names = ('MJD', 'flux', 'flux_err', 'filter'), formats = ('.3f','.5g', '.5g', ''),
+                              filters = False, verbose = False, sort=False):
             """
             This is hacky - clear it up!
 
@@ -776,12 +780,20 @@ class BaseLightCurveClass():
             else:
                 save_table = self.phot
 
+            for z in zip(names, formats):
+                save_table[z[0]].format = z[1]
+
+            if filters:
+                save_table = save_table[np.in1d(save_table["filter"], filters)]
+
+            if verbose:
+                print(save_table)
             return save_table
 
 
     def save(self, filename, filters = False, path = False,
-             names = ('MJD', 'flux', 'flux_err', 'filter'),
-             squash = False, verbose = True, *args, **kwargs):
+             names = ('MJD', 'flux', 'flux_err', 'filter'), formats = ('.3f','.5g', '.5g', ''),
+             squash = False, verbose = True, sort = False, *args, **kwargs):
         """
         Output the photometry loaded into the SNClass via self.load_phot* into a format
         and location recognised by CoCo.
@@ -807,13 +819,18 @@ class BaseLightCurveClass():
             if verbose: print(outpath)
             if not filters:
                 ## if none specified, use all filters
-                filters = self.data.keys()
+                filters = list(self.data.keys())
+                if verbose: print(filters)
+
 
             if os.path.isfile(outpath):
-                warnings.warn("Found existing file matching " + outpath + ". Run with squash = True to overwrite")
                 if squash:
                     print("Overwriting " + outpath)
-                    self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", overwrite = True, names=names)
+                    self._phot_format_for_save(filters = filters, names = names, formats = formats,
+                                               verbose = verbose, sort=sort).write(outpath, format = "ascii.fast_commented_header", overwrite = True, names=names)
+                else:
+                    warnings.warn("Found existing file matching " + outpath + ". Run with squash = True to overwrite")
+
             else:
                     print("Writing " + outpath)
                     self._phot_format_for_save(filters = filters).write(outpath, format = "ascii.fast_commented_header", names=names)
@@ -828,7 +845,7 @@ class BaseLightCurveClass():
         pass
 
 
-    def nightaverage(self, filters=False, verbose=True):
+    def nightaverage(self, filters=False, verbose=False):
         """
 
         :param verbose:
@@ -862,7 +879,7 @@ class BaseLightCurveClass():
                 for group in dt_grouped.groups:
                     wmean = np.average(group["flux"], weights=group["weights"])
                     wmean_err = np.sqrt(1. / np.sum(1. / (group["flux_err"] * group["flux_err"])))
-                    print(np.mean(group["MJD"]), wmean, wmean_err)
+                    if verbose: print(np.mean(group["MJD"]), wmean, wmean_err)
                     na_table.add_row((np.mean(group["MJD"]), wmean, wmean_err, filter_key))
 
             if verbose: print("loading into phot object...")
@@ -2805,6 +2822,19 @@ class SNClass():
         pass
 
 
+    def plot_spectrum(self, spec_key):
+        """
+
+        :param spec_key:
+        :return:
+        """
+        if hasattr(self, spec):
+            if spec_key in self.spec:
+                print(match)
+
+        pass
+
+
     def plot_mangledspec(self, xminorticks = 250, legend = True,
                   wmin = 3500, return_figure=False,
                   savepng = False, savepdf = False, outpath = False,
@@ -2993,6 +3023,7 @@ class SNClass():
 
             plt.show()
         pass
+
 
 
     def get_lcfit(self, path):

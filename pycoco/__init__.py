@@ -11,6 +11,7 @@ import sys
 
 if __name__ is not '__main__':
 
+    __author__ = "RobFirth"
     __name__ = 'pycoco'
 
 try:
