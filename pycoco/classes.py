@@ -205,7 +205,7 @@ class BaseSpectrumClass():
              names=("wavelength", "flux"), wavelength_u=u.angstrom,
              flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
              convert_flux_u=u.cgs.erg / u.si.cm ** 2 / u.si.s / u.angstrom,
-             verbose=False):
+             verbose=False, spectrum_name = False):
         """
         Parameters
         ----------
@@ -253,6 +253,11 @@ class BaseSpectrumClass():
             spec_table.meta["filepath"] = path
             spec_table.meta["filename"] = path.split("/")[-1]
 
+            if spectrum_name:
+                spec_table.meta["plot_label_string"] = r"$\textnormal{" + spectrum_name.replace("_", "\_") + "}$"
+            else:
+                spec_table.meta["plot_label_string"] = r'$\rm{' + spec_table.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+
             spec_table['wavelength'].unit = wavelength_u
 
             if wavelength_u != u.Angstrom:
@@ -287,15 +292,24 @@ class BaseSpectrumClass():
             if verbose: print(path + ' not found')
 
 
-    def load_table(self, spec_table, path, trim_wavelength=False, wmin=3500 * u.angstrom,
+    def load_table(self, spec_table, spectrum_name = False, path = False, trim_wavelength=False, wmin=3500 * u.angstrom,
                    wmax=11000 * u.angstrom):
         """Use with care - basically assumes you have all of your ducks in a row"""
 
         if trim_wavelength:
             spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
 
-        spec_table.meta["filepath"] = path
-        spec_table.meta["filename"] = path.split("/")[-1]
+        if path:
+            spec_table.meta["filepath"] = path
+            spec_table.meta["filename"] = path.split("/")[-1]
+            if spectrum_name:
+                spec_table.meta["plot_label_string"] = r"$\textnormal{" + spectrum_name.replace("_", "\_") + "}$"
+            else:
+                spec_table.meta["plot_label_string"] = r'$\rm{' + spec_table.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+        elif spectrum_name:
+            spec_table.meta["plot_label_string"] = r"$\textnormal{" +  spectrum_name.replace("_", "\_")+ "}$"
+        else:
+            spec_table.meta["plot_label_string"] = "Spectrum from table"
 
         self.min_wavelength = np.nanmin(spec_table["wavelength"])
         self.max_wavelength = np.nanmax(spec_table["wavelength"])
@@ -337,7 +351,8 @@ class BaseSpectrumClass():
 
 
             if verbose: print(self.data.__dict__)
-            plot_label_string = r'$\rm{' + self.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            # plot_label_string = r'$\rm{' + self.data.meta["filename"].split('/')[-1].replace('_', '\_') + '}$'
+            plot_label_string = self.data.meta["plot_label_string"]
 
 
             # ax1.plot(self.data['wavelength'], self.flux, lw = 2,
@@ -358,7 +373,7 @@ class BaseSpectrumClass():
                 minplotydata = np.nanmin(np.append(minplotydata, np.nanmin(self.data['flux_dered'])))
             if legend:
 
-                plot_legend = ax1.legend(loc = [1.,0.0], scatterpoints = 1,
+                plot_legend = ax1.legend(loc = 1, scatterpoints = 1,
                                       numpoints = 1, frameon = False, fontsize = 12)
 
 
@@ -2244,6 +2259,8 @@ class FilterClass(BaseFilterClass):
         else:
             warnings.warn("No filter name - have you loaded in a bandpass?")
 
+        pass
+
 
 #  #------------------------------------#  #
 #  # Model Classes                      #  #
@@ -2984,7 +3001,7 @@ class SNClass():
                 ## Check if there is something in the class to plot
                 if hasattr(self.phot.data_filters[filter_key], "wavelength") and hasattr(self.phot.data_filters[filter_key], "throughput"):
 
-                    plot_label_string = r'$\textnormal{' + self.phot.data_filters[filter_key].filter_name + '}$'
+                    plot_label_string = r'$\textnormal{' + self.phot.data_filters[filter_key].filter_name.replace("_", "\_") + '}$'
 
 
                     if hasattr(self.phot.data_filters[filter_key], "_plot_colour"):
