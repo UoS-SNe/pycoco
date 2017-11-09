@@ -36,6 +36,7 @@ from . import errors
 from . import extinction
 from . import models
 from . import utils
+# from . import kcorr
 
 __all__ = ["BaseSpectrumClass",
            "BaseLightCurveClass",
@@ -536,6 +537,114 @@ class BaseSpectrumClass():
     def set_infile(self, filename):
         self.infile=filename
         pass
+
+
+    def get_specphot(self, filter_objects, correct_for_area=True ,verbose = True):
+        """
+        TODO - Some duplication between this and SNClass.get_specphot()
+        :param spectrum:
+        :param verbose:
+        :return:
+        """
+
+        if not hasattr(self, "_overlapping_filter_list"):
+            self.check_overlaps(filter_objects=filter_objects, verbose=verbose)
+
+        if isinstance(FilterClass, type(filter_objects)):
+            ## if only one filter is given
+            filter_objects = [filter_objects, ]
+
+
+        for j, filter_name in enumerate(self._overlapping_filter_list):
+            if filter_name in filter_objects:
+
+                if isinstance(FilterClass, type(filter_name)):
+                    filter_obj = filter_name
+                elif isinstance(filter_objects, dict):
+                    filter_obj = filter_objects[filter_name]
+                else:
+                    filter_obj = filter_objects[i]
+
+                # flux = kcorr.calc_spectrum_filter_flux(filter_object=filter_obj,
+                #                                        spectrum_object=self)
+
+                if not np.array_equal(filter_obj.wavelength, self.wavelength):
+                        filter_object.resample_response(new_wavelength=self.wavelength)
+
+                transmitted_spec = filter_obj.throughput * self.flux
+                integrated_flux = simps(transmitted_spec, self.wavelength)
+
+                if correct_for_area:
+
+                    if not hasattr(filter_obj, "_effective_area"):
+                        filter_obj.calculate_filter_area()
+
+                    filter_area = filter_obj._effective_area
+                    flux = integrated_flux / filter_area
+
+                else:
+                    flux = integrated_flux
+
+                print(flux)
+                if j == 0:
+                    self.specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
+
+                self.specphot.add_row((filter_obj.lambda_effective, flux, filter_name))
+        else:
+            warnings.warn("no overlapping filters")
+
+        pass
+
+
+    def check_overlaps(self, filter_objects, verbose = False):
+        """
+        TODO - based on SNClass.check_overlaps()
+
+        Checks the filters that the spectrum overlaps with.
+        originally used functions.filter_within_spec
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if isinstance(FilterClass, type(filter_objects)):
+            ## if only one filter is given
+            filter_objects = [filter_objects, ]
+
+
+        for i, filter_name in enumerate(filter_objects):
+            if isinstance(FilterClass, type(filter_name)):
+                filter_obj = filter_name
+            elif isinstance(filter_objects, dict):
+                filter_obj = filter_objects[filter_name]
+            else:
+                filter_obj = filter_objects[i]
+
+            if verbose:print(i, filter_obj)
+
+            if hasattr(filter_obj, "_lower_edge") and \
+              hasattr(filter_obj, "_upper_edge") and \
+              hasattr(self, "data"):
+               blue_bool = filter_obj._lower_edge > self.min_wavelength
+               red_bool = filter_obj._upper_edge < self.max_wavelength
+
+               if blue_bool and red_bool:
+                    within = True
+               else:
+                    within = False
+               if verbose: print(within)
+               if within:
+                   self._add_to_overlapping_filters(filter_name)
+            else:
+                warnings.warn("SpectrumClass.check_overlaps - something went wrong... no overlaps or data?")
+
+
+
+        pass
+
+
 
 
 class BaseLightCurveClass():
@@ -3203,10 +3312,11 @@ class SNClass():
         pass
 
 
-    def get_specphot(self, spectrum = False, verbose = True):
+    def get_specphot(self, spectrum = False, filter_objects = False, verbose = True):
         """
 
         :param spectrum:
+        :param filter_objects:
         :param verbose:
         :return:
         """
@@ -3215,21 +3325,11 @@ class SNClass():
                 spec_list = [spectrum]
             else:
                 spec_list = self.spec
+            if not filter_objects:
+                filter_objects = self.phot.data_filters
 
             for i, spec in enumerate(spec_list):
-                if verbose: print(i, spec)
-                if hasattr(self.spec[spec], "_overlapping_filter_list"):
-                    for j, filter_name in enumerate():
-                        flux = pcc.kcorr.calc_spectrum_filter_flux(filter_object=self.phot.data_filters[filter_name],
-                                                                   spectrum_object=self.spec[spec])
-                        print(flux)
-                        if j == 0:
-                            self.spec[spec].specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
-
-                        self.spec[spec].specphot.add_row((self.phot.data_filters[filter_name].lambda_effective, flux, filter_name))
-                else:
-                    warnings.warn("no overlapping filters")
-
+                self.spec[spec].get_specphot(filter_objects=filter_objects, verbose=verbose)
 
         else:
             warnings.warn("object has no spectra")
