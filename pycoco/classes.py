@@ -309,7 +309,7 @@ class BaseSpectrumClass():
         elif spectrum_name:
             spec_table.meta["plot_label_string"] = r"$\textnormal{" +  spectrum_name.replace("_", "\_")+ "}$"
         else:
-            spec_table.meta["plot_label_string"] = "Spectrum from table"
+            spec_table.meta["plot_label_string"] = r"$\textnormal{Spectrum from table}$"
 
         self.min_wavelength = np.nanmin(spec_table["wavelength"])
         self.max_wavelength = np.nanmax(spec_table["wavelength"])
@@ -3202,6 +3202,38 @@ class SNClass():
             warnings.warn("SNClass.check_overlaps - something went wrong... no data?")
         pass
 
+
+    def get_specphot(self, spectrum = False, verbose = True):
+        """
+
+        :param spectrum:
+        :param verbose:
+        :return:
+        """
+        if hasattr(self, "spec"):
+            if spectrum:
+                spec_list = [spectrum]
+            else:
+                spec_list = self.spec
+
+            for i, spec in enumerate(spec_list):
+                if verbose: print(i, spec)
+                if hasattr(self.spec[spec], "_overlapping_filter_list"):
+                    for j, filter_name in enumerate():
+                        flux = pcc.kcorr.calc_spectrum_filter_flux(filter_object=self.phot.data_filters[filter_name],
+                                                                   spectrum_object=self.spec[spec])
+                        print(flux)
+                        if j == 0:
+                            self.spec[spec].specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
+
+                        self.spec[spec].specphot.add_row((self.phot.data_filters[filter_name].lambda_effective, flux, filter_name))
+                else:
+                    warnings.warn("no overlapping filters")
+
+
+        else:
+            warnings.warn("object has no spectra")
+        pass
 
 class InfoClass():
     """
