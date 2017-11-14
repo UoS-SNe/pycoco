@@ -205,7 +205,8 @@ def test_specfit(snname, coco_dir = False,
     return boolflag
 
 
-def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False, coco_dir=defaults._default_coco_dir_path, verbose = True):
+def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False,
+                coco_dir=defaults._default_coco_dir_path, verbose = True):
     """
     replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
 
@@ -224,8 +225,9 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
 
     outfile_log = []
     if hasattr(SNObject, "spec") and hasattr(SNObject, "lcfit"):
+        if verbose: print("hasattr spec and lcfit")
         for name, mS in SNObject.spec.items():
-            #     print(name, mS)
+            if verbose: print(name, mS)
 
             S = copy.deepcopy(mS)
             fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
@@ -305,9 +307,13 @@ def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
 
     fullpath_list = get_all_spec_lists(dirpath)
 
-    for i, path in enumerate(fullpath_list):
+    snnames = [get_snname_from_listfile(i) for i in fullpath_list]
 
-        if verbose: print(i, path)
+    for i, sninfo in enumerate(zip(snnames, fullpath_list)):
+        snname = sninfo[0]
+        snpath = sninfo[1]
+
+        if verbose: print(i, snname, snpath)
 
         run_specfit(path, verbose=verbose)
 
@@ -316,7 +322,9 @@ def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
     pass
 
 
-def specfit_sn(snname, verbose = True):
+def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = False, fitpath = False,
+               anchor_distance=1000, save=True, plot=False, coco_dir=defaults._default_coco_dir_path,
+               verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path.
 
@@ -325,37 +333,63 @@ def specfit_sn(snname, verbose = True):
     :return:
     """
 
-    ## Need to look for the recon lc files for snname
-    # sn = classes.SNClass(snname)
-    lcfit = classes.LCfitClass()
+    if SNobject:
+        pass
+    elif snname:
+        SNobject = classes.SNClass(snname)
 
-    path = os.path.join(lcfit.recon_directory, snname+".dat")
-    lcfit.load_formatted_phot(path)
-    lcfit.unpack()
-    lcfit._sort_phot()
-    lcfit.get_fit_splines()
+        if not photpath:
+            photpath = os.path.join(defaults._default_data_dir_path, "lc/" + snname + ".dat")
+
+        SNobject.load_phot(path = photpath, verbose=verbose)
+
+    else:
+        warnings.warn("Need to provide either SNobject or snname")
+        return
+
+    if not hasattr(SNobject, "lcfit"):
+        if not fitpath:
+            fitpath = os.path.join(defaults._default_recon_dir_path, snname + ".dat")
+        SNobject.get_lcfit(fitpath, verbose=verbose)
+
+
+    # ## Need to look for the recon lc files for snname
+    # # sn = classes.SNClass(snname)
+    # lcfit = classes.LCfitClass()
+    #
+    # path = os.path.join(lcfit.recon_directory, snname+".dat")
+    # lcfit.load_formatted_phot(path)
+    # lcfit.unpack()
+    # lcfit._sort_phot()
+    # lcfit.get_fit_splines()
 
     ## Need to make new recon lc files for mangling - no overlaps
     # lcfit.
-    manglefilters = [i for i in lcfit.filter_names]
-
-    if "BessellR" and "SDSS_r" in manglefilters:
+    manglefilters = [i for i in SNobject.lcfit.filter_names]
+    print(manglefilters)
+    if "BessellR" in manglefilters and "SDSS_r" in manglefilters:
+        if verbose:
+            print("Has both BessellR and SDSS_r - using SDSS_r")
         ## Only use SDSS_r - less hassle
         manglefilters.remove("BessellR")
-    if "BessellI" and "SDSS_i" in manglefilters:
-        ## Only use SDSS_r - less hassle
+    if "BessellI" in manglefilters and "SDSS_i" in manglefilters:
+        if verbose:
+            print("Has both BessellI and SDSS_i - using SDSS_i")
+        ## Only use SDSS_i - less hassle
         manglefilters.remove("BessellI")
 
     filename = snname + "_m.dat"
-    outpath = lcfit.recon_directory
+    outpath = SNobject.lcfit.recon_directory
 
     if verbose: print(outpath, filename)
 
-    lcfit.save(filename, path = outpath, filters = manglefilters, squash = True)
+    SNobject.lcfit.save(filename, path = outpath, filters = manglefilters, squash = True, verbose=verbose)
 
     # lcfit.
     ## Need to change the listfile to one that has snname matches the new lc file
-    listpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + ".list")
+
+    if not listpath:
+        listpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + ".list")
 
     origlist = utils.read_list_file(listpath)
     origlist.rename_column('snname', 'snname_nomangle')
@@ -368,9 +402,11 @@ def specfit_sn(snname, verbose = True):
 
 
     ## Need to call run_specfit with path of new list file
+    # SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False, coco_dir=defaults._default_coco_dir_path, verbose = True)
 
-    run_specfit(newlistpath)
+    # run_specfit(newlistpath)
 
+    run_specfit(SNObject=SNobject, wantedfilters=manglefilters, save=save, anchor_distance=anchor_distance, plot=plot, coco_dir=coco_dir, verbose=verbose)
     pass
 
 
@@ -442,4 +478,5 @@ def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_c
         print(len(dir_list), "files found matching", snname)
         print(dir_list)
     return dir_list
+
 

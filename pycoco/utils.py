@@ -37,8 +37,10 @@ __all__ = ["setup_plot_defaults",
            "get_mjdmax_flux",
            "get_max_info",
            "b",
+           "b_decode",
            "read_phasefile",
-           "weighted_mean"
+           "weighted_mean",
+           "get_snname_from_listfile"
            ]
 
 
@@ -422,10 +424,16 @@ def get_max_info(sn, filter_key):
 if sys.version_info < (3,):
     def b(x):
         return x
+
+    def b_decode(x):
+        return x
 else:
     import codecs
     def b(x):
         return codecs.latin_1_encode(x)[0]
+
+    def b_decode(x):
+        return codecs.latin_1_decode(x)[0]
 
 
 def gaussian(x, g0, x0, sigma0):
@@ -452,3 +460,32 @@ def weighted_mean(values, sigma, weights=False, correct=False):
     wmean = np.sum(weights * values)
     wmean_err = np.sqrt(invsum)
     return wmean, wmean_err
+
+
+def get_snname_from_listfile(listfilepath, filename = True, from_column = False, compare = False):
+    """
+
+    :param filename:
+    :param from_column:
+    :return:
+    """
+    if filename:
+        snname_file = listfilepath.split("/")[-1].replace(".list", "")
+
+        if not compare:
+            return snname_file
+
+    if from_column:
+        snname_arr = np.loadtxt(listfilepath, usecols=1, dtype="S")
+
+        if len(np.unique(snname_arr)) == 1:
+            snname_column = np.unique(snname_arr)[0]
+            if type(snname_column) == np.bytes_:
+                snname_column = utils.b_decode(snname)
+
+            if not compare:
+                return snname_column
+    if compare:
+        return snname_column == snname_file
+
+    pass

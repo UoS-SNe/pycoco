@@ -706,7 +706,7 @@ class BaseLightCurveClass():
             pass
 
 
-    def _sort_phot(self):
+    def _sort_phot(self, verbose=False):
         """
         resorts the photometry according to effective wavelength of the filter.
 
@@ -725,6 +725,9 @@ class BaseLightCurveClass():
             sorted_data_filters = OrderedDict()
 
             for newkey in newkeys:
+
+                if verbose: print(newkey)
+
                 sorted_data[newkey] = self.data[newkey]
                 sorted_data_filters[newkey] = self.data_filters[newkey]
 
@@ -899,10 +902,10 @@ class BaseLightCurveClass():
 
 
             if sort:
-                save_table = self.phot
+                save_table = self.phot[names]
                 save_table = save_table[save_table.argsort()]
             else:
-                save_table = self.phot
+                save_table = self.phot[names]
 
             for z in zip(names, formats):
                 save_table[z[0]].format = z[1]
@@ -3152,7 +3155,7 @@ class SNClass():
 
 
 
-    def get_lcfit(self, path):
+    def get_lcfit(self, path, verbose=True):
         """
         Parameters
         ----------
@@ -3162,10 +3165,11 @@ class SNClass():
         """
         errors.StringWarning(path)
         self.lcfit = LCfitClass()
-        self.lcfit.load_formatted_phot(path)
-        self.lcfit.unpack()
-        self.lcfit._sort_phot()
-        self.lcfit.get_fit_splines()
+        self.lcfit.load_formatted_phot(path, verbose=verbose)
+        self.lcfit.unpack(verbose=verbose)
+        self.lcfit._sort_phot(verbose=verbose)
+        self.lcfit.get_fit_splines(verbose=verbose)
+
         pass
 
 
