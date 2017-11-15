@@ -350,7 +350,6 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
         return -2.5 * np.log10(calc_spectrum_filter_flux(filter_name=filter_name, spectrum_object=darksky)) - zp
 
 
-
 def nu_to_lambda(freq):
     """
 
@@ -373,7 +372,7 @@ def lambda_to_nu(wavelength):
 
 ## Mangling
 
-def mangle(sn, S, spec_mjd, filters, staticfilter=False, verbose=False, anchor_distance=100):
+def mangle(sn, S, spec_mjd, filters, staticfilter=False, anchor_distance=100, verbose=False):
     """
 
     :param anchor_distance:

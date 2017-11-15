@@ -206,7 +206,7 @@ def test_specfit(snname, coco_dir = False,
 
 
 def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False,
-                coco_dir=defaults._default_coco_dir_path, verbose = True):
+                coco_dir=defaults._default_coco_dir_path, overwrite=False, verbose = True):
     """
     replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
 
@@ -226,26 +226,31 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
     outfile_log = []
     if hasattr(SNObject, "spec") and hasattr(SNObject, "lcfit"):
         if verbose: print("hasattr spec and lcfit")
-        for name, mS in SNObject.spec.items():
-            if verbose: print(name, mS)
 
-            S = copy.deepcopy(mS)
-            fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
-            if plot:
-                functions.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
-                                    show_linear_extrap=True, normalise=True)
+        if len(SNObject.spec) == 0:
+            warnings.warn("No spectra loaded in.")
+            return
+        else:
+            for name, mS in SNObject.spec.items():
+                if verbose: print(name, mS)
 
-            outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs).ljust(12, "0") + ".spec"
+                S = copy.deepcopy(mS)
+                fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
+                if plot:
+                    functions.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
+                                        show_linear_extrap=True, normalise=True)
 
-            while outfile in outfile_log:
-                j = 1
-                outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
-                j += 1
-            print(outfile)
-            outfile_log.append(outfile)
+                outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs).ljust(12, "0") + ".spec"
 
-            if save:
-                kcorr.save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile)
+                while outfile in outfile_log:
+                    j = 1
+                    outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
+                    j += 1
+                print(outfile)
+                outfile_log.append(outfile)
+
+                if save:
+                    kcorr.save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile, squash=overwrite)
     else:
         print("SNObject needs lcfit and spectra")
     # utils.check_file_path(path)
@@ -297,7 +302,7 @@ def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False)
     return fullpath_list
 
 
-def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
+def specfit_all(dirpath=defaults._default_list_dir_path, overwrite=False, verbose=True):
     """
 
     :param verbose:
@@ -307,16 +312,16 @@ def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
 
     fullpath_list = get_all_spec_lists(dirpath)
 
-    snnames = [get_snname_from_listfile(i) for i in fullpath_list]
+    snnames = [utils.get_snname_from_listfile(i) for i in fullpath_list]
 
     for i, sninfo in enumerate(zip(snnames, fullpath_list)):
         snname = sninfo[0]
-        snpath = sninfo[1]
+        listpath = sninfo[1]
 
-        if verbose: print(i, snname, snpath)
+        if verbose: print(i, snname, listpath)
 
-        run_specfit(path, verbose=verbose)
-
+        # run_specfit(path, plot=plot, verbose=verbose)
+        specfit_sn(snname=snname, listpath=listpath, overwrite=overwrite, verbose=verbose)
         if verbose: print("Done")
 
     pass
@@ -324,7 +329,7 @@ def specfit_all(verbose=True, dirpath=defaults._default_list_dir_path):
 
 def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = False, fitpath = False,
                anchor_distance=1000, save=True, plot=False, coco_dir=defaults._default_coco_dir_path,
-               verbose = True):
+               verbose = True, overwrite = False):
     """
     runs CoCo specfit on the listfile supplied in path.
 
@@ -352,6 +357,14 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
             fitpath = os.path.join(defaults._default_recon_dir_path, snname + ".dat")
         SNobject.get_lcfit(fitpath, verbose=verbose)
 
+    if len(SNobject.spec) == 0:
+        if not listpath:
+            listpath = os.path.join(defaults._default_list_dir_path, snname + ".list")
+        if verbose:
+            print("No spectra, Loading from list: ")
+            print(listpath)
+        SNobject.load_list(listpath, verbose=verbose)
+        SNobject.load_spec(verbose=verbose)
 
     # ## Need to look for the recon lc files for snname
     # # sn = classes.SNClass(snname)
@@ -406,7 +419,8 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
 
     # run_specfit(newlistpath)
 
-    run_specfit(SNObject=SNobject, wantedfilters=manglefilters, save=save, anchor_distance=anchor_distance, plot=plot, coco_dir=coco_dir, verbose=verbose)
+    run_specfit(SNObject=SNobject, wantedfilters=manglefilters, save=save, anchor_distance=anchor_distance, plot=plot,
+                coco_dir=coco_dir, overwrite=overwrite, verbose=verbose)
     pass
 
 
