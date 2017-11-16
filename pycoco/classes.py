@@ -20,7 +20,7 @@ from astropy.table import Table, vstack, Row
 from astropy.time import Time
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.interpolate import interp1d as interp1d
 
@@ -1082,13 +1082,17 @@ class BaseFilterClass():
         pass
 
 
-    def calculate_filter_area(self):
+    def calculate_filter_area(self, verbose=False):
         """
 
         :return:
         """
         if hasattr(self, "throughput"):
-            self._effective_area = simps(self.throughput, self.wavelength)
+            area = simps(self.throughput, self.wavelength)
+            if np.isnan(area): ## See Issue #26 on GitHub
+                area = trapz(self.throughput, self.wavelength)
+            self._effective_area = area
+
 
 
     def calculate_AB_zp(self, ABpath = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500 * u.angstrom, wmax=25000 * u.angstrom):
@@ -1232,7 +1236,7 @@ class BaseFilterClass():
             warnings.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def resample_response(self, new_wavelength = False, k = 1,
+    def resample_response(self, new_wavelength = False, k = 1, verbose=False,
                           *args, **kwargs):
         """
         Bit dodgy - spline has weird results for poorly sampled filters.
@@ -1246,6 +1250,9 @@ class BaseFilterClass():
         """
 
         if hasattr(self, "wavelength") and hasattr(self, "throughput"):
+
+            if verbose: print("resampling response")
+
             self._wavelength_orig = self.wavelength
             self._throughput_orig = self.throughput
 
@@ -3083,7 +3090,7 @@ class SNClass():
 
 
     def plot_filters(self, filters = False, xminorticks = 250, yminorticks = 0.1,
-                     show_lims = False, return_figure=False,
+                     show_lims = False, return_figure=False, verbose=False,
                      *args, **kwargs):
         """
         Parameters
@@ -3093,8 +3100,11 @@ class SNClass():
         -------
         """
         if hasattr(self.phot, 'data_filters'):
+
             if not filters:
                 filters = self.phot.data_filters
+
+            if verbose: print(filters)
 
             utils.setup_plot_defaults()
             xaxis_label_string = r'$\textnormal{Wavelength, Angstrom }(\AA)$'

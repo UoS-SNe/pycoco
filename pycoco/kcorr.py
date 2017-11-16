@@ -24,7 +24,7 @@ from lmfit import minimize, Parameters, fit_report
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy import interpolate
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 
 # from .classes import *
 # from .colours import *
@@ -178,7 +178,7 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = def
 
 def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_object=False,
                               filter_path = defaults._default_filter_dir_path, spectrum_dir=None, spectrum_filename=None,
-                              correct_for_area=True):
+                              correct_for_area=True, verbose = True):
     """
     returns flux in units of
 
@@ -214,8 +214,15 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         filter_area = filter_object._effective_area
         # filter_area = simps(filter_object.throughput, filter_object.wavelength)
 
+        if verbose: print("Filter_area = ", filter_area)
+
     transmitted_spec = filter_object.throughput * spectrum_object.flux
     integrated_flux = simps(transmitted_spec, spectrum_object.wavelength)
+    if verbose: print("Integrated flux = ", integrated_flux)
+
+    if np.isnan(integrated_flux):   ## See Issue #26 on GitHub
+        integrated_flux = trapz(transmitted_spec, spectrum_object.wavelength)
+        if verbose: print("New integrated flux = ",integrated_flux)
 
     if correct_for_area:
         return  integrated_flux/filter_area
@@ -318,7 +325,7 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     return darksky
 
 
-def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False):
+def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False, verbose = False):
     """
 
     :param filter_name:
@@ -339,7 +346,7 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
         else:
             filter_object.get_zeropoint()
             zp = filter_object.zp_AB
-        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_object=filter_object, spectrum_object=darksky)) - zp
+        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_object=filter_object, spectrum_object=darksky, verbose = verbose)) - zp
 
     else:
         if vega:
@@ -347,7 +354,7 @@ def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, v
         else:
             zp = calc_AB_zp(filter_name)
 
-        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_name=filter_name, spectrum_object=darksky)) - zp
+        return -2.5 * np.log10(calc_spectrum_filter_flux(filter_name=filter_name, spectrum_object=darksky, verbose=verbose)) - zp
 
 
 def nu_to_lambda(freq):
@@ -398,10 +405,10 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, anchor_distance=100, ve
             fit_flux = sn.lcfit.spline[f](spec_mjd)
 
             sn.phot.data_filters[f].resample_response(new_wavelength=S.wavelength)
-            S_filter_flux = calc_spectrum_filter_flux(filter_object=sn.phot.data_filters[f], spectrum_object=S)
+            S_filter_flux = calc_spectrum_filter_flux(filter_object=sn.phot.data_filters[f], spectrum_object=S, verbose=verbose)
             S_filter_flux_no_area = calc_spectrum_filter_flux(filter_object=sn.phot.data_filters[f],
                                                                   spectrum_object=S,
-                                                                  correct_for_area=False)
+                                                                  correct_for_area=False, verbose=verbose)
             mS_filter_flux = np.nan
 
             rows[f] = (fit_flux, S_filter_flux, S_filter_flux_no_area)
@@ -482,7 +489,7 @@ def mangle(sn, S, spec_mjd, filters, staticfilter=False, anchor_distance=100, ve
 
         for i, f in enumerate(data_table["filter_object"]):
             if isinstance(f, classes.FilterClass):
-                mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
+                mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S, verbose=verbose)
                 #         print(data_table["spec_filterflux"][i], mangledspec_filterflux)
                 data_table["mangledspec_filterflux"][i] = mangledspec_filterflux
             else:
@@ -655,7 +662,7 @@ def calculate_fluxes(data_table, S, verbose=False):
     for i, f in enumerate(data_table["filter_object"]):
 
         if isinstance(f, classes.FilterClass):
-            mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S)
+            mangledspec_filterflux = calc_spectrum_filter_flux(filter_object=f, spectrum_object=S, verbose=verbose)
             if verbose: print(data_table["spec_filterflux"][i], mangledspec_filterflux)
             # data_table["mangledspec_filterflux"][i] = mangledspec_filterflux
             column[i] = mangledspec_filterflux
@@ -689,7 +696,7 @@ def manglemin(params, SpectrumObject, data_table, verbose=False, clamped=False, 
 
     MangledSpectrumObject.flux = MangledSpectrumObject.flux * SplObj(MangledSpectrumObject.wavelength)
 
-    specflux = np.array([calc_spectrum_filter_flux(filter_object=FilterObject, spectrum_object=MangledSpectrumObject) for
+    specflux = np.array([calc_spectrum_filter_flux(filter_object=FilterObject, spectrum_object=MangledSpectrumObject, verbose=verbose) for
          FilterObject in data_table[data_table["mask"]]["filter_object"]])
     if verbose:
         print("params:", paramlist)

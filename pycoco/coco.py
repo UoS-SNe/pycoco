@@ -235,7 +235,7 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
                 if verbose: print(name, mS)
 
                 S = copy.deepcopy(mS)
-                fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance)
+                fit_dict = kcorr.mangle(SNObject, mS, mS.mjd_obs, wantedfilters, anchor_distance=anchor_distance, verbose=verbose)
                 if plot:
                     functions.plot_mangledata(S, fit_dict["data_table"], mS=fit_dict["SpectrumObject"], spl=fit_dict["final_spl"],
                                         show_linear_extrap=True, normalise=True)
@@ -282,13 +282,15 @@ def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = Tr
     pass
 
 
-def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False):
+def get_all_spec_lists(dirpath = defaults._default_list_dir_path, ignore_m = True, verbose=False):
     """
 
     :param dirpath:
+    :param ignore_m:
     :param verbose:
     :return:
     """
+
     ignore = [".DS_Store", "master.list", "lightcurves.list"]
 
     utils.check_dir_path(dirpath)
@@ -296,6 +298,9 @@ def get_all_spec_lists(dirpath = defaults._default_list_dir_path, verbose=False)
     if verbose: print(dirpath)
 
     listfile_list = [i for i in os.listdir(dirpath) if i not in ignore]
+
+    if ignore_m:
+        listfile_list = [k for k in listfile_list if "_m.list" not in k]
 
     fullpath_list = [os.path.join(dirpath, j) for j in listfile_list]
 
@@ -329,7 +334,7 @@ def specfit_all(dirpath=defaults._default_list_dir_path, overwrite=False, verbos
 
 def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = False, fitpath = False,
                anchor_distance=1000, save=True, plot=False, coco_dir=defaults._default_coco_dir_path,
-               verbose = True, overwrite = False):
+               save_new_list = False, overwrite=False, verbose = True):
     """
     runs CoCo specfit on the listfile supplied in path.
 
@@ -411,7 +416,8 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
     newlistpath = os.path.join(defaults._default_coco_dir_path, "lists", snname + "_m.list")
     newlist = origlist["spec_path", "snname", "mjd_obs", "z"]
     # newlist.write(newlistpath, format = "ascii.fast_commented_header", overwrite = True)
-    newlist.write(newlistpath, format = "ascii.fast_commented_header")
+    if save_new_list:
+        newlist.write(newlistpath, format = "ascii.fast_commented_header")
 
 
     ## Need to call run_specfit with path of new list file
