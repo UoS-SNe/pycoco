@@ -115,6 +115,19 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
     return funred
 
 
+def red(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
+    """
+
+    Parameters
+    ----------
+    Returns
+    -------
+
+    """
+
+    return unred(wave, flux, wav_in_m=wav_in_m, r_v=r_v, EBV=-EBV)
+
+
 def ccm(wave, wav_in_m = False, r_v = 3.1, EBV=0, return_frac = True):
     """
 
