@@ -569,7 +569,7 @@ class BaseSpectrumClass():
                 #                                        spectrum_object=self)
 
                 if not np.array_equal(filter_obj.wavelength, self.wavelength):
-                        filter_object.resample_response(new_wavelength=self.wavelength)
+                        filter_obj.resample_response(new_wavelength=self.wavelength)
 
                 transmitted_spec = filter_obj.throughput * self.flux
                 integrated_flux = simps(transmitted_spec, self.wavelength)

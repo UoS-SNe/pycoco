@@ -88,7 +88,7 @@ def inv_micron_to_angstrom(x):
     return 10000./x
 
 
-def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
+def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False, verbose=False):
     """
 
     Parameters
@@ -108,8 +108,14 @@ def unred(wave, flux, wav_in_m = False, r_v = 3.1, EBV = False):
 
     A_V = r_v*EBV
     vals = coeffs(wav_inv)
+    if verbose: print(len(vals))
+    if verbose: print(A_V)
 
     A_lambda = A_V *  (vals['a'] + vals['b']/r_v)
+    if verbose: print(len(A_lambda))
+    if verbose: print(len(flux))
+
+
     funred = flux * np.power(10.,(0.4 * A_lambda))
 
     return funred

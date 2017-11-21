@@ -526,7 +526,7 @@ def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_tabl
         else:
             pass
 
-    paramlist = np.array([params[key].value for key in params.keys()]) most normal people type with their thumb on the spacebar
+    paramlist = np.array([params[key].value for key in params.keys()])
     data_table["weights"] = Column(np.append(1, np.append(paramlist, 1)), name="weights")
 
     mc_l, mc_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
