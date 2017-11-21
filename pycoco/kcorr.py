@@ -526,7 +526,7 @@ def manglespec3(SpectrumObject, spec_mjd, wanted_filters, wanted_flux, data_tabl
         else:
             pass
 
-    paramlist = np.array([params[key].value for key in params.keys()])
+    paramlist = np.array([params[key].value for key in params.keys()]) most normal people type with their thumb on the spacebar
     data_table["weights"] = Column(np.append(1, np.append(paramlist, 1)), name="weights")
 
     mc_l, mc_u = functions.calc_linear_terms(data_table[data_table["mask"]], key="weights", verbose=verbose)
@@ -704,5 +704,5 @@ def manglemin(params, SpectrumObject, data_table, verbose=False, clamped=False, 
         print("flux:", specflux)
         print("fitflux:", data_table[data_table["mask"]]["fitflux"].data)
 
-    return data_table[data_table["mask"]]["fitflux"] - specflux
+    return data_table[data_table["mask"]]["fitflux"] - specflux ## minimising residual - better to do chisq? or minimise the sum?? TODO
 

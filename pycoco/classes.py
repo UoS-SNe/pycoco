@@ -428,7 +428,7 @@ class BaseSpectrumClass():
         self.EBV = EBV
 
 
-    def deredden(self, z, EBV_host, EBV_MW = False, verbose = True):
+    def deredden(self, z, EBV_host, EBV_MW = False, verbose = False):
         """
         Parameters
         ----------
@@ -487,7 +487,7 @@ class BaseSpectrumClass():
 
 
     def save(self, filename, path = False,
-             squash = False, verbose = True, *args, **kwargs):
+             squash = False, verbose = False, *args, **kwargs):
         """
         Output the spectrum loaded into the Class via self.load into a format
         and location recognised by CoCo.
@@ -539,7 +539,7 @@ class BaseSpectrumClass():
         pass
 
 
-    def get_specphot(self, filter_objects, correct_for_area=True ,verbose = True):
+    def get_specphot(self, filter_objects, correct_for_area=True ,verbose = False):
         """
         TODO - Some duplication between this and SNClass.get_specphot()
         :param spectrum:
@@ -643,8 +643,6 @@ class BaseSpectrumClass():
 
 
         pass
-
-
 
 
 class BaseLightCurveClass():
@@ -1386,8 +1384,6 @@ class BaseFilterClass():
         pass
 
 
-
-
 #  #------------------------------------#  #
 #  #  Inheriting Classes                #  #
 #  #------------------------------------#  #
@@ -1470,7 +1466,7 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def load(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii.commented_header', verbose = True):
+                  format = 'ascii.commented_header', verbose = False):
         """
         Loads a single photometry file.
 
@@ -1492,7 +1488,7 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def load_formatted_phot(self, path, format = "ascii", names = False,
-                            verbose = True):
+                            verbose = False):
         """
         Loads a single photometry file.
 
@@ -1519,7 +1515,7 @@ class PhotometryClass(BaseLightCurveClass):
 
 
     def load_phot_from_file(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii', verbose = True):
+                  format = 'ascii', verbose = False):
         """
         For single filter data
         """
@@ -1627,7 +1623,7 @@ class PhotometryClass(BaseLightCurveClass):
         pass
 
 
-    def _combine_phot(self, verbose = True):
+    def _combine_phot(self, verbose = False):
         """
 
         """
@@ -1933,7 +1929,7 @@ class LCfitClass(BaseLightCurveClass):
 
 
     def load_formatted_phot(self, path, names = ('MJD', 'flux', 'flux_err', 'filter'),
-                  format = 'ascii', verbose = True):
+                  format = 'ascii', verbose = False):
         """
 
         """
@@ -2292,7 +2288,7 @@ class FilterClass(BaseFilterClass):
         self._lower_edge = self.wavelength[w_low]
 
 
-    def calculate_edges(self, pc = 3., verbose = True):
+    def calculate_edges(self, pc = 3., verbose = False):
         """
         calculates edges by defining the region that contains (100 - pc)% of the
         flux.
@@ -3166,7 +3162,7 @@ class SNClass():
 
 
 
-    def get_lcfit(self, path, verbose=True):
+    def get_lcfit(self, path, verbose=False):
         """
         Parameters
         ----------
@@ -3327,7 +3323,7 @@ class SNClass():
         pass
 
 
-    def get_specphot(self, spectrum = False, filter_objects = False, verbose = True):
+    def get_specphot(self, spectrum = False, filter_objects = False, verbose = False):
         """
 
         :param spectrum:
@@ -3349,6 +3345,7 @@ class SNClass():
         else:
             warnings.warn("object has no spectra")
         pass
+
 
 class InfoClass():
     """
@@ -3445,7 +3442,7 @@ def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path,
 
 def find_filter_phot(path = defaults._default_data_dir_path, snname = False,
               prefix = 'SN', file_type = '.dat',
-              verbose = True):
+              verbose = False):
     """
     Tries to find photometry in the supplied directory.
 
