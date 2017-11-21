@@ -1645,6 +1645,7 @@ class PhotometryClass(BaseLightCurveClass):
 
                 else:
 
+
                     full_phot = vstack([full_phot, self.data[phot_filter]])
 
                     pass
@@ -2964,7 +2965,7 @@ class SNClass():
         :param spec_key:
         :return:
         """
-        if hasattr(self, spec):
+        if hasattr(self, "spec"):
             if spec_key in self.spec:
                 print(match)
 
