@@ -5,7 +5,7 @@ import os
 import copy
 
 #
-# verbose = True
+# verbose = Truee
 # fitpath = False
 # snname = "SN2007uy"
 # photpath = os.path.join(pcc.defaults._default_data_dir_path, "lc/" + snname + ".dat")

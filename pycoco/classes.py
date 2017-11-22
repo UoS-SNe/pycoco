@@ -529,8 +529,10 @@ class BaseSpectrumClass():
     def _add_to_overlapping_filters(self, filter_name):
         if hasattr(self, "_overlapping_filter_list"):
             self._overlapping_filter_list = np.append(self._overlapping_filter_list, filter_name)
+            self._n_overlapping_filters = self._n_overlapping_filters + 1
         else:
             self._overlapping_filter_list = np.array(filter_name)
+            self._n_overlapping_filters = 1
         pass
 
 
@@ -554,8 +556,15 @@ class BaseSpectrumClass():
             ## if only one filter is given
             filter_objects = [filter_objects, ]
 
+        if verbose: print(type(self._overlapping_filter_list), self._overlapping_filter_list)
 
-        for j, filter_name in enumerate(self._overlapping_filter_list):
+        if self._n_overlapping_filters == 1:
+            if verbose: print("only one overlapping filter")
+            iterator = [self._n_overlapping_filters]
+        else:
+            iterator = self._overlapping_filter_list
+
+        for j, filter_name in enumerate(iterator):
             if filter_name in filter_objects:
 
                 if isinstance(FilterClass, type(filter_name)):
@@ -639,9 +648,8 @@ class BaseSpectrumClass():
                    self._add_to_overlapping_filters(filter_name)
             else:
                 warnings.warn("SpectrumClass.check_overlaps - something went wrong... no overlaps or data?")
-
-
-
+        if self._n_overlapping_filters == 1:
+            self._overlapping_filter_list = [self._overlapping_filter_list,] ## added to fix issue #27
         pass
 
 
