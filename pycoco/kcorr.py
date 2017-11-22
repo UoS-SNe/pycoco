@@ -18,6 +18,7 @@ import os
 from collections import OrderedDict
 
 from astropy import units as u
+from astropy.modeling import blackbody as bb
 from astropy.constants import c as c
 from astropy.table import Table, Column
 from lmfit import minimize, Parameters, fit_report
@@ -36,6 +37,7 @@ from . import colours
 from . import defaults
 from . import functions
 from . import utils
+from . import extinction
 
 __all__ = ["offset",
             # "convert_AB_to_Vega",
@@ -706,3 +708,106 @@ def manglemin(params, SpectrumObject, data_table, verbose=False, clamped=False, 
 
     return data_table[data_table["mask"]]["fitflux"] - specflux ## minimising residual - better to do chisq? or minimise the sum?? TODO
 
+
+## Extending Spectra
+
+def bb_min(params, specphot, filters, wavelength, verbose=False):
+    T = params["T"]
+    flux_scale = params["flux_scale"]
+    EBV = params["EBV"]
+
+    if verbose: print(type(u.AA))
+
+    bb_wavelength = np.array(wavelength) * u.AA
+    bb_flux = bb.blackbody_lambda(bb_wavelength, temperature=T*u.Kelvin)
+    # bb_flux = bb.blackbody_lambda(bb_wavelength, temperature=T*u.Kelvin)
+
+    bb_spec = classes.SpectrumClass()
+    bb_spec.load_table(Table([wavelength, bb_flux], names=("wavelength", "flux")))
+
+    bb_spec.flux = extinction.unred(bb_spec.wavelength, bb_spec.flux, EBV=EBV)
+
+    bb_spec.data["flux"] = bb_spec.data["flux"] / flux_scale
+    bb_spec.flux = bb_spec.flux / flux_scale
+
+    bb_spec.get_specphot(filters, verbose=verbose)
+
+    residual = specphot["flux"] - bb_spec.specphot["flux"]
+
+    #     return np.sum((residual)**2)
+    return residual
+
+
+def bb_min_fun(params, filters, wavelength, verbose=False):
+    T = params["T"]
+    flux_scale = params["flux_scale"]
+    EBV = params["EBV"]
+
+    if verbose:print(type(u.AA))
+
+    bb_wavelength = np.array(wavelength) * u.AA
+    bb_flux = bb.blackbody_lambda(bb_wavelength, temperature=T * u.Kelvin)
+    # bb_flux = bb.blackbody_lambda(wavelength, temperature=T*u.Kelvin)
+
+    bb_spec = classes.SpectrumClass()
+    bb_spec.load_table(Table([wavelength, bb_flux], names=("wavelength", "flux")))
+
+    bb_spec.flux = extinction.unred(bb_spec.wavelength, bb_spec.flux, EBV=EBV)
+
+    bb_spec.data["flux"] = bb_spec.data["flux"] / flux_scale
+    bb_spec.flux = bb_spec.flux / flux_scale
+
+    bb_spec.get_specphot(filters, verbose=verbose)
+
+    return bb_spec
+
+
+def fit_bb(S, new_wavelength=False, new_min_wavelength=2000, new_max_wavelength=10000, T_guess=10000, flux_scale_guess=1e23,
+           EBV_guess=0.0, correct_for_area=True, filter_dict=False, return_table=False, verbose=False):
+    """
+
+    :param S:
+    :param new_wavelength:
+    :param T_guess:
+    :param flux_scale_guess:
+    :param EBV_guess:
+    :param correct_for_area:
+    :param filter_dict:
+    :param return_table:
+    :param verbose:
+    :return:
+    """
+    if not new_wavelength:
+        new_wavelength = np.arange(new_min_wavelength, new_max_wavelength ) * u.Angstrom
+
+    if not filter_dict:
+        filter_dict = OrderedDict()
+        for i, filter_name in enumerate(S._overlapping_filter_list):
+            filter_dict[filter_name] = load_filter(os.path.join(defaults._default_filter_dir_path, filter_name + ".dat"))
+            filter_dict[filter_name].calculate_edges()
+
+    if not hasattr(S, "specphot"):
+        warnings.warn("Spectrum has no specphot - calculating")
+        S.get_specphot(filter_objects=filter_dict, correct_for_area=correct_for_area, verbose=verbose)
+
+    params = Parameters()
+    params.add("T", value=T_guess)  ## BB temp
+    params.add("flux_scale", value=flux_scale_guess)  ## Flux Scaling
+    params.add("EBV", value=EBV_guess)  ## Extinction
+
+    out = minimize(bb_min, params, args=(S.specphot, filter_dict, S.wavelength),
+                   kws=({"verbose": verbose}))
+
+    best_bb = bb_min_fun(out.params, filter_dict, new_wavelength)
+
+    w_blue = np.where(best_bb.wavelength < np.nanmin(S.wavelength))
+    w_red = np.where(best_bb.wavelength > np.nanmax(S.wavelength))
+
+    new_flux = np.append(best_bb.flux[w_blue], np.append(S.flux, best_bb.flux[w_red]))
+    new_wavelength = np.append(best_bb.wavelength[w_blue], np.append(S.wavelength, best_bb.wavelength[w_red]))
+
+    S._bb_extended = Table([new_wavelength, new_flux], names=("wavelength", "flux"))
+    if return_table:
+        return S._bb_extended
+    else:
+        pass

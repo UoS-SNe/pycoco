@@ -16,7 +16,7 @@ import astropy.units as u
 import numpy as np
 from astropy.constants import c
 from astropy.coordinates import SkyCoord, Distance
-from astropy.table import Table, vstack, Row
+from astropy.table import Table, vstack, Row, Column
 from astropy.time import Time
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -293,8 +293,8 @@ class BaseSpectrumClass():
             if verbose: print(path + ' not found')
 
 
-    def load_table(self, spec_table, spectrum_name = False, path = False, trim_wavelength=False, wmin=3500 * u.angstrom,
-                   wmax=11000 * u.angstrom):
+    def load_table(self, spec_table, spectrum_name = False, path = False, trim_wavelength=False, wmin=1500 * u.angstrom,
+                   wmax=15000 * u.angstrom, verbose=False ):
         """Use with care - basically assumes you have all of your ducks in a row"""
 
         if trim_wavelength:
@@ -585,7 +585,7 @@ class BaseSpectrumClass():
                 else:
                     flux = integrated_flux
 
-                print(flux)
+                if verbose: print("flux in filter", filter_name, " is ", flux)
                 if j == 0:
                     self.specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
 
@@ -1857,6 +1857,7 @@ class SpectrumClass(BaseSpectrumClass):
              + "' doesn't exist. Or isn't a directory. Or can't be located. Have"
              + " you messed with _default_data_dir_path?")
             pass
+
 
 
 class LCfitClass(BaseLightCurveClass):
