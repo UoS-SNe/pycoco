@@ -26,5 +26,8 @@ for listfile in all_listfiles:
         S = sn.spec[spec_key]
         S.get_specphot(sn.phot.data_filters, verbose=True)
 
-        # new_spec = S.fit_bb()
+        new_spec = pcc.classes.SpectrumClass()
 
+        new_spec.load_table(pcc.kcorr.fit_bb(S, filter_dict=sn.phot.data_filters, return_table=True))
+
+        new_spec.save(filename = spec_key, path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))
