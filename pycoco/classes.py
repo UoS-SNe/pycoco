@@ -560,7 +560,7 @@ class BaseSpectrumClass():
 
         if self._n_overlapping_filters == 1:
             if verbose: print("only one overlapping filter")
-            iterator = [self._n_overlapping_filters]
+            iterator = [self._n_overlapping_filters,]
         else:
             iterator = self._overlapping_filter_list
 
