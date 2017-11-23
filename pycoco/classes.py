@@ -541,13 +541,14 @@ class BaseSpectrumClass():
         pass
 
 
-    def get_specphot(self, filter_objects, correct_for_area=True ,verbose = False):
+    def get_specphot(self, filter_objects, correct_for_area=True, verbose = False):
         """
         TODO - Some duplication between this and SNClass.get_specphot()
         :param spectrum:
         :param verbose:
         :return:
         """
+        if verbose: print(type(filter_objects), filter_objects)
 
         if not hasattr(self, "_overlapping_filter_list"):
             self.check_overlaps(filter_objects=filter_objects, verbose=verbose)
@@ -560,19 +561,23 @@ class BaseSpectrumClass():
 
         if self._n_overlapping_filters == 1:
             if verbose: print("only one overlapping filter")
-            iterator = [self._n_overlapping_filters,]
+            iterator = [self._overlapping_filter_list,]
         else:
             iterator = self._overlapping_filter_list
 
         for j, filter_name in enumerate(iterator):
-            if filter_name in filter_objects:
+            if verbose: print(j, filter_name)
+
+            # if filter_name in filter_objects:
+            if filter_name in [i.filter_name for i in filter_objects]:
+                if verbose: print("filter_name in filter_objects")
 
                 if isinstance(FilterClass, type(filter_name)):
                     filter_obj = filter_name
                 elif isinstance(filter_objects, dict):
                     filter_obj = filter_objects[filter_name]
                 else:
-                    filter_obj = filter_objects[i]
+                    filter_obj = filter_objects[[i.filter_name for i in filter_objects].index(filter_name)]
 
                 # flux = kcorr.calc_spectrum_filter_flux(filter_object=filter_obj,
                 #                                        spectrum_object=self)
@@ -599,8 +604,9 @@ class BaseSpectrumClass():
                     self.specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
 
                 self.specphot.add_row((filter_obj.lambda_effective, flux, filter_name))
-        else:
-            warnings.warn("no overlapping filters")
+
+            else:
+                warnings.warn("no overlapping filters - filter_name not in filter_objects")
 
         pass
 

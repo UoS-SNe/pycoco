@@ -15,4 +15,4 @@ sn.load_spec()
 sn.check_overlaps()
 S = sn.spec["1993J_-11.0.txt"]
 
-S.get_specphot([sn.phot.data_filters["BessellV"],])
+S.get_specphot([sn.phot.data_filters["BessellV"],], verbose=True)
