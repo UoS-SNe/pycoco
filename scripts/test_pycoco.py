@@ -188,7 +188,7 @@ class TestClass(unittest.TestCase):
     # def test_SpectrumClass_get_specphot_works_more_than_one_overlapping_filter(self):
 
 
-    def test_SpectrumClass_get_specphot_works_with_one_overlapping_filter(self):
+    def test_SpectrumClass_get_specphot_works_with_one_requested_and_one_overlapping_filter(self):
         snname = "SN1993J"
 
         listfile = os.path.join(pcc.defaults._default_list_dir_path, snname+".list")
@@ -199,12 +199,25 @@ class TestClass(unittest.TestCase):
         sn.load_spec()
         sn.check_overlaps()
         S = sn.spec["1993J_-11.0.txt"]
-        S.get_specphot([sn.phot.data_filters["BessellV"], ], verbose=True)
+        S.get_specphot([sn.phot.data_filters["BessellV"], ], verbose=False)
         self.assertAlmostEqual(1.373e-17, S.specphot["flux"][np.where(S.specphot["filter"] == "BessellV")[0][0]], 3)
 
+    def test_SpectrumClass_get_specphot_works_with_one_requested_and_many_overlapping_filters(self):
+        snname = "SN1993J"
 
+        listfile = os.path.join(pcc.defaults._default_list_dir_path, snname + ".list")
 
-        # specfitClass
+        sn = pcc.classes.SNClass(snname)
+        sn.load_phot(path=os.path.join(pcc.defaults._default_data_dir_path, "lc/" + snname + ".dat"))
+        sn.load_list(listfile)
+        sn.load_spec()
+        sn.check_overlaps()
+        S = sn.spec["1993J_-3.0.txt"]
+
+        S.get_specphot([sn.phot.data_filters["BessellV"], ], verbose=False)
+        self.assertAlmostEqual(1.907e-17, S.specphot["flux"][np.where(S.specphot["filter"] == "BessellV")[0][0]], 3)
+
+            # specfitClass
 
     # def test_specfitClass
 

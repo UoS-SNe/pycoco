@@ -1,3 +1,8 @@
+"""
+incorporated into test_pycoco.py as
+test_SpectrumClass_get_specphot_works_with_one_overlapping_filter
+"""
+
 import os
 import pycoco as pcc
 
@@ -15,4 +20,4 @@ sn.load_spec()
 sn.check_overlaps()
 S = sn.spec["1993J_-11.0.txt"]
 
-S.get_specphot([sn.phot.data_filters["BessellV"],], verbose=True)
+S.get_specphot(sn.phot.data_filters["BessellV"], verbose=True)

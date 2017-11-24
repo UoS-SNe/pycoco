@@ -553,17 +553,32 @@ class BaseSpectrumClass():
         if not hasattr(self, "_overlapping_filter_list"):
             self.check_overlaps(filter_objects=filter_objects, verbose=verbose)
 
-        if isinstance(FilterClass, type(filter_objects)):
-            ## if only one filter is given
-            filter_objects = [filter_objects, ]
-
         if verbose: print(type(self._overlapping_filter_list), self._overlapping_filter_list)
 
         if self._n_overlapping_filters == 1:
             if verbose: print("only one overlapping filter")
-            iterator = [self._overlapping_filter_list,]
+
+            if isinstance(type(filter_objects), FilterClass):
+                if verbose: print("FilterClass passed")
+                ## if only one filter is given
+                iterator = filter_objects.filter_name
+            else:
+                # iterator = [self._overlapping_filter_list,]
+                iterator = [i.filter_name for i in filter_objects]
+
         else:
-            iterator = self._overlapping_filter_list
+            if isinstance(type(filter_objects), FilterClass):
+                if verbose: print("FilterClass passed")
+                ## if only one filter is given
+                iterator = filter_objects.filter_name
+            else:
+                # iterator = self._overlapping_filter_list
+                iterator = [i.filter_name for i in filter_objects]
+
+        if isinstance(type(filter_objects), FilterClass):
+            if verbose: print("FilterClass passed")
+            ## if only one filter is given
+            filter_objects = [filter_objects, ]
 
         for j, filter_name in enumerate(iterator):
             if verbose: print(j, filter_name)
@@ -572,7 +587,7 @@ class BaseSpectrumClass():
             if filter_name in [i.filter_name for i in filter_objects]:
                 if verbose: print("filter_name in filter_objects")
 
-                if isinstance(FilterClass, type(filter_name)):
+                if isinstance(type(filter_name), FilterClass):
                     filter_obj = filter_name
                 elif isinstance(filter_objects, dict):
                     filter_obj = filter_objects[filter_name]
