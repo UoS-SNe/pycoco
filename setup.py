@@ -54,6 +54,7 @@ setup(# package information
           packages=[packageName,
                     ],
       package_dir={packageName:'pycoco'},
+      package_data={packageName:['kcorr_data/*']},
       install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
 
     #   include_package_data = True,
