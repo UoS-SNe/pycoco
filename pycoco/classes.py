@@ -564,7 +564,8 @@ class BaseSpectrumClass():
                 iterator = (filter_objects.filter_name,)
             else:
                 # iterator = [self._overlapping_filter_list,]
-                iterator = [i.filter_name for i in filter_objects]
+                # iterator = [i.filter_name for i in filter_objects]
+                iterator = filter_objects
 
         else:
             if isinstance(filter_objects, FilterClass):
@@ -575,7 +576,7 @@ class BaseSpectrumClass():
 
             else:
                 # iterator = self._overlapping_filter_list
-                iterator = [i.filter_name for i in filter_objects]
+                iterator = filter_objects
 
         if isinstance(filter_objects, FilterClass):
             if verbose: print("FilterClass passed")
@@ -588,44 +589,44 @@ class BaseSpectrumClass():
             if verbose: print(j, filter_name)
 
             # if filter_name in filter_objects:
-            if filter_name in [i.filter_name for i in filter_objects]:
-                if verbose: print("filter_name in filter_objects")
+            # if filter_name in [i.filter_name for i in filter_objects]:
+            #     if verbose: print("filter_name in filter_objects")
 
-                if isinstance(filter_name, FilterClass):
-                    filter_obj = filter_name
-                elif isinstance(filter_objects, dict):
-                    filter_obj = filter_objects[filter_name]
-                else:
-                    filter_obj = filter_objects[[i.filter_name for i in filter_objects].index(filter_name)]
+            if isinstance(filter_name, FilterClass):
+                filter_obj = filter_name
+            elif isinstance(filter_objects, dict):
+                filter_obj = filter_objects[filter_name]
+            else:
+                filter_obj = filter_objects[[i.filter_name for i in filter_objects].index(filter_name)]
 
-                # flux = kcorr.calc_spectrum_filter_flux(filter_object=filter_obj,
-                #                                        spectrum_object=self)
+            # flux = kcorr.calc_spectrum_filter_flux(filter_object=filter_obj,
+            #                                        spectrum_object=self)
 
-                if not np.array_equal(filter_obj.wavelength, self.wavelength):
-                        filter_obj.resample_response(new_wavelength=self.wavelength)
+            if not np.array_equal(filter_obj.wavelength, self.wavelength):
+                    filter_obj.resample_response(new_wavelength=self.wavelength)
 
-                transmitted_spec = filter_obj.throughput * self.flux
-                integrated_flux = simps(transmitted_spec, self.wavelength)
+            transmitted_spec = filter_obj.throughput * self.flux
+            integrated_flux = simps(transmitted_spec, self.wavelength)
 
-                if correct_for_area:
+            if correct_for_area:
 
-                    if not hasattr(filter_obj, "_effective_area"):
-                        filter_obj.calculate_filter_area()
+                if not hasattr(filter_obj, "_effective_area"):
+                    filter_obj.calculate_filter_area()
 
-                    filter_area = filter_obj._effective_area
-                    flux = integrated_flux / filter_area
-
-                else:
-                    flux = integrated_flux
-
-                if verbose: print("flux in filter", filter_name, " is ", flux)
-                if j == 0:
-                    self.specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
-
-                self.specphot.add_row((filter_obj.lambda_effective, flux, filter_name))
+                filter_area = filter_obj._effective_area
+                flux = integrated_flux / filter_area
 
             else:
-                warnings.warn("no overlapping filters - filter_name not in filter_objects")
+                flux = integrated_flux
+
+            if verbose: print("flux in filter", filter_name, " is ", flux)
+            if j == 0:
+                self.specphot = Table(names=("lambda_effective", "flux", "filter"), dtype=('f4', 'f4', 'S'))
+
+            self.specphot.add_row((filter_obj.lambda_effective, flux, filter_name))
+
+            # else:
+            #     warnings.warn("no overlapping filters - filter_name not in filter_objects")
 
         pass
 
