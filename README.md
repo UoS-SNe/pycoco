@@ -1,7 +1,7 @@
 # pycoco
 ___
 
-## v0.8.1
+## v0.8.2
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.com/RobFirth/pycoco.svg?token=WBeKoYyfLUkeCHqmrDyb&branch=master)](https://travis-ci.com/RobFirth/pycoco)
 ___
@@ -13,7 +13,13 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
 
- * Travis-CI implemented and Master is passing
+ * Extending templates now possible
+
+ * calling CoCo (or reproduced CoCo functions) now more straightforward
+
+ * Added more test cases to test_pycoco
+
+ * Travis-CI implemented and Master and dev are passing
 
  * Dependancies now handled in setup.py
 
