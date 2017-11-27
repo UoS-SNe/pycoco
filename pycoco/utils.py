@@ -14,7 +14,7 @@ import warnings
 import matplotlib.pyplot as plt
 from astropy import units as u
 from astropy.table import Table, Column
-from numpy import savetxt, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax
+from numpy import savetxt, array, arange, where, array_equiv, exp, sort, asarray, zeros, nanmin, nanmax, unique, char
 
 # from .defaults import *
 # from .errors import *
@@ -40,7 +40,10 @@ __all__ = ["setup_plot_defaults",
            "b_decode",
            "read_phasefile",
            "weighted_mean",
-           "get_snname_from_listfile"
+           "get_snname_from_listfile",
+           "find_sn_recon_spec",
+           "find_recon_spec",
+           "find_unique_SN_in_recon"
            ]
 
 
@@ -445,7 +448,7 @@ def gaussian(x, g0, x0, sigma0):
     return gauss
 
 
-def read_phasefile(filepath):
+def read_phasefile(filepath=os.path.join(defaults._default_coco_dir_path, "examples/phase.list")):
     return Table.read(filepath, format="ascii", names=("snname", "z_obs", "mu"))
 
 
@@ -489,3 +492,82 @@ def get_snname_from_listfile(listfilepath, filename = True, from_column = False,
         return snname_column == snname_file
 
     pass
+
+
+def find_sn_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose = False):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    file_type = ".spec"
+    errors.StringWarning(dir_path)
+    if not check_dir_path(dir_path):
+        return False
+
+    try:
+        ls = array(os.listdir(dir_path))
+
+        wspec = where(char.find(ls, file_type, start = -len(file_type)) > -1)
+        spec_list = ls[wspec]
+
+        ## The last 18 chars are for the MJD and file_type
+        wsn = where([i[:-18] == snname for i in spec_list])
+        snmatch_list = spec_list[wsn]
+
+        if verbose:
+            print("Found: ")
+            print(ls)
+            print("Spec:")
+            print(spec_list)
+            print("Matched:")
+            print(snmatch_list)
+        if len(snmatch_list) is 0:
+            warnings.warn("No matches found.")
+        return snmatch_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False
+
+
+def find_recon_spec(dir_path=defaults._default_recon_dir_path, file_type = ".spec", verbose=False):
+    """
+
+    :param dir_path:
+    :param verbose:
+    :return:
+    """
+
+    errors.StringWarning(dir_path)
+    if not check_dir_path(dir_path):
+        return False
+
+    try:
+        ls = array(os.listdir(dir_path))
+
+        wspec = where(char.find(ls, file_type, start=-len(file_type)) > -1)
+        spec_list = ls[wspec]
+
+        return spec_list
+
+    except:
+        warnings.warn("Something went wrong")
+        return False
+
+
+def find_unique_SN_in_recon(dir_path = defaults._default_recon_dir_path, file_type = ".spec", verbose = False):
+    """
+
+    :param dir_path:
+    :param file_type:
+    :param verbose:
+    :return:
+    """
+
+    recon_spec = find_recon_spec(dir_path=dir_path, file_type=file_type,verbose=verbose)
+
+    return sort(unique([i.split("_")[0] for i in recon_spec]))

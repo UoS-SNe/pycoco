@@ -430,7 +430,8 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
     pass
 
 
-def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaults._default_coco_dir_path, verbose = True, model=False, test=True):
+def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaults._default_coco_dir_path,
+                  verbose = True, model=False, test=True):
     """
     runs CoCo specphase.
 
@@ -500,3 +501,27 @@ def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_c
     return dir_list
 
 
+def _check_reconspec_sn_in_listfile(listfile=os.path.join(defaults._default_coco_dir_path, "examples/phase.list"),
+                                    recon_dir=defaults._default_recon_dir_path,
+                                    verbose=True):
+    """
+
+    :param listfile:
+    :param recon_dir:
+    :param verbose:
+    :return:
+    """
+
+    phase_list = np.sort(np.array(utils.read_phasefile(filepath=listfile)["snname"]))
+
+    recon_sn_list = utils.find_unique_SN_in_recon(dir_path=recon_dir)
+
+    for sn in recon_sn_list:
+        if verbose: print("Checking", sn, end="")
+        if sn not in phase_list:
+            warnings.warn(sn + " not in phase list " + listfile)
+            if verbose: print("")
+        else:
+            if verbose: print("... Found.")
+            pass
+    pass

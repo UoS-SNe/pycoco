@@ -323,47 +323,6 @@ def find_formatted_phot(path = defaults._default_data_dir_path, snname = False,
         warnings.warn("No matches found.")
     return phot_list
 
-
-def find_recon_spec(snname, dir_path = defaults._default_recon_dir_path, verbose = False):
-    """
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    """
-    file_type = ".spec"
-    errors.StringWarning(dir_path)
-    if not utils.check_dir_path(dir_path):
-        return False
-
-    try:
-        ls = np.array(os.listdir(dir_path))
-
-        wspec = np.where(np.char.find(ls, file_type, start = -len(file_type)) > -1)
-        spec_list = ls[wspec]
-
-        ## The last 18 chars are for the MJD and file_type
-        wsn = np.where([i[:-18] == snname for i in spec_list])
-        snmatch_list = spec_list[wsn]
-
-        if verbose:
-            print("Found: ")
-            print(ls)
-            print("Spec:")
-            print(spec_list)
-            print("Matched:")
-            print(snmatch_list)
-        if len(snmatch_list) is 0:
-            warnings.warn("No matches found.")
-        return snmatch_list
-
-    except:
-        warnings.warn("Something went wrong")
-        return False
-
-
 # def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path, file_type = ".spec", verbose = False):
 #     """
 #
