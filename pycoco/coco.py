@@ -431,7 +431,7 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
 
 
 def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaults._default_coco_dir_path,
-                  verbose = True, model=False, test=True):
+                  verbose = True, model=False, recon_dir=defaults._default_recon_dir_path, test=False):
     """
     runs CoCo specphase.
 
@@ -467,6 +467,8 @@ def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaul
 
     utils.check_file_path(phase_path)
 
+    _check_reconspec_sn_in_listfile(phase_path=phase_path, recon_dir=recon_dir, verbose=verbose)
+
     utils.relist() ## Check filter file is up to date
     cwd = os.getcwd()
     os.chdir(coco_dir)
@@ -474,7 +476,11 @@ def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaul
     if verbose:
         print(callargs)
 
-    subprocess.call(callargs)
+    if not test:
+        subprocess.call(callargs)
+    else:
+        warnings.warn("Just testing - skipping actual call")
+
     os.chdir(cwd)
     pass
 
@@ -501,7 +507,7 @@ def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_c
     return dir_list
 
 
-def _check_reconspec_sn_in_listfile(listfile=os.path.join(defaults._default_coco_dir_path, "examples/phase.list"),
+def _check_reconspec_sn_in_listfile(phase_path=os.path.join(defaults._default_coco_dir_path, "examples/phase.list"),
                                     recon_dir=defaults._default_recon_dir_path,
                                     verbose=True):
     """
@@ -512,14 +518,14 @@ def _check_reconspec_sn_in_listfile(listfile=os.path.join(defaults._default_coco
     :return:
     """
 
-    phase_list = np.sort(np.array(utils.read_phasefile(filepath=listfile)["snname"]))
+    phase_list = np.sort(np.array(utils.read_phasefile(filepath=phase_path)["snname"]))
 
     recon_sn_list = utils.find_unique_SN_in_recon(dir_path=recon_dir)
 
     for sn in recon_sn_list:
         if verbose: print("Checking", sn, end="")
         if sn not in phase_list:
-            warnings.warn(sn + " not in phase list " + listfile)
+            warnings.warn(str(sn) + " not in phase list " + str(phase_path))
             if verbose: print("")
         else:
             if verbose: print("... Found.")
