@@ -791,12 +791,14 @@ def fit_bb(S, new_wavelength=False, new_min_wavelength=2000, new_max_wavelength=
         S.get_specphot(filter_objects=filter_dict, correct_for_area=correct_for_area, verbose=verbose)
 
     params = Parameters()
-    params.add("T", value=T_guess)  ## BB temp
-    params.add("flux_scale", value=flux_scale_guess)  ## Flux Scaling
-    params.add("EBV", value=EBV_guess)  ## Extinction
+    params.add("T", value=T_guess, min=0.0, max=50000, vary=True)  ## BB temp
+    params.add("flux_scale", value=flux_scale_guess, vary=True)  ## Flux Scaling
+    params.add("EBV", value=EBV_guess, vary=True)  ## Extinction
 
     out = minimize(bb_min, params, args=(S.specphot, filter_dict, S.wavelength),
                    kws=({"verbose": verbose}))
+
+    if verbose: print(fit_report(out))
 
     best_bb = bb_min_fun(out.params, filter_dict, new_wavelength)
 
