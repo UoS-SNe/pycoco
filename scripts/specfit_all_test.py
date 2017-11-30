@@ -3,7 +3,7 @@
 
 """
 
-import pycoco as pcc
+import pycocosn as pcc
 
 pcc.coco.specfit_sn(snname = "SN1993J")
 pcc.coco.specfit_sn(snname = "SN1994I")

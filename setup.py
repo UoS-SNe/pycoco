@@ -6,7 +6,7 @@ except ImportError:
 import os
 import re
 
-packageName = 'pycoco'
+packageName = 'pycocosn'
 packageDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           packageName)
 versionFile = os.path.join(packageDir, 'version.py')
@@ -46,6 +46,7 @@ setup(# package information
       package_dir={packageName:'pycoco'},
       package_data={packageName:['kcorr_data/*']},
       install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
+
     #   include_package_data = True,
     #   data_files = data_files
       )

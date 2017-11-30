@@ -3,7 +3,7 @@ adapted from single_filter_specphot.py
 """
 
 import os
-import pycoco as pcc
+import pycocosn as pcc
 
 # snname = "SN1993J"
 snname = "SN2007uy"

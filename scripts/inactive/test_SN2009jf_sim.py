@@ -13,7 +13,7 @@ import os
 import numpy as np
 from astropy.table import Table,Column
 
-import pycoco as pcc
+import pycocosn as pcc
 
 reload(pcc) ## FOR DEV
 reload(pcc.defaults)
