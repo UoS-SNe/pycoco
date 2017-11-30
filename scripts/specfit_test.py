@@ -1,6 +1,6 @@
-import pycoco as pcc
-import pycoco.classes as classes
-import pycoco.defaults as defaults
+import pycocosn as pcc
+import pycocosn.classes as classes
+import pycocosn.defaults as defaults
 import os
 import copy
 

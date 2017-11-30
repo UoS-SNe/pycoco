@@ -3,7 +3,7 @@
 """
 import os
 
-import pycoco as pcc
+import pycocosn as pcc
 
 all_listfiles = pcc.coco.get_all_spec_lists()
 

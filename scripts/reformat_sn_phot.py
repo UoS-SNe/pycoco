@@ -1,6 +1,6 @@
 import os
 import shutil
-import pycoco as pcc
+import pycocosn as pcc
 
 dir_list = os.listdir('/Users/berto/data/CoreCollapse/phot/sn')
 

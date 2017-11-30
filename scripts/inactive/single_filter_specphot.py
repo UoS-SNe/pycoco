@@ -4,7 +4,7 @@ test_SpectrumClass_get_specphot_works_with_one_overlapping_filter
 """
 
 import os
-import pycoco as pcc
+import pycocosn as pcc
 
 snname = "SN1993J"
 all_listfiles = pcc.coco.get_all_spec_lists()

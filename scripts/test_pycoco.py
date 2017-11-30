@@ -12,7 +12,7 @@ except NameError:
 import os
 import unittest
 
-import pycoco as pcc
+import pycocosn as pcc
 import astropy.units as u
 import matplotlib as mpl
 import numpy as np
@@ -22,7 +22,7 @@ import numpy as np
 
 class TestClass(unittest.TestCase):
     """
-    Class for testing pycoco
+    Class for testing pycocosn
     """
 
     ## Environment Variable Tests
