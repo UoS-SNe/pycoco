@@ -1,7 +1,7 @@
 # pycoco
 ___
 
-## v0.8.2
+## v0.8.3
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.com/RobFirth/pycoco.svg?token=WBeKoYyfLUkeCHqmrDyb&branch=master)](https://travis-ci.com/RobFirth/pycoco)
 ___
@@ -12,8 +12,9 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
-
- * Extending templates now possible
+ 
+ 
+ * Extending templates now possible with Black Body spectrum, flat and linear
 
  * calling CoCo (or reproduced CoCo functions) now more straightforward
 
