@@ -43,7 +43,7 @@ setup(# package information
       description='Python tools for the CoCo templates',
       long_description='''Python tools for the CoCo templates''',
       packages=[packageName,],
-      package_dir={packageName:'pycoco'},
+      package_dir={packageName:'pycocosn'},
       package_data={packageName:['kcorr_data/*']},
       install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
 
