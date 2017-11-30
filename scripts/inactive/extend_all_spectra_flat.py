@@ -30,4 +30,4 @@ for listfile in all_listfiles:
 
         new_spec.load_table(pcc.kcorr.flat_extend(S, return_table=True))
 
-        new_spec.save(filename = spec_key.replace(".txt", ".linear.txt"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))
+        new_spec.save(filename = spec_key.replace(".txt", ".flat.txt"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))

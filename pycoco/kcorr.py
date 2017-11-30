@@ -851,7 +851,7 @@ def flat_extend(S, extension_wavelength=False, new_max_wavelength=10000,
 
 
 
-def linear_extend(S, new_wavelength=False, new_max_wavelength=10000,
+def linear_extend(S, extension_wavelength=False, new_max_wavelength=10000,
                 return_table=False, verbose=False):
     """
 
@@ -862,8 +862,15 @@ def linear_extend(S, new_wavelength=False, new_max_wavelength=10000,
     :param verbose:
     :return:
     """
-    if not new_wavelength:
+
+    if not extension_wavelength:
         extension_wavelength = np.arange(np.nanmax(S.wavelength), new_max_wavelength ) * u.Angstrom
+    if new_max_wavelength < np.nanmax(S.wavelength):
+        warnings.warn("No need to extend")
+        if return_table:
+            return S.data
+        else:
+            pass
 
     extension_flux = np.linspace(S.flux[-1], 0, len(extension_wavelength))
 
