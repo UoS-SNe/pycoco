@@ -1893,7 +1893,6 @@ class SpectrumClass(BaseSpectrumClass):
             pass
 
 
-
 class LCfitClass(BaseLightCurveClass):
     """
     Small class to hold the output from CoCo LCfit.
@@ -2983,6 +2982,67 @@ class SNClass():
                     fig.savefig(outpath + ".pdf", format = 'pdf', dpi=500)
                 if savepng and outpath:
                     fig.savefig(outpath + ".png", format = 'png', dpi=500)
+
+                plt.show()
+        else:
+            warnings.warn("Doesn't seem to be any data here (empty self.data)")
+        pass
+
+
+    def plot_spec_coverage(self,  xminorticks = 250, yminorticks = 5, legend = True,
+                  wmin = 3500, return_figure=False,
+                  savepng = False, savepdf = False, outpath = False,
+                  verbose = False,):
+        """
+
+        :param xminorticks:
+        :param yminorticks:
+        :param legend:
+        :param wmin:
+        :param return_figure:
+        :param savepng:
+        :param savepdf:
+        :param outpath:
+        :param verbose:
+        :return:
+        """
+        if hasattr(self, "spec"):
+            utils.setup_plot_defaults()
+
+            y = [self.spec[i].mjd_obs for i in self.spec]
+            xmax = [self.spec[i].max_wavelength for i in self.spec]
+            xmin = [self.spec[i].min_wavelength for i in self.spec]
+
+            xaxis_label_string = r'$\textnormal{Wavelength (\AA)}$'
+            yaxis_label_string = r'$\textnormal{Time, MJD (days)}$'
+
+            fig = plt.figure(figsize=[10, 3])
+            fig.subplots_adjust(left=0.09, bottom=0.2, top=0.99,
+                                right=0.99, hspace=0, wspace=0)
+
+            ax = fig.add_subplot(111)
+
+            ax.hlines(y=y, xmin=xmin, xmax=xmax)
+
+            ax.scatter(xmin, y, color="blue")
+            ax.scatter(xmax, y, color="red")
+
+            xminorLocator = MultipleLocator(xminorticks)
+            ax.xaxis.set_minor_locator(xminorLocator)
+            yminorLocator = MultipleLocator(yminorticks)
+            ax.yaxis.set_minor_locator(yminorLocator)
+
+            ax.set_xlabel(xaxis_label_string)
+            ax.set_ylabel(yaxis_label_string)
+
+            if return_figure:
+                warnings.warn("Returning figure, saveargs will be ignored")
+                return fig
+            else:
+                if savepdf and outpath:
+                    fig.savefig(outpath + ".pdf", format='pdf', dpi=500)
+                if savepng and outpath:
+                    fig.savefig(outpath + ".png", format='png', dpi=500)
 
                 plt.show()
         else:

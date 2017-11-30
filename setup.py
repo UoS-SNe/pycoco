@@ -37,26 +37,15 @@ __version__ =  versionRegExp.findall(s)[0]
 setup(# package information
       name=packageName,
       version=__version__,
+      author="Rob Firth",
+      author_email="science@robertfirth.co.uk",
+      url="https://github.com/RobFirth/pycoco",
       description='Python tools for the CoCo templates',
-      long_description=''' ''',
-      # What code to include as packages
-    #   packages=[packageName,
-    #             packageName+".classes",
-    #             packageName+".colours",
-    #             packageName+".defaults",
-    #             packageName+".extinction",
-    #             packageName+".errors",
-    #             packageName+".functions",
-    #             packageName+".kcorr",
-    #             packageName+".sims",
-    #             packageName+".utils"
-    #             ],
-          packages=[packageName,
-                    ],
+      long_description='''Python tools for the CoCo templates''',
+      packages=[packageName,],
       package_dir={packageName:'pycoco'},
       package_data={packageName:['kcorr_data/*']},
       install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
-
     #   include_package_data = True,
     #   data_files = data_files
       )
