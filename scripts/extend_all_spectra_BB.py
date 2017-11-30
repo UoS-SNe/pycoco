@@ -28,6 +28,6 @@ for listfile in all_listfiles:
 
         new_spec = pcc.classes.SpectrumClass()
 
-        new_spec.load_table(pcc.kcorr.fit_bb(S, filter_dict=sn.phot.data_filters, return_table=True))
+        new_spec.load_table(pcc.kcorr.linear_extend(S, return_table=True))
 
-        new_spec.save(filename = spec_key, path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))
+        new_spec.save(filename = spec_key.replace(".txt", ".linear.txt"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))

@@ -20,7 +20,7 @@ from collections import OrderedDict
 from astropy import units as u
 from astropy.modeling import blackbody as bb
 from astropy.constants import c as c
-from astropy.table import Table, Column
+from astropy.table import Table, Column, vstack
 from lmfit import minimize, Parameters, fit_report
 from matplotlib import pyplot as plt
 import numpy as np
@@ -811,5 +811,69 @@ def fit_bb(S, new_wavelength=False, new_min_wavelength=2000, new_max_wavelength=
     S._bb_extended = Table([new_wavelength, new_flux], names=("wavelength", "flux"))
     if return_table:
         return S._bb_extended
+    else:
+        pass
+
+def flat_extend(S, extension_wavelength=False, new_max_wavelength=10000,
+                return_table=False, verbose=False):
+    """
+
+    :param S:
+    :param new_wavelength:
+    :param new_max_wavelength:
+    :param return_table:
+    :param verbose:
+    :return:
+    """
+
+    if not extension_wavelength:
+        extension_wavelength = np.arange(np.nanmax(S.wavelength), new_max_wavelength) * u.Angstrom
+
+    if new_max_wavelength < np.nanmax(S.wavelength):
+        warnings.warn("No need to extend")
+        if return_table:
+            return S.data
+        else:
+            pass
+
+    extension_flux = np.ones(len(extension_wavelength)) * np.mean(S.flux)
+
+    extension_spec = classes.SpectrumClass()
+    extension_spec.load_table(Table([extension_wavelength, extension_flux], names=("wavelength", "flux")), verbose=verbose)
+
+    extended_spec = classes.SpectrumClass()
+    extended_spec.load_table(vstack([S.data, extension_spec.data]), verbose=verbose)
+
+    if return_table:
+        return extended_spec.data
+    else:
+        pass
+
+
+
+def linear_extend(S, new_wavelength=False, new_max_wavelength=10000,
+                return_table=False, verbose=False):
+    """
+
+    :param S:
+    :param new_wavelength:
+    :param new_max_wavelength:
+    :param return_table:
+    :param verbose:
+    :return:
+    """
+    if not new_wavelength:
+        extension_wavelength = np.arange(np.nanmax(S.wavelength), new_max_wavelength ) * u.Angstrom
+
+    extension_flux = np.linspace(S.flux[-1], 0, len(extension_wavelength))
+
+    extension_spec = classes.SpectrumClass()
+    extension_spec.load_table(Table([extension_wavelength, extension_flux], names=("wavelength", "flux")), verbose=verbose)
+
+    extended_spec = classes.SpectrumClass()
+    extended_spec.load_table(vstack([S.data, extension_spec.data]), verbose=verbose)
+
+    if return_table:
+        return extended_spec.data
     else:
         pass
