@@ -32,6 +32,7 @@ from . import classes
 from . import models
 from . import litdata
 from . import coco
+from . import testing
 
 # from . import test
 # test.test("foo")
