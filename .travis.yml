@@ -34,6 +34,7 @@ install:
 #  - mkdir ../Dust/sfddata-master
 #  - pwd
 #  - python setup.py install
+pip install pycocosn
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
 #  - pip list
