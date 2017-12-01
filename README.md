@@ -3,7 +3,7 @@ ___
 
 ## v0.9.0
 ___
-[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)
+[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)[![DOI](https://zenodo.org/badge/74136059.svg)](https://zenodo.org/badge/latestdoi/74136059)
 ___
 This is the development repo for the python frontend for the core-collapse SNe template code 'CoCo':  https://github.com/UoS-SNe/CoCo
 (my fork is currently https://github.com/RobFirth/CoCo).
@@ -13,7 +13,7 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
  
- * renamed to `pycocosn`
+ * Now available on PyPi and via `pip` - renamed to `pycocosn`
  
  * Extending templates now possible with Black Body spectrum, flat and linear
 
