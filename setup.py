@@ -7,9 +7,11 @@ import os
 import re
 
 packageName = 'pycocosn'
+# packageName = 'pycoco'
 packageDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           packageName)
 versionFile = os.path.join(packageDir, 'version.py')
+# packageName = 'pycocosn'
 
 with open(versionFile, 'r') as f:
       s = f.read()
@@ -20,33 +22,21 @@ versionRegExp = re.compile("__version__ = \"(.*?)\"")
 # Assign to __version__
 __version__ =  versionRegExp.findall(s)[0]
 
-## Compile list of data files to be installed
-# data_files = [("lc", [ os.path.join(packageDir, "data/lc", i) for i in os.listdir(os.path.join(packageDir, "data/lc"))] ),
-#               ("filters", [ os.path.join(packageDir, "data/filters", i) for i in os.listdir(os.path.join(packageDir, "data/filters"))] )
-#              ]
-#
-# for i in os.listdir(os.path.join(packageDir, "data/spec")):
-#     path = os.path.join("spec/", i)
-#     datalist = []
-#     for j in os.listdir(os.path.join(packageDir, "data/", path)):
-#         datalist.append(os.path.join(packageDir, "data", path, j))
-#
-#     datatuple = (path, datalist)
-#     data_files.append(datatuple)
-
 setup(# package information
-      name=packageName,
+      # name=packageName,
+      name="pycocosn",
       version=__version__,
       author="Rob Firth",
       author_email="science@robertfirth.co.uk",
       url="https://github.com/RobFirth/pycoco",
       description='Python tools for the CoCo templates',
       long_description='''Python tools for the CoCo templates''',
-      packages=[packageName,],
-      package_dir={packageName:'pycocosn'},
-      package_data={packageName:['kcorr_data/*']},
-      install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']  # ,
-
-    #   include_package_data = True,
-    #   data_files = data_files
+      # packages=[packageName,"pycoco"],
+      packages=["pycoco",],
+      # package_dir={packageName:packageName},
+      # package_dir={packageName:"pycoco"},
+      # package_data={packageName:['kcorr_data/*']},
+      package_dir={"pycoco":"pycocosn"},
+      package_data={"pycoco":['kcorr_data/*']},
+      install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']
       )

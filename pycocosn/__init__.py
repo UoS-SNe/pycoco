@@ -12,7 +12,7 @@ import sys
 if __name__ is not '__main__':
 
     __author__ = "RobFirth"
-    __name__ = 'pycocosn'
+    __name__ = 'pycoco'
 
 try:
     __file__

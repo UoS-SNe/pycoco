@@ -12,7 +12,7 @@ except NameError:
 import os
 import unittest
 
-import pycocosn as pcc
+import pycoco as pcc
 import astropy.units as u
 import matplotlib as mpl
 import numpy as np
