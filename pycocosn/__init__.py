@@ -12,7 +12,7 @@ import sys
 if __name__ is not '__main__':
 
     __author__ = "RobFirth"
-    __name__ = 'pycocosn'
+    __name__ = 'pycoco'
 
 try:
     __file__
@@ -32,6 +32,7 @@ from . import classes
 from . import models
 from . import litdata
 from . import coco
+from . import testing
 
 # from . import test
 # test.test("foo")
