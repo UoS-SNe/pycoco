@@ -1,4 +1,4 @@
-# pycocosn (the package formerly known as 'pycoco')
+# **`pycoco`**
 ___
 
 ## v0.9.0
@@ -13,7 +13,7 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
  
- * Now available on PyPi and via `pip` - renamed to `pycocosn`
+ * Now available on PyPi and via `pip` - packagen available to install as `pycocosn`
  
  * Extending templates now possible with Black Body spectrum, flat and linear
 
@@ -64,8 +64,14 @@ ___
  * can now batch fit light curves and spectra from within python
 ___
 
+To install:
 
-To install, run:
+```
+pip install pycocosn
+
+```
+
+To install from source:
 
 ```
 git clone https://github.com/RobFirth/verbose-enigma.git
