@@ -317,7 +317,7 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     setenv LSST_THROUGHPUTS ${HOME}/projects/LSST/throughputs
     setenv LSST_THROUGHPUTS_BASELINE ${LSST_THROUGHPUTS}/baseline
     """
-    dark_sky_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"],"darksky.dat")
+    dark_sky_path = os.path.join(defaults._default_lsst_throughputs_path,"darksky.dat")
     darksky = classes.SpectrumClass()
     darksky.load(dark_sky_path, wavelength_u = u.nm, flux_u = u.cgs.erg / u.si.cm ** 2 / u.si.s / u.nm,
                  fmt = "ascii.commented_header", wmin = wmin, wmax = wmax, *args, **kwargs)

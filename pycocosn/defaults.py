@@ -30,10 +30,15 @@ COCO_ROOT_DIR = os.environ["COCO_ROOT_DIR"]
 LSST_THROUGHPUTS_ROOT = os.environ["LSST_THROUGHPUTS"]
 SFD_DIR = os.environ["SFD_DIR"]
 
-_default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
-_default_filter_dir_path = os.path.join(COCO_ROOT_DIR, "data/filters/")
 _default_list_dir_path = os.path.join(COCO_ROOT_DIR, "lists/")
 _default_coco_dir_path = os.path.join(COCO_ROOT_DIR)
+
+if "PYCOCO_DATA_DIR" in os.environ:
+    _default_data_dir_path = os.environ["PYCOCO_data_DIR"]
+else:
+    _default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
+
+_default_filter_dir_path = os.path.join(COCO_ROOT_DIR, "data/filters/")
 _default_recon_dir_path = os.path.join(COCO_ROOT_DIR, "recon/")
 _default_specphase_dir_path = os.path.join(COCO_ROOT_DIR, "spectra/")
 _default_sn_dist_path = os.path.join(COCO_ROOT_DIR, "sndist.list")
@@ -41,6 +46,12 @@ _default_lcsim_path = os.path.join(COCO_ROOT_DIR, "sim/")
 _default_info_path = os.path.join(_default_data_dir_path, "info/info.dat")
 _default_kcorr_data_path = os.path.join(os.path.abspath(os.path.join(__file__, os.pardir)), 'kcorr_data/')
 _default_lsst_throughputs_path = os.path.abspath(LSST_THROUGHPUTS_ROOT)
+
+if "LSST_THROUGHPUTS_BASELINE" in os.environ:
+    _default_lsst_throughputs_baseline_path = os.environ["LSST_THROUGHPUTS_BASELINE"]
+else:
+    _default_lsst_throughputs_baseline_path = os.path.join(os.environ["LSST_THROUGHPUTS_BASELINE"], "baseline/")
+
 _default_dust_dir = os.path.abspath(SFD_DIR)
 
 # _colormap_name = 'jet'

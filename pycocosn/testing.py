@@ -31,11 +31,11 @@ class TestClass(unittest.TestCase):
     def test_COCO_ROOT_DIR_environment_variable_exists(self):
         self.assertTrue("COCO_ROOT_DIR" in os.environ)
 
-    def test_PYCOCO_FILTER_DIR_environment_variable_exists(self):
-        self.assertTrue("PYCOCO_FILTER_DIR" in os.environ)
-
-    def test_PYCOCO_DATA_DIR_environment_variable_exists(self):
-        self.assertTrue("PYCOCO_DATA_DIR" in os.environ)
+    # def test_PYCOCO_FILTER_DIR_environment_variable_exists(self):
+    #     self.assertTrue("PYCOCO_FILTER_DIR" in os.environ)
+    #
+    # def test_PYCOCO_DATA_DIR_environment_variable_exists(self):
+    #     self.assertTrue("PYCOCO_DATA_DIR" in os.environ)
 
     def test_SFD_DIR_environment_variable_exists(self):
         self.assertTrue("SFD_DIR" in os.environ)
@@ -43,8 +43,8 @@ class TestClass(unittest.TestCase):
     def test_LSST_THROUGHPUTS_environment_variable_exists(self):
         self.assertTrue("LSST_THROUGHPUTS" in os.environ)
 
-    def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exists(self):
-        self.assertTrue("LSST_THROUGHPUTS_BASELINE" in os.environ)
+    # def test_LSST_THROUGHPUTS_BASELINE_environment_variable_exists(self):
+    #     self.assertTrue("LSST_THROUGHPUTS_BASELINE" in os.environ)
 
     ##
 

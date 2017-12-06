@@ -83,7 +83,7 @@ def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
 
 
 def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
-              verbose = True,):
+              testrun=False, verbose = True):
     """
 
     :param path:
@@ -112,7 +112,12 @@ def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
 
     cwd = os.getcwd()
     os.chdir(coco_dir)
-    subprocess.call(callargs)
+
+    if not testrun:
+        subprocess.call(callargs)
+    else:
+        warnings.warn("Test run - not generating subprocess")
+
     os.chdir(cwd)
     if verbose: print("Fit complete")
     pass
