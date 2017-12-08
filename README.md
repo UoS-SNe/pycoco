@@ -1,7 +1,7 @@
 # **`pycoco`**
 ___
 
-## v0.9.0
+## v0.9.8
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)[![DOI](https://zenodo.org/badge/74136059.svg)](https://zenodo.org/badge/latestdoi/74136059)
 ___
@@ -126,3 +126,53 @@ ___
 
 for `sfdmap`, the environment variable `SFD_DIR` needs to point at the path to the parent directory of the appropriate dust map files. See the installation instructions here: https://github.com/kbarbary/sfdmap
 ___  
+
+
+## Known Problems -
+
+If using in an environment (i.e. through (ana)conda) on Mac and you see the following:
+
+```
+~/anaconda3/lib/python3.6/site-packages/pycocosn-0.9.6-py3.6.egg/pycoco/__init__.py in <module>()
+     24 from . import extinction
+     25 from . import colours
+---> 26 from . import utils
+     27 from . import errors
+     28 from . import kcorr
+
+~/anaconda3/lib/python3.6/site-packages/pycocosn-0.9.6-py3.6.egg/pycoco/utils.py in <module>()
+     12 import warnings
+     13
+---> 14 import matplotlib.pyplot as plt
+     15 from astropy import units as u
+     16 from astropy.table import Table, Column
+
+~/anaconda3/lib/python3.6/site-packages/matplotlib/pyplot.py in <module>()
+    111 ## Global ##
+    112
+--> 113 _backend_mod, new_figure_manager, draw_if_interactive, _show = pylab_setup()
+    114
+    115 _IP_REGISTERED = None
+
+~/anaconda3/lib/python3.6/site-packages/matplotlib/backends/__init__.py in pylab_setup(name)
+     58     # imports. 0 means only perform absolute imports.
+     59     backend_mod = __import__(backend_name, globals(), locals(),
+---> 60                              [backend_name], 0)
+     61
+     62     # Things we pull in from all backends
+
+~/anaconda3/lib/python3.6/site-packages/matplotlib/backends/backend_macosx.py in <module>()
+     17
+     18 import matplotlib
+---> 19 from matplotlib.backends import _macosx
+     20
+     21 from .backend_agg import RendererAgg, FigureCanvasAgg
+
+RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework. See the Python documentation for more information on installing Python as a framework on Mac OS X. Please either reinstall Python as a framework, or try one of the other backends. If you are using (Ana)Conda please install python.app and replace the use of 'python' with 'pythonw'. See 'Working with Matplotlib on OSX' in the Matplotlib FAQ for more information.
+```
+you need to swap the default backend.
+
+If you have installed the pip matplotlib, there is a directory in your root called ``~/.matplotlib`.
+
+Create a file ``~/.matplotlib/matplotlibrc` there and add the following:
+`backend: TkAgg`
