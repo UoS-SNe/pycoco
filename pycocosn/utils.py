@@ -600,7 +600,7 @@ def get_notebooks(url="https://github.com/RobFirth/pycoco/blob/dev/notebooks/pyc
     if change.lower() == "y":
         targetdir = input("input target directory for notebooks: ")
 
-    tarball = os.path.join(targetdir, 'pycoco_notebooks.tar.gz'
+    tarball = os.path.join(targetdir, 'pycoco_notebooks.tar.gz')
     urllib.request.urlretrieve('https://github.com/RobFirth/pycoco/blob/dev/notebooks/pycoco_tutorial_notebooks.tar.gz?raw=true', tarball))
 
     if (tarball.endswith("tar.gz")):
