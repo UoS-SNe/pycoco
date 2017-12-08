@@ -604,10 +604,13 @@ def get_notebooks(url="https://github.com/RobFirth/pycoco/blob/dev/notebooks/pyc
     urllib.request.urlretrieve('https://github.com/RobFirth/pycoco/blob/dev/notebooks/pycoco_tutorial_notebooks.tar.gz?raw=true', tarball)
 
     if (tarball.endswith("tar.gz")):
-        tar = tarfile.open(tarball, "r:gz")
+        print("unpacking.")
+        tar = tarball.open(tarball, "r:gz")
         tar.extractall()
         tar.close()
     else:
         warnings.warn("Something went wrong. Please raise the issue on GitHub.")
+        return
 
+    print("downloaded tarball to ", tarball)
     pass
