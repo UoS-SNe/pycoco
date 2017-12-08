@@ -45,7 +45,8 @@ __all__ = ["setup_plot_defaults",
            "get_snname_from_listfile",
            "find_sn_recon_spec",
            "find_recon_spec",
-           "find_unique_SN_in_recon"
+           "find_unique_SN_in_recon",
+           "get_notebooks"
            ]
 
 
