@@ -1650,7 +1650,7 @@ class PhotometryClass(BaseLightCurveClass):
                 ## Sort the OrderedDict
                 self._sort_phot()
             else:
-                warning.warn("Couldn't find any photometry")
+                warnings.warn("Couldn't find any photometry")
         else:
             warnings.warn("Provide a SN name")
 
