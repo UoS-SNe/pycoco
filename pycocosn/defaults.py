@@ -34,7 +34,7 @@ _default_list_dir_path = os.path.join(COCO_ROOT_DIR, "lists/")
 _default_coco_dir_path = os.path.join(COCO_ROOT_DIR)
 
 if "PYCOCO_DATA_DIR" in os.environ:
-    _default_data_dir_path = os.environ["PYCOCO_data_DIR"]
+    _default_data_dir_path = os.environ["PYCOCO_DATA_DIR"]
 else:
     _default_data_dir_path = os.path.join(COCO_ROOT_DIR, "data/")
 
