@@ -8,6 +8,7 @@ import subprocess
 import warnings
 
 import numpy as np
+
 from astropy import units as u
 from astropy.table import Table, Column, vstack
 from astropy.time import Time

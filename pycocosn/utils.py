@@ -10,6 +10,8 @@ from __future__ import print_function
 import os
 import sys
 import warnings
+import urllib
+import tarfile
 
 import matplotlib.pyplot as plt
 from astropy import units as u
@@ -571,3 +573,41 @@ def find_unique_SN_in_recon(dir_path = defaults._default_recon_dir_path, file_ty
     recon_spec = find_recon_spec(dir_path=dir_path, file_type=file_type,verbose=verbose)
 
     return sort(unique([i.split("_")[0] for i in recon_spec]))
+
+
+def get_notebooks(url="https://github.com/RobFirth/pycoco/blob/dev/notebooks/pycoco_tutorial_notebooks.tar.gz?raw=true"):
+    """
+
+    gets the tutorial notebooks from GitHub, saves and extracts them.
+
+    :param url: string - Target file.
+    :return:
+    """
+
+    targetdir = os.environ["COCO_ROOT_DIR"]
+
+    print("fetching notebooks from", url)
+
+    change = ""
+    while change.lower() not in ["y", "n"]:
+        change = input("change default destination? y/[n] (" + targetdir + "): ")
+        if change == "":
+            change = "n"
+        if change.lower() not in ["y", "n"]:
+            print(change, "not valid option")
+
+    if change.lower() == "y":
+        targetdir = input("input target directory for notebooks: ")
+
+    tarball = os.path.join(targetdir, 'pycoco_notebooks.tar.gz'
+    urllib.request.urlretrieve(
+        'https://github.com/RobFirth/pycoco/blob/dev/notebooks/pycoco_tutorial_notebooks.tar.gz?raw=true', tarball))
+
+    if (tarball.endswith("tar.gz")):
+        tar = tarfile.open(tarball, "r:gz")
+        tar.extractall()
+        tar.close()
+    else:
+        warnings.warn("Something went wrong. Please raise the issue on GitHub.")
+
+    pass
