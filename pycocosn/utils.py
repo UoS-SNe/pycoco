@@ -224,7 +224,8 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
 
-def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'), remove_zero=False):
+def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                             remove_zero=False, verbose=False):
     """
 
     :param remove_zero:

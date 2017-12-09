@@ -781,8 +781,8 @@ def combine_spectra(s1, s2, wmin, wmax, scale=False, report=False, showplot=Fals
     """
     ## Check the bluer one is first?
 
-    s1_overlap = SpectrumClass()
-    s2_overlap = SpectrumClass()
+    s1_overlap = classes.SpectrumClass()
+    s2_overlap = classes.SpectrumClass()
 
     s1_overlap.load_table(s1.data[np.where(s1.data["wavelength"] > s2.min_wavelength)], path="", trim_wavelength=True,
                           wmin=wmin, wmax=wmax)

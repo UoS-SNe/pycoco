@@ -190,7 +190,8 @@ class TestClass(unittest.TestCase):
 
     # def test_SpectrumClass_get_data_dir_returns_default_spec_dir(self):
     #     x = pcc.classes.SpectrumClass()
-    #     self.assertEqual(os.path.abspath(x._get_data_directory()), os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "spec/")))
+    #     self.assertEqual(os.path.abspath(x._get_data_directory()),
+    #                      os.path.abspath(os.path.join(pcc.defaults._default_data_dir_path, "spec/")))
 
     # def test_SpectrumClass_get_specphot_works_more_than_one_overlapping_filter(self):
 

@@ -100,7 +100,8 @@ offset = {
 #     return phot_table
 
 
-def load_vega(path = os.path.join(defaults._default_kcorr_data_path, "alpha_lyr_stis_002.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
+def load_vega(path = os.path.join(defaults._default_kcorr_data_path, "alpha_lyr_stis_002.dat"), wmin = 1500*u.angstrom,
+              *args, **kwargs):
     """
     returns spectrum of Vega as a SpectrumClass instance
     """
@@ -110,7 +111,8 @@ def load_vega(path = os.path.join(defaults._default_kcorr_data_path, "alpha_lyr_
     return vega
 
 
-def load_AB(path = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom, *args, **kwargs):
+def load_AB(path = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), wmin = 1500*u.angstrom,
+            *args, **kwargs):
     """
     returns 'spectrum' as a SpectrumClass instance
     """
@@ -179,8 +181,8 @@ def calc_filter_area(filter_name = False, filter_object=False, filter_path = def
 
 
 def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_object=False,
-                              filter_path = defaults._default_filter_dir_path, spectrum_dir=None, spectrum_filename=None,
-                              correct_for_area=True, verbose = True):
+                              filter_path = defaults._default_filter_dir_path, spectrum_dir=None,
+                              spectrum_filename=None, correct_for_area=True, verbose = True):
     """
     returns flux in units of
 
@@ -232,7 +234,9 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         return  integrated_flux
 
 
-def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, abpath = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"), filter_object = False):
+def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path,
+                 abpath = os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat"),
+                 filter_object = False):
 
     AB = load_AB(path=abpath)
 
@@ -249,7 +253,8 @@ def calc_AB_flux(filter_name, filter_path = defaults._default_filter_dir_path, a
     return integrated_flux
 
 
-def calc_AB_zp(filter_name=False, filter_object = False, abpath=os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat")):
+def calc_AB_zp(filter_name=False, filter_object = False,
+               abpath=os.path.join(defaults._default_kcorr_data_path, "AB_pseudospectrum.dat")):
     """
 
     """
@@ -327,7 +332,8 @@ def load_dark_sky_spectrum(wmin = 1500*u.angstrom, wmax = 11000*u.angstrom, *arg
     return darksky
 
 
-def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False, verbose = False):
+def calc_m_darksky(filter_name=False, filter_object = False, dark_sky = False, vega = False, abspath=False,
+                   verbose = False):
     """
 
     :param filter_name:
@@ -762,8 +768,9 @@ def bb_min_fun(params, filters, wavelength, verbose=False):
     return bb_spec
 
 
-def fit_bb(S, new_wavelength=False, new_min_wavelength=2000, new_max_wavelength=10000, T_guess=10000, flux_scale_guess=1e23,
-           EBV_guess=0.0, correct_for_area=True, filter_dict=False, return_table=False, verbose=False):
+def fit_bb(S, new_wavelength=False, new_min_wavelength=2000, new_max_wavelength=10000, T_guess=10000,
+           flux_scale_guess=1e23, EBV_guess=0.0, correct_for_area=True, filter_dict=False, return_table=False,
+           verbose=False):
     """
 
     :param S:
