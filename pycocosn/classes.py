@@ -2745,7 +2745,7 @@ class SNClass():
                 if multiplot:
                     ax1 = axes_list[i]
 
-                if filter_key in self.phot.data and sum(~np.isnan(i) for i in sn_sim.phot.data[filter_key]["flux"]): ## Kernel was falling over when there was only nan
+                if filter_key in self.phot.data and sum(~np.isnan(i) for i in self.phot.data[filter_key]["flux"]): ## Kernel was falling over when there was only nan
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
                     plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
