@@ -1,11 +1,7 @@
 # **`pycoco`**
 ___
 
-<<<<<<< HEAD
-## v0.9.10
-=======
-## v0.9.11
->>>>>>> 4df184e052d5db0dde2d80609e99ba2a9533b416
+## v0.9.12
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)[![DOI](https://zenodo.org/badge/74136059.svg)](https://zenodo.org/badge/latestdoi/74136059)
 ___

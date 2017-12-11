@@ -3489,7 +3489,8 @@ class InfoClass():
 
 ## FUNCTIONS THAT ITS A PAIN TO SHIFT
 
-def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path, file_type = ".spec", verbose = False):
+def find_specphase_spec(snname, dir_path = defaults._default_specphase_dir_path, file_type = ".spec",
+                        verbose = False):
     """
 
     Parameters

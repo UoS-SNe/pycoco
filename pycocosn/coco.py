@@ -123,8 +123,8 @@ def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
     pass
 
 
-def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_path, data_dir = defaults._default_data_dir_path,
-                        verbose = True):
+def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_path,
+                        data_dir = defaults._default_data_dir_path, verbose = True):
     """
 
     :param listfile_path:
@@ -490,7 +490,8 @@ def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaul
     pass
 
 
-def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_coco_dir_path, absolute_path=False, verbose = False):
+def check_specphase(snname, spectra_dir="spectra/", coco_dir=defaults._default_coco_dir_path, absolute_path=False,
+                    verbose = False):
     """
 
     :param verbose:

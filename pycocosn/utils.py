@@ -224,7 +224,8 @@ def simulate_out_to_ap_table(mjd_to_sim, flux, dflux, filters_to_sim,
     return Table([mjd_to_sim, flux, dflux, filters_to_sim.astype(str)], names = names)
 
 
-def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'), remove_zero=False):
+def specphot_out_to_ap_table(out, mjdmax, filter_name, names = ('MJD', 'flux', 'flux_err', 'filter'),
+                             remove_zero=False, verbose=False):
     """
 
     :param remove_zero:
@@ -604,10 +605,13 @@ def get_notebooks(url="https://github.com/RobFirth/pycoco/blob/dev/notebooks/pyc
     urllib.request.urlretrieve('https://github.com/RobFirth/pycoco/blob/dev/notebooks/pycoco_tutorial_notebooks.tar.gz?raw=true', tarball)
 
     if (tarball.endswith("tar.gz")):
-        tar = tarfile.open(tarball, "r:gz")
+        print("unpacking.")
+        tar = tarball.open(tarball, "r:gz")
         tar.extractall()
         tar.close()
     else:
         warnings.warn("Something went wrong. Please raise the issue on GitHub.")
+        return
 
+    print("downloaded tarball to ", tarball)
     pass
