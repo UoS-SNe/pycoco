@@ -2644,7 +2644,7 @@ class SNClass():
         pass
 
 
-    def load_simspec(self, snname = False, spec_dir_path = False, verbose = False):
+    def load_simspec(self, snname = False, spec_dir_path = defaults._default_specphase_dir_path, verbose = False):
         """
         Parameters
         ----------
@@ -2668,6 +2668,33 @@ class SNClass():
         else:
             warnings.warn("SNClass Object has no 'name' attribute")
         pass
+
+
+    def load_reconspec(self, snname = False, spec_dir_path = defaults._default_recon_dir_path, verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self, "name"):
+            dir_contents = [i for i in os.listdir(spec_dir_path) if i.startswith(self.name) and i.endswith(".spec")]
+
+            if verbose: print(dir_contents)
+
+            self.sim_spec = OrderedDict()
+
+            for specfile in dir_contents:
+                self.sim_spec[specfile.replace(".spec", "")] = SpectrumClass()
+
+                self.sim_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
+
+            if verbose: print(self.sim_spec.keys())
+        else:
+            warnings.warn("SNClass Object has no 'name' attribute")
+        pass
+
 
     def load_sndist(self, path = defaults._default_sn_dist_path, format = "ascii"):
         """
