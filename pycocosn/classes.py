@@ -2606,7 +2606,6 @@ class SNClass():
 
     def load_mangledspec(self, snname = False, spec_dir_path = False, verbose = False):
         """
-
         Parameters
         ----------
 
@@ -2653,37 +2652,22 @@ class SNClass():
         Returns
         -------
         """
+        if hasattr(self, "name"):
+            dir_contents = [i for i in os.listdir(spec_dir_path) if i.startswith(self.name) and i.endswith(".spec")]
 
-        if not snname:
-            snname = self.name
+            if verbose: print(dir_contents)
 
-        # # self._mangledspeclist = functions.find_recon_spec(snname)
-        # self._mangledspeclist = find_specphase_spec(self.name)
-        # self.mangledspec = OrderedDict()
-        # if verbose: print("loading mangledspec")
-        # if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
-        #     for i, spec_filename in enumerate(self._mangledspeclist):
-        #
-        #         if verbose: print(i, spec_filename)
-        #         # self.mangledspec[spec_filename] = SpectrumClass()
-        #         self.mangledspec[spec_filename] = specfitClass()
-        #         self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
-        #                                       verbose = verbose)
-        #
-        #         orig_specpath = self.mangledspec[spec_filename].data.meta['comments']
-        #         orig_specname = orig_specpath
-        #         print(orig_specpath)
-        #         w = np.where(self.list["spec_path"] == orig_specpath)
-        #         if verbose: print(w[0], len(w[0]))
-        #
-        #         if len(w[0]) > 0:
-        #             self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
-        #             self.mangledspec[spec_filename].data.add_index('wavelength')
-        # #
-        # else:
-        #     warnings.warn("no coco or no listfile")
+            self.sim_spec = OrderedDict()
+
+            for specfile in dir_contents:
+                self.sim_spec[specfile.replace(".spec", "")] = SpectrumClass()
+
+                self.sim_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
+
+            if verbose: print(self.sim_spec.keys())
+        else:
+            warnings.warn("SNClass Object has no 'name' attribute")
         pass
-
 
     def load_sndist(self, path = defaults._default_sn_dist_path, format = "ascii"):
         """
@@ -2786,7 +2770,7 @@ class SNClass():
                 if multiplot:
                     ax1 = axes_list[i]
 
-                if filter_key in self.phot.data and sum(~np.isnan(i) for i in self.phot.data[filter_key]["flux"]): ## Kernel was falling over when there was only nan
+                if filter_key in self.phot.data and sum(~np.isnan(i) for i in sn_sim.phot.data[filter_key]["flux"]): ## Kernel was falling over when there was only nan
                     if verbose: print(i, self.phot.data[filter_key].__dict__)
                     plot_label_string = r'$\rm{' + self.phot.data_filters[filter_key].filter_name.replace('_', '\\_') + '}$'
 
