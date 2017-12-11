@@ -2606,6 +2606,7 @@ class SNClass():
 
     def load_mangledspec(self, snname = False, spec_dir_path = False, verbose = False):
         """
+
         Parameters
         ----------
 
@@ -2641,6 +2642,46 @@ class SNClass():
         #
         else:
             warnings.warn("no coco or no listfile")
+        pass
+
+
+    def load_simspec(self, snname = False, spec_dir_path = False, verbose = False):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
+        if not snname:
+            snname = self.name
+
+        # # self._mangledspeclist = functions.find_recon_spec(snname)
+        # self._mangledspeclist = find_specphase_spec(self.name)
+        # self.mangledspec = OrderedDict()
+        # if verbose: print("loading mangledspec")
+        # if hasattr(self, 'recon_directory') and hasattr(self, '_mangledspeclist') and hasattr(self, "mangledspec"):
+        #     for i, spec_filename in enumerate(self._mangledspeclist):
+        #
+        #         if verbose: print(i, spec_filename)
+        #         # self.mangledspec[spec_filename] = SpectrumClass()
+        #         self.mangledspec[spec_filename] = specfitClass()
+        #         self.mangledspec[spec_filename].load(spec_filename, directory = self.recon_directory,
+        #                                       verbose = verbose)
+        #
+        #         orig_specpath = self.mangledspec[spec_filename].data.meta['comments']
+        #         orig_specname = orig_specpath
+        #         print(orig_specpath)
+        #         w = np.where(self.list["spec_path"] == orig_specpath)
+        #         if verbose: print(w[0], len(w[0]))
+        #
+        #         if len(w[0]) > 0:
+        #             self.mangledspec[spec_filename].set_MJD_obs(self.list['mjd_obs'][w].data[0])
+        #             self.mangledspec[spec_filename].data.add_index('wavelength')
+        # #
+        # else:
+        #     warnings.warn("no coco or no listfile")
         pass
 
 
@@ -3180,6 +3221,28 @@ class SNClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
+    def load_simspec(self, spec_dir_path=defaults._default_specphase_dir_path, verbose=False):
+        """
+
+        """
+
+        if hasattr(self, "name"):
+            dir_contents = [i for i in os.listdir(spec_dir_path) if i.startswith(self.name) and i.endswith(".spec")]
+
+            if verbose: print(dir_contents)
+
+            self.sim_spec = OrderedDict()
+
+            for specfile in dir_contents:
+                self.sim_spec[specfile.replace(".spec", "")] = SpectrumClass()
+
+                self.sim_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
+
+            if verbose: print(self.sim_spec.keys())
+        else:
+            warnings.warn("SNClass Object has no 'name' attribute")
+        pass
+
 
     def plot_filters(self, filters = False, xminorticks = 250, yminorticks = 0.1,
                      show_lims = False, return_figure=False, verbose=False,
@@ -3254,7 +3317,6 @@ class SNClass():
 
             plt.show()
         pass
-
 
 
     def get_lcfit(self, path, verbose=False):
