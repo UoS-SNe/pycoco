@@ -1268,7 +1268,7 @@ class BaseFilterClass():
             warnings.warn("Doesn't look like you have loaded a filter into the object")
 
 
-    def resample_response(self, new_wavelength = False, k = 1, verbose=False, revert=True
+    def resample_response(self, new_wavelength = False, k = 1, verbose=False, revert=True,
                           *args, **kwargs):
         """
         Bit dodgy - spline has weird results for poorly sampled filters.
