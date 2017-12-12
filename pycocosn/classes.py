@@ -1286,7 +1286,7 @@ class BaseFilterClass():
             if verbose: print("resampling response")
 
             if revert:  self.revert(verbose=verbose)
-            
+
             self._wavelength_orig = self.wavelength
             self._throughput_orig = self.throughput
 
