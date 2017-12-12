@@ -2663,14 +2663,11 @@ class SNClass():
         pass
 
 
-    def load_simspec(self, snname = False, spec_dir_path = defaults._default_specphase_dir_path, verbose = False):
+    def load_simspec(self, spec_dir_path=defaults._default_specphase_dir_path, verbose=False):
         """
-        Parameters
-        ----------
 
-        Returns
-        -------
         """
+
         if hasattr(self, "name"):
             dir_contents = [i for i in os.listdir(spec_dir_path) if i.startswith(self.name) and i.endswith(".spec")]
 
@@ -3251,28 +3248,6 @@ class SNClass():
             warnings.warn("Doesn't seem to be any data here (empty self.data)")
         pass
 
-    def load_simspec(self, spec_dir_path=defaults._default_specphase_dir_path, verbose=False):
-        """
-
-        """
-
-        if hasattr(self, "name"):
-            dir_contents = [i for i in os.listdir(spec_dir_path) if i.startswith(self.name) and i.endswith(".spec")]
-
-            if verbose: print(dir_contents)
-
-            self.sim_spec = OrderedDict()
-
-            for specfile in dir_contents:
-                self.sim_spec[specfile.replace(".spec", "")] = SpectrumClass()
-
-                self.sim_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
-
-            if verbose: print(self.sim_spec.keys())
-        else:
-            warnings.warn("SNClass Object has no 'name' attribute")
-        pass
-
 
     def plot_filters(self, filters = False, xminorticks = 250, yminorticks = 0.1,
                      show_lims = False, return_figure=False, verbose=False,
@@ -3532,6 +3507,31 @@ class SNClass():
         else:
             warnings.warn("object has no spectra")
         pass
+
+
+    def get_sim_specphot(self, spectrum = False, filter_objects = False, verbose = False):
+        """
+
+        :param spectrum:
+        :param filter_objects:
+        :param verbose:
+        :return:
+        """
+        if hasattr(self, "spec"):
+            if spectrum:
+                spec_list = [spectrum]
+            else:
+                spec_list = self.spec
+            if not filter_objects:
+                filter_objects = self.phot.data_filters
+
+            for i, spec in enumerate(spec_list):
+                self.sim_spec[spec].get_specphot(filter_objects=filter_objects, verbose=verbose)
+
+        else:
+            warnings.warn("object has no spectra")
+        pass
+
 
 
 class InfoClass():
