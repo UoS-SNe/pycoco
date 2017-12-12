@@ -1285,7 +1285,8 @@ class BaseFilterClass():
 
             if verbose: print("resampling response")
 
-            if revert:  self.revert(verbose=verbose)
+            if revert:
+                self.revert(verbose=verbose)
 
             self._wavelength_orig = self.wavelength
             self._throughput_orig = self.throughput
@@ -1350,10 +1351,11 @@ class BaseFilterClass():
         """
 
         if verbose: print("reverting to original response")
-
-        self.wavelength = self._wavelength_orig
-        self.throughput = self._throughput_orig
-
+        if hasattr(self, "_wavelength_orig") and hasattr(self, "_throughput_orig"):
+            self.wavelength = self._wavelength_orig
+            self.throughput = self._throughput_orig
+        else:
+            warnings.warn("nothing to revert to")
 
         pass
 
