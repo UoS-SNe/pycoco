@@ -1340,6 +1340,21 @@ class BaseFilterClass():
             warnings.warn("Foo")
 
 
+    def revert(self, verbose=False):
+        """
+
+        :param verbose:
+        :return:
+        """
+
+        if verbose: print("reverting to original response")
+
+        self.wavelength = self._wavelength_orig
+        self.throughput = self._throughput_orig
+
+
+        pass
+
     def load_table(self, table, name,  directory = False, wavelength_u = u.angstrom,
              verbose = False):
         """
