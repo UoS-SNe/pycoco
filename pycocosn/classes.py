@@ -2702,14 +2702,14 @@ class SNClass():
 
             if verbose: print(dir_contents)
 
-            self.sim_spec = OrderedDict()
+            self.recon_spec = OrderedDict()
 
             for specfile in dir_contents:
-                self.sim_spec[specfile.replace(".spec", "")] = SpectrumClass()
+                self.recon_spec[specfile.replace(".spec", "")] = SpectrumClass()
 
-                self.sim_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
+                self.recon_spec[specfile.replace(".spec", "")].load(specfile, directory=spec_dir_path, verbose=verbose,)
 
-            if verbose: print(self.sim_spec.keys())
+            if verbose: print(self.recon_spec.keys())
         else:
             warnings.warn("SNClass Object has no 'name' attribute")
         pass

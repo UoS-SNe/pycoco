@@ -211,6 +211,9 @@ def calc_spectrum_filter_flux(filter_name=False, filter_object=False, spectrum_o
         spectrum_object.load(filename=spectrum_filename)
 
     if verbose:
+        print("filter = ", filter_object.filter_name)
+
+    if verbose:
         print("min wavelength = ", np.nanmin(filter_object.wavelength))
         print("max wavelength = ", np.nanmax(filter_object.wavelength))
 
