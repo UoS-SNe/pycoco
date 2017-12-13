@@ -3449,6 +3449,42 @@ class SNClass():
         pass
 
 
+    def check_sim_overlaps(self, verbose = False):
+        """
+        Checks the filters that the spectrum overlaps with.
+        originally used functions.filter_within_spec
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if hasattr(self.phot, "data") and hasattr(self, 'spec'):
+            for i, spectrum in enumerate(self.sim_spec):
+                if verbose:print(i, spectrum)
+                for j, filtername in enumerate(self.phot.data_filters):
+                    if verbose:print(j, filtername)
+
+                    if hasattr(self.phot.data_filters[filtername], "_lower_edge") and \
+                      hasattr(self.phot.data_filters[filtername], "_upper_edge") and \
+                      hasattr(self.sim_spec[spectrum], "data"):
+                       blue_bool = self.phot.data_filters[filtername]._lower_edge > self.sim_spec[spectrum].min_wavelength
+                       red_bool = self.phot.data_filters[filtername]._upper_edge < self.sim_spec[spectrum].max_wavelength
+
+                       if blue_bool and red_bool:
+                            within = True
+                       else:
+                            within = False
+
+                    if verbose:print(within)
+                    if within:
+                        self.sim_spec[spectrum]._add_to_overlapping_filters(filtername)
+        else:
+            warnings.warn("SNClass.check_sim_overlaps - something went wrong... no data?")
+        pass
+
+
     def check_overlaps(self, verbose = False):
         """
         Checks the filters that the spectrum overlaps with.
@@ -3521,10 +3557,10 @@ class SNClass():
             if spectrum:
                 spec_list = [spectrum]
             else:
-                spec_list = self.spec
+                spec_list = self.sim_spec
             if not filter_objects:
                 filter_objects = self.phot.data_filters
-
+            self.check_sim_overlaps(verbose=verbose)
             for i, spec in enumerate(spec_list):
                 self.sim_spec[spec].get_specphot(filter_objects=filter_objects, verbose=verbose)
 
