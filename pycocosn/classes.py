@@ -3613,19 +3613,19 @@ class SNClass():
 
                 self.sim_spec[spec].get_specphot(filter_objects=valid_filter_objects, verbose=verbose)
 
-        ## Stack all specphot
-        specphot = Table(names=("MJD", "flux", "flux_err", "filter"), dtype=('f', 'f', 'f', 'S'))
-        for i, spec in enumerate(self.sim_spec):
+            ## Stack all specphot
+            specphot = Table(names=("MJD", "flux", "flux_err", "filter"), dtype=('f', 'f', 'f', 'S'))
+            for i, spec in enumerate(self.sim_spec):
 
-            mjd = np.ones(len(self.sim_spec[spec].specphot["flux"])) * float(spec.split("_")[-1])
-            flux_err = np.zeros(len(self.sim_spec[spec].specphot["flux"]))
-            this_spec_table = Table(
-                [mjd, self.sim_spec[spec].specphot["flux"], flux_err, self.sim_spec[spec].specphot["filter"]],
-                names=("MJD", "flux", "flux_err", "filter"))
-            specphot = vstack([specphot, this_spec_table])
+                mjd = np.ones(len(self.sim_spec[spec].specphot["flux"])) * float(spec.split("_")[-1])
+                flux_err = np.zeros(len(self.sim_spec[spec].specphot["flux"]))
+                this_spec_table = Table(
+                    [mjd, self.sim_spec[spec].specphot["flux"], flux_err, self.sim_spec[spec].specphot["filter"]],
+                    names=("MJD", "flux", "flux_err", "filter"))
+                specphot = vstack([specphot, this_spec_table])
 
-        self.sim_specphot = classes.PhotometryClass()
-        self.sim_specphot.load_table(specphot)
+            self.sim_specphot = classes.PhotometryClass()
+            self.sim_specphot.load_table(specphot)
 
         else:
             warnings.warn("object has no spectra")
@@ -3661,17 +3661,17 @@ class SNClass():
 
                 self.recon_spec[spec].get_specphot(filter_objects=valid_filter_objects, verbose=verbose)
 
-        ## Stack all specphot
-        specphot = Table(names=("MJD", "flux", "flux_err", "filter"), dtype=('f', 'f', 'f', 'S'))
-        for i, spec in enumerate(self.recon_spec):
-            mjd = np.ones(len(self.recon_spec[spec].specphot["flux"])) * float(spec.split("_")[-1])
-            flux_err = np.zeros(len(self.recon_spec[spec].specphot["flux"]))
-            this_spec_table = Table([mjd, self.recon_spec[spec].specphot["flux"], flux_err, self.recon_spec[spec].specphot["filter"]],
-                                    names=("MJD", "flux", "flux_err", "filter"))
-            specphot = vstack([specphot, this_spec_table])
+            ## Stack all specphot
+            specphot = Table(names=("MJD", "flux", "flux_err", "filter"), dtype=('f', 'f', 'f', 'S'))
+            for i, spec in enumerate(self.recon_spec):
+                mjd = np.ones(len(self.recon_spec[spec].specphot["flux"])) * float(spec.split("_")[-1])
+                flux_err = np.zeros(len(self.recon_spec[spec].specphot["flux"]))
+                this_spec_table = Table([mjd, self.recon_spec[spec].specphot["flux"], flux_err, self.recon_spec[spec].specphot["filter"]],
+                                        names=("MJD", "flux", "flux_err", "filter"))
+                specphot = vstack([specphot, this_spec_table])
 
-        self.recon_specphot = classes.PhotometryClass()
-        self.recon_specphot.load_table(specphot)
+            self.recon_specphot = classes.PhotometryClass()
+            self.recon_specphot.load_table(specphot)
 
         else:
             warnings.warn("object has no spectra")
