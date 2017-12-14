@@ -28,11 +28,11 @@ install:
 #  - pip install --only-binary=pandas pandas
 #  - pip install --only-binary=astropy astropy
 #  - pip install --only-binary=matplotlib matplotlib
-#  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
-#  - git clone https://github.com/lsst/throughputs.git ../throughputs
-#  - mkdir ../Dust
-#  - mkdir ../Dust/sfddata-master
-#  - pwd
+  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
+  - git clone https://github.com/lsst/throughputs.git ../throughputs
+  - mkdir ../Dust
+  - mkdir ../Dust/sfddata-master
+  - pwd
 #  - python setup.py install
   - pip install pycocosn
 script:
