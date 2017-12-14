@@ -31,5 +31,5 @@ setup(# package information
       packages=["pycoco",],
       package_dir={"pycoco":"pycocosn"},
       package_data={"pycoco":['kcorr_data/*']},
-      install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy', 'sfdmap', 'lmfit']
+      install_requires=['numpy', 'matplotlib', 'pandas', 'sqlalchemy', 'astropy>=2.0', 'sfdmap', 'lmfit']
       )

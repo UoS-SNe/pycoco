@@ -5,7 +5,7 @@ branches:
   - dev
   - master
 env:
-  - PYCOCO_DATA_DIR="./testdata/" PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/"
+  - PYCOCO_FILTER_DIR="../CoCo/data/filters/" COCO_ROOT_DIR="../CoCo/" LSST_THROUGHPUTS="../throughputs/" LSST_THROUGHPUTS_BASELINE="../throughputs/baseline/" SFD_DIR="../Dust/sfddata-master/"
 python:
 #  - "2.7"
   - "3.6"
@@ -28,14 +28,16 @@ install:
 #  - pip install --only-binary=pandas pandas
 #  - pip install --only-binary=astropy astropy
 #  - pip install --only-binary=matplotlib matplotlib
-#  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
-#  - git clone https://github.com/lsst/throughputs.git ../throughputs
-#  - mkdir ../Dust
-#  - mkdir ../Dust/sfddata-master
-#  - pwd
+  - git clone https://github.com/UoS-SNe/CoCo.git ../CoCo
+  - git clone https://github.com/lsst/throughputs.git ../throughputs
+  - mkdir ../Dust
+  - mkdir ../Dust/sfddata-master
+  - pwd
 #  - python setup.py install
+#  - pip list
   - pip install pycocosn
+#  - pip list
 script:
 #  - pytest # or py.test for Python versions 3.5 and below
 #  - pip list
-  - python -m unittest scripts/test_pycoco.py
+  - python -m unittest scripts/test_pycoco_travis.py
