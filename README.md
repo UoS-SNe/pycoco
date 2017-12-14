@@ -18,6 +18,8 @@ ___
  * fixed a particularly nasty bug (https://github.com/RobFirth/pycoco/issues/28) that was screwing up specphot (via
  filter resampling)
 
+ * Updated notebook tarball
+
  * Now available on PyPi and via `pip` - package available to install as `pycocosn`
  
  * Extending templates now possible with Black Body spectrum, flat and linear
