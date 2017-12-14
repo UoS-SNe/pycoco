@@ -138,11 +138,11 @@ class TestClass(unittest.TestCase):
         self.assertEqual(len(pcc.classes.find_specphase_spec("SN2006aj")), 19)
 
     def test_load_info_finds_and_loads_default(self):
-        i = pcc.functions.load_info()
+        i = pcc.functions.load_info(verbose=True)
         self.assertTrue(i.table.meta["success"])
 
     def test_load_info_finds_default(self):
-        i = pcc.functions.load_info()
+        i = pcc.functions.load_info(verbose=True)
         self.assertEqual(len(i.table), 28)
 
     ## CLASS TESTS ##
