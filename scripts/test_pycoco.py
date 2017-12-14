@@ -1,6 +1,7 @@
 """
 Test suite for pycoco
 """
+import pycoco as pcc
 
 if __name__ is '__main__':
     # test = False
