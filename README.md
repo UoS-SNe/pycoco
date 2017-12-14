@@ -28,7 +28,7 @@ ___
 
  * Added more test cases to test_pycoco
 
- * Travis-CI implemented and Master and dev are passing
+ * Travis-CI implemented and Master and dev are passing. Fixed bug with ENVIRONS.
 
  * Dependancies now handled in setup.py
 
