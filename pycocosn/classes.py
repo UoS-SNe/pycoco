@@ -674,7 +674,7 @@ class BaseSpectrumClass():
                     within = False
                if verbose: print(within)
                if within:
-                   self._add_to_overlapping_filters(filter_name)
+                   self._add_to_overlapping_filters(filter_name, verbose=verbose)
             else:
                 warnings.warn("SpectrumClass.check_overlaps - something went wrong... no overlaps or data?")
         if self._n_overlapping_filters == 1:
@@ -1361,6 +1361,7 @@ class BaseFilterClass():
             warnings.warn("nothing to revert to")
 
         pass
+
 
     def load_table(self, table, name,  directory = False, wavelength_u = u.angstrom,
              verbose = False):
@@ -3482,7 +3483,7 @@ class SNClass():
 
                     if verbose:print(within)
                     if within:
-                        self.spec[spectrum]._add_to_overlapping_filters(filtername)
+                        self.spec[spectrum]._add_to_overlapping_filters(filtername, verbose=verbose)
         else:
             warnings.warn("SNClass.check_overlaps - something went wrong... no data?")
         pass
@@ -3518,7 +3519,7 @@ class SNClass():
 
                     if verbose:print(within)
                     if within:
-                        self.sim_spec[spectrum]._add_to_overlapping_filters(filtername)
+                        self.sim_spec[spectrum]._add_to_overlapping_filters(filtername, verbose=verbose)
         else:
             warnings.warn("SNClass.check_sim_overlaps - something went wrong... no data?")
         pass
@@ -3584,7 +3585,7 @@ class SNClass():
         pass
 
 
-    def get_sim_specphot(self, spectrum = False, filter_objects = False, verbose = False):
+    def get_sim_specphot(self, spectrum = False, filter_objects = False, verbose = False, err_size=0.01):
         """
 
         :param spectrum:
@@ -3624,7 +3625,9 @@ class SNClass():
                     names=("MJD", "flux", "flux_err", "filter"))
                 specphot = vstack([specphot, this_spec_table])
 
-            self.sim_specphot = classes.PhotometryClass()
+            specphot["flux_err"] = np.ones(len(specphot["flux"]))*err_size*np.nanmax(specphot["flux"])
+
+            self.sim_specphot = PhotometryClass()
             self.sim_specphot.load_table(specphot)
 
         else:
@@ -3632,7 +3635,7 @@ class SNClass():
         pass
 
 
-    def get_recon_specphot(self, spectrum=False, filter_objects=False, verbose=False):
+    def get_recon_specphot(self, spectrum=False, filter_objects=False, verbose=False, err_size=0.01):
         """
 
         :param spectrum:
@@ -3670,7 +3673,9 @@ class SNClass():
                                         names=("MJD", "flux", "flux_err", "filter"))
                 specphot = vstack([specphot, this_spec_table])
 
-            self.recon_specphot = classes.PhotometryClass()
+            specphot["flux_err"] = np.ones(len(specphot["flux"]))*err_size*np.nanmax(specphot["flux"])
+
+            self.recon_specphot = PhotometryClass()
             self.recon_specphot.load_table(specphot)
 
         else:
