@@ -37,7 +37,7 @@ __all__ = [
 
 
 def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
-               verbose = True):
+               verbose = False):
     """
     Check to see if a fit has been done. Does this by
     looking for reconstructed LC files
@@ -83,7 +83,7 @@ def test_LCfit(snname, coco_dir = defaults._default_coco_dir_path,
 
 
 def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
-              testrun=False, verbose = True):
+              testrun=False, verbose = False):
     """
 
     :param path:
@@ -124,7 +124,7 @@ def run_LCfit(path, coco_dir = defaults._default_coco_dir_path, model = False,
 
 
 def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_path,
-                        data_dir = defaults._default_data_dir_path, verbose = True):
+                        data_dir = defaults._default_data_dir_path, verbose = False):
     """
 
     :param listfile_path:
@@ -153,7 +153,7 @@ def run_LCfit_fileinput(listfile_path, coco_dir = defaults._default_coco_dir_pat
     pass
 
 
-def run_all_SNe_LCfit(verbose = True):
+def run_all_SNe_LCfit(verbose = False):
     """
 
     :param verbose:
@@ -164,7 +164,7 @@ def run_all_SNe_LCfit(verbose = True):
 
 
 def test_specfit(snname, coco_dir = False,
-               verbose = True):
+               verbose = False):
     """
     Check to see if a fit has been done. Does this by
     looking for reconstructed .spec files
@@ -211,7 +211,7 @@ def test_specfit(snname, coco_dir = False,
 
 
 def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, plot = False,
-                coco_dir=defaults._default_coco_dir_path, overwrite=False, verbose = True):
+                coco_dir=defaults._default_coco_dir_path, overwrite=False, verbose = False):
     """
     replacement for `run_cocospecfit`. Mangles the spectra in the listfiles. Built for comfort, not speed.
 
@@ -268,7 +268,7 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
     pass
 
 
-def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = True):
+def run_cocospecfit(path, coco_dir=defaults._default_coco_dir_path, verbose = False):
     """
     runs CoCo specfit on the listfile supplied in path
 
@@ -339,7 +339,7 @@ def specfit_all(dirpath=defaults._default_list_dir_path, overwrite=False, verbos
 
 def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = False, fitpath = False,
                anchor_distance=1000, save=True, plot=False, coco_dir=defaults._default_coco_dir_path,
-               save_new_list = False, overwrite=False, verbose = True):
+               save_new_list = False, overwrite=False, verbose = False):
     """
     runs CoCo specfit on the listfile supplied in path.
 
@@ -437,7 +437,7 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
 
 
 def run_specphase(filtername, phase_path=False, filetype=".dat", coco_dir=defaults._default_coco_dir_path,
-                  verbose = True, model=False, recon_dir=defaults._default_recon_dir_path, test=False):
+                  verbose = False, model=False, recon_dir=defaults._default_recon_dir_path, test=False):
     """
     runs CoCo specphase.
 
