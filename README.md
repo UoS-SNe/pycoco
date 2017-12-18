@@ -1,7 +1,7 @@
 # **`pycoco`**
 ___
 
-## v0.9.15
+## v0.9.16
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)[![DOI](https://zenodo.org/badge/74136059.svg)](https://zenodo.org/badge/latestdoi/74136059)
 ___
@@ -18,7 +18,7 @@ ___
  * fixed a particularly nasty bug (https://github.com/RobFirth/pycoco/issues/28) that was screwing up specphot (via
  filter resampling)
 
- * Updated notebook tarball
+ * Updated notebook tarball - (again 17/12/17)
 
  * Now available on PyPi and via `pip` - package available to install as `pycocosn`
  
