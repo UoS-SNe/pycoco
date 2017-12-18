@@ -349,6 +349,7 @@ def specfit_sn(SNobject = False , snname = False, listpath = False, photpath = F
     """
 
     if SNobject:
+        snname = SNobject.name
         pass
     elif snname:
         SNobject = classes.SNClass(snname)
