@@ -251,11 +251,11 @@ def run_specfit(SNObject, wantedfilters=False, anchor_distance=1000, save=True, 
                     j = 1
                     outfile = SNObject.name + "_" + str(fit_dict["SpectrumObject"].mjd_obs + j * 0.00001).ljust(12, "0") + ".spec"
                     j += 1
-                print(outfile)
+                if verbose: print(outfile)
                 outfile_log.append(outfile)
 
                 if save:
-                    kcorr.save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile, squash=overwrite)
+                    kcorr.save_mangle(fit_dict["SpectrumObject"], outfile, fit_dict["SpectrumObject"].infile, squash=overwrite, verbose=verbose)
     else:
         print("SNObject needs lcfit and spectra")
     # utils.check_file_path(path)
