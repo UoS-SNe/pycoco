@@ -985,17 +985,23 @@ def donor_extend(S, snobject, filter_max=False, phase=False, mjdmax=False, snnam
     if verbose: print(wmax, wmax_flux)
 
     red_spec_table = S_donor.data[np.where(S_donor.data["wavelength"] > wmax)]
+    if verbose:
+        print(len(red_spec_table))
+        print(red_spec_table)
 
-    donor_flux = \
-    red_spec_table["flux"][np.where(red_spec_table["wavelength"] == np.nanmin(red_spec_table["wavelength"]))][0]
-    if verbose: print(donor_flux)
+    if len(red_spec_table) > 0:
+        donor_flux = \
+        red_spec_table["flux"][np.where(red_spec_table["wavelength"] == np.nanmin(red_spec_table["wavelength"]))][0]
+        if verbose: print(donor_flux)
 
-    flux_scaling = wmax_flux / donor_flux
-    if verbose: print(flux_scaling)
+        flux_scaling = wmax_flux / donor_flux
+        if verbose: print(flux_scaling)
 
-    red_spec_table["flux"] = red_spec_table["flux"] * flux_scaling
+        red_spec_table["flux"] = red_spec_table["flux"] * flux_scaling
 
-    combined_spec = classes.SpectrumClass()
-    combined_spec.load_table(vstack([S.data, red_spec_table]), path="")
+        combined_spec = classes.SpectrumClass()
+        combined_spec.load_table(vstack([S.data, red_spec_table]), path="")
+    else:
+        combined_spec = S
 
     return combined_spec

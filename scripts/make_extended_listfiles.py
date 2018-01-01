@@ -24,16 +24,17 @@ for listfile in all_listfiles:
     sn.load_phot(path=os.path.join(pcc.defaults._default_data_dir_path, "lc/" + snname + ".dat"))
     sn.load_list(listfile)
 
-    # make_new_listfile = True
-    make_new_listfile = False
+    make_new_listfile = True
+    # make_new_listfile = False
 
     if make_new_listfile:
         # newpath = Column(
         #     ["/Users/berto/data/CoreCollapse/Blue_extension/spectra_blue_extended/" + snname + "/" + path.split("/")[-1] for
         #      path in sn.list["spec_path"]], name="spec_path")
-        basedir = "/Users/berto/data/CoreCollapse/Blue_extension/spectra_blue_extended/"
+        # basedir = "/Users/berto/data/CoreCollapse/Blue_extension/spectra_blue_extended/"
+        basedir = "/Users/berto/Code/CoCo/data/spec_extended/"
         newpath = Column(
-            [basedir + snname + "/" + i for i in os.listdir(os.path.join(basedir, snname))], name="spec_path")
+            ["data/spec_extended/" + i for i in os.listdir(basedir) if snname in i], name="spec_path")
 
         newmjdobs = Column([np.float(specname.split("_")[-1].replace(".spec", "")) for specname in newpath], name="mjd_obs")
         newsnnames = Column([snname for i in newmjdobs], name="snname")
@@ -45,11 +46,11 @@ for listfile in all_listfiles:
         sn.list = new_list_table
 
         print(new_list_table)
-        outpath = os.path.join( "/Users/berto/data/CoreCollapse/Blue_extension/lists", snname+".list")
+        outpath = os.path.join( "/Users/berto/data/CoreCollapse/Blue_extension/lists_final", snname+".list")
 
         new_list_table.write(outpath, format = "ascii.fast_commented_header", overwrite=True)
 
-    listfile = os.path.join("/Users/berto/data/CoreCollapse/Blue_extension/lists", snname+".list")
+    listfile = os.path.join("/Users/berto/data/CoreCollapse/Blue_extension/lists_final", snname+".list")
 
     sn.load_list(listfile)
     print(sn.list)
@@ -60,18 +61,13 @@ for listfile in all_listfiles:
     sn.get_lcfit(os.path.join(pcc.defaults._default_recon_dir_path, snname + ".dat"))
     sn.check_overlaps()
 
-    # print(63)
-    # print(len(sn.spec))
-
-    for spec_key in sn.spec:
-        print(spec_key)
-        S = sn.spec[spec_key]
-        S.get_specphot(sn.phot.data_filters, verbose=True)
-
-        # new_spec = pcc.classes.SpectrumClass()
-        new_spec = pcc.kcorr.donor_extend(S, sn, verbose=True)
-        # new_spec.load_table(pcc.kcorr.linear_extend(S, return_table=True))
-        # new_spec.load_table(pcc.kcorr.donor_extend(S, snobject=sn))
-
-        new_spec.save(filename = spec_key.replace(".spec", ".donor.spec"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"), verbose=True)
-
+    # for spec_key in sn.spec:
+    #     print(spec_key)
+    #     S = sn.spec[spec_key]
+    #     S.get_specphot(sn.phot.data_filters, verbose=True)
+    #
+    #     new_spec = pcc.classes.SpectrumClass()
+    #
+    #     new_spec.load_table(pcc.kcorr.linear_extend(S, return_table=True))
+    #
+    #     new_spec.save(filename = spec_key.replace(".txt", ".donor.txt"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"))

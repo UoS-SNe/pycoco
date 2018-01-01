@@ -300,6 +300,8 @@ class BaseSpectrumClass():
         if trim_wavelength:
             spec_table = spec_table[np.bitwise_and(spec_table['wavelength'] > wmin, spec_table['wavelength'] < wmax)]
 
+        if not hasattr(self, "meta"):
+            meta = {}
         if path:
             spec_table.meta["filepath"] = path
             spec_table.meta["filename"] = path.split("/")[-1]
