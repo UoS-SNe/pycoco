@@ -981,8 +981,23 @@ def donor_extend(S, snobject, filter_max=False, phase=False, mjdmax=False, snnam
 
     wmax = np.nanmax(S.wavelength)
     wmax_flux = S.flux[np.where(S.wavelength == wmax)][0]
-
     if verbose: print(wmax, wmax_flux)
+
+    while wmax_flux == 0:
+        if verbose:
+            print("still 0!")
+        S.data = S.data[:-1]
+        S.wavelength = S.wavelength[:-1]
+        S.flux = S.flux[:-1]
+
+        wmax = np.nanmax(S.wavelength)
+        wmax_flux = S.flux[np.where(S.wavelength == wmax)][0]
+
+
+    if verbose:
+        print("Not 0!")
+        print(wmax, wmax_flux)
+
 
     red_spec_table = S_donor.data[np.where(S_donor.data["wavelength"] > wmax)]
     if verbose:

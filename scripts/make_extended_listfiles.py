@@ -32,9 +32,10 @@ for listfile in all_listfiles:
         #     ["/Users/berto/data/CoreCollapse/Blue_extension/spectra_blue_extended/" + snname + "/" + path.split("/")[-1] for
         #      path in sn.list["spec_path"]], name="spec_path")
         # basedir = "/Users/berto/data/CoreCollapse/Blue_extension/spectra_blue_extended/"
-        basedir = "/Users/berto/Code/CoCo/data/spec_extended/"
+        # basedir = "/Users/berto/Code/CoCo/data/spec_extended/"
+        basedir = "/Users/berto/Code/CoCo/data/spec_extended/"+snname+"/"
         newpath = Column(
-            ["data/spec_extended/" + i for i in os.listdir(basedir) if snname in i], name="spec_path")
+            ["data/spec_extended/"+ snname + "/" + i for i in os.listdir(basedir) if snname in i], name="spec_path")
 
         newmjdobs = Column([np.float(specname.split("_")[-1].replace(".spec", "")) for specname in newpath], name="mjd_obs")
         newsnnames = Column([snname for i in newmjdobs], name="snname")

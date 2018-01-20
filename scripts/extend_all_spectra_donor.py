@@ -73,5 +73,6 @@ for listfile in all_listfiles:
         # new_spec.load_table(pcc.kcorr.linear_extend(S, return_table=True))
         # new_spec.load_table(pcc.kcorr.donor_extend(S, snobject=sn))
 
-        new_spec.save(filename = spec_key.replace(".spec", ".donor.spec"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"), verbose=True)
+        # new_spec.save(filename = spec_key.replace(".spec", ".donor.spec"), path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"), verbose=True)
+        new_spec.save(filename = spec_key, path = os.path.join(pcc.defaults._default_data_dir_path, "spec_extended"), verbose=True)
 
