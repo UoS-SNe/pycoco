@@ -1,7 +1,7 @@
 # **`pycoco`**
 ___
 
-## v0.9.18
+## v0.9.19
 ___
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) [![Build Status](https://travis-ci.org/RobFirth/pycoco.svg?branch=master)](https://travis-ci.org/RobFirth/pycoco)[![DOI](https://zenodo.org/badge/74136059.svg)](https://zenodo.org/badge/latestdoi/74136059)
 ___
@@ -12,6 +12,8 @@ CoCo was originally started by Natasha Karpenka, and is currently being updated 
 
 A paper, Firth et. al. 2017, is currently in prep.
 ___
+
+ * Some spectra had 0 flux at red-extreme, needed to patch (see issue https://github.com/RobFirth/pycoco/issues/41)
 
  * Extending spectra with "donor" spectra. Bugfixes in v0.9.18.
 
